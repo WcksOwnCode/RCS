@@ -2114,6 +2114,17 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
 
     CharacteristicPoint.push_back(CharacteristicPoint[0]);
 
+
+    if(ui->disperse_checkBox->isChecked())
+    {
+        CharacteristicPoint .clear();
+
+        for(int i=0;i<OrderdOutLine.length();i=i+disperse)
+        {
+           CharacteristicPoint.push_back(OrderdOutLine[i]);
+        }
+    }
+    CharacteristicPoint.push_back(CharacteristicPoint[0]);
     /*
     //直线之间分断检查
     //先看前面有咩有bug
@@ -2170,4 +2181,10 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
 void MainWindow::DrawImage(QImage im,QVector<QVector2D> P,QColor Color)
 {
 
+}
+
+void MainWindow::on_DisperseSlider_valueChanged(int value)
+{
+    disperse=2+value/4;
+    ui->Shownumber_for_disperse->setText(QString::number(disperse));
 }

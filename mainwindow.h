@@ -300,6 +300,8 @@ private:
 
     QVector<QPointF> curvePoints; // 曲线上的点
 
+    int disperse=2;
+
 private slots:
     /*************************************/
     //From APOtoCommunicate
@@ -344,6 +346,8 @@ private slots:
     void on_Canny_button_clicked();
 
     void on_ChangeTheimage__currentIndexChanged(int index);
+
+    void on_DisperseSlider_valueChanged(int value);
 
 signals:
     /*************************************/

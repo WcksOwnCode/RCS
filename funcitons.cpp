@@ -633,6 +633,7 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
     // isgetcurve 默认参数是false，这个参数表示该函数是否进行曲线检测，false是进行，true是直接返回曲线离散点
     //返回 曲线离散点的时候 记录方式每一个2D记录数据相同
     int CurveD=2;//间隔多少个点进行一次求取
+    int tempCurved=2;//当CerveD太大，用tempCurved来离散
     const int MaxInterval=10;//最大间隔点数
     bool IsCurve=false;
     int length=P.length();
@@ -687,18 +688,18 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                 //step one 渐变检测，看是不是逐渐增加或者逐渐减少
                 change.push_back(Vd_slope[q]-Vd_slope[q-1]);
             }
-            float thresh=6.0;//误差阈值6°
+            float thresh=15.0;//误差阈值15°
             QVector<int>  positive;//记录满足误差阈值的点在change中的位置(正数误差)
             QVector<int>  minis;//记录满足误差阈值的点在change中的位置（负数误差）
             QVector<int>  strait;//记录满足误差阈值的点在change中的位置（直线）
             QVector<int>  toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
             for(int q=0;q<change.length();q++)
             {
-                if(change[q]<thresh&&change[q]>0)//正向角度误差0~6°
+                if(change[q]<thresh&&change[q]>0)//正向角度误差0~15°
                 {
                     positive.push_back(q);
                 }
-                else if(change[q]>-thresh&&change[q]<0)//逆向角度误差0~6°
+                else if(change[q]>-thresh&&change[q]<0)//逆向角度误差0~15°
                 {
                     minis.push_back(q);
                 }
@@ -714,11 +715,23 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
 
             //对上述提取的四种数据进行分析
             //考虑是不是做函数
-            //先对跨距太大的点进行测试
-            if(toomax.length()>3){
-            for(int l=0;l<toomax.length();l++){
 
-            }
+
+
+            //先对跨距太大的点进行测试
+
+
+            if(toomax.length()>3){
+                for(int l=0;l<toomax.length();l++)
+                {
+                    int pstart=toomax[l];
+                    int pend=toomax[l]+2;
+
+
+
+
+
+                }
 
             }
         }
