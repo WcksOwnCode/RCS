@@ -397,9 +397,13 @@ QVector<double> Slope(QVector<QVector2D> S, int d)
 QVector<int> SimplifySlope(QVector<double>S_Slope,QVector<int> BP)
 {
     //Slope是计算出的斜率数据
+
     //BP对应的转折点
+
     //返回简化后的转折点(即特征点)
+
     //简化方式是进行斜率匹配
+
     int length=S_Slope.length();
 
     if(length<3)
@@ -407,30 +411,41 @@ QVector<int> SimplifySlope(QVector<double>S_Slope,QVector<int> BP)
         QMessageBox::information(NULL,"notice","length is not enough!  (Simplelify the slopes)");
 
     }
+
     bool outtotxt=false;
+
     QString outaddr="C:/Users/duke/Desktop/SimplifySlope.txt";
+
     QVector<int> toreturn;
-    const double miss=6.0;//正负miss°的角度匹配值
+
+    const double miss=4.0;//正负miss°的角度匹配值
+
     for(int i=1;i<length;i++)
     {
+
         if(abs(S_Slope[i])-abs(S_Slope[i]-1)<=miss)
         {
             toreturn.push_back(BP[i-1]);
 
             toreturn.push_back(BP[i+1]);
         }
+
         else
+
         {
             toreturn.push_back(BP[i-1]);
+
             toreturn.push_back(BP[i]);
+
             toreturn.push_back(BP[i+1]);
         }
     }
 
     qSort(toreturn.begin(),toreturn.end());
+
     QVector<int>::iterator end_unique=std::unique(toreturn.begin(),toreturn.end());
+
     toreturn.erase(end_unique,toreturn.end());
-    qDebug()<<toreturn;
 
     if(outtotxt)
     {
@@ -571,6 +586,7 @@ QVector<int> CheckPointInline(QVector<double> dis, QVector<double> slope, QVecto
                     for(int j=line[i]+1;j<=line[i+1];j++)
                     {
                         ToCurve.push_back(j);
+
                         CurveRe.clear();
                         //  CurveRe=CurveCheck(OOL,ToCurve);//送去曲线检测
                         ToCurve.clear();
@@ -602,7 +618,7 @@ QVector<int> CheckPointInline(QVector<double> dis, QVector<double> slope, QVecto
     }
     else if(line.length()==0)//全为曲线
     {
-       CurveRe=CurveCheck(OOL,BP,true);
+        CurveRe=CurveCheck(OOL,BP,true);
     }
     return BP;//temp return
 }
@@ -617,7 +633,7 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
     // isgetcurve 默认参数是false，这个参数表示该函数是否进行曲线检测，false是进行，true是直接返回曲线离散点
     //返回 曲线离散点的时候 记录方式每一个2D记录数据相同
     int CurveD=2;//间隔多少个点进行一次求取
-    const int MaxInterval=6;//最大间隔点数
+    const int MaxInterval=10;//最大间隔点数
     bool IsCurve=false;
     int length=P.length();
     int num=P[length]-P[0];//获取总共点数
@@ -637,8 +653,15 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
     {
         CurveD=5;
     }
-    else if(num>=56)
+    else if(num>=56&&num<98)
     {
+        CurveD=6;
+    }
+    else if(num>=98&&num<154)
+    {
+        CurveD=8;
+    }
+    else{
         CurveD=MaxInterval;
     }
 
@@ -658,16 +681,17 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
             Vd_slope=Slope(Vd_Toslope,CurveD);//获取多间隔斜率
             //检测斜率规律
             QVector<double>change;
+
             for(int q=1;q<Vd_slope.length();q++)
             {
                 //step one 渐变检测，看是不是逐渐增加或者逐渐减少
                 change.push_back(Vd_slope[q]-Vd_slope[q-1]);
             }
-            float thresh=6.0;//误差阈值7°
+            float thresh=6.0;//误差阈值6°
             QVector<int>  positive;//记录满足误差阈值的点在change中的位置(正数误差)
             QVector<int>  minis;//记录满足误差阈值的点在change中的位置（负数误差）
-            QVector<int> strait;//记录满足误差阈值的点在change中的位置（直线）
-            QVector<int> toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
+            QVector<int>  strait;//记录满足误差阈值的点在change中的位置（直线）
+            QVector<int>  toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
             for(int q=0;q<change.length();q++)
             {
                 if(change[q]<thresh&&change[q]>0)//正向角度误差0~6°
@@ -682,16 +706,21 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                 {
                     strait.push_back(q);
                 }
-                else{//超过6°的阈值，可能是变化激增，很小的圆，但是跨距选大了
+                else
+                {//超过6°的阈值，可能是变化激增，很小的圆，但是跨距选大了
                     toomax.push_back(q);
                 }
             }
 
             //对上述提取的四种数据进行分析
             //考虑是不是做函数
+            //先对跨距太大的点进行测试
+            if(toomax.length()>3){
+            for(int l=0;l<toomax.length();l++){
 
+            }
 
-
+            }
         }
     }
     else//直接进行曲线等距离散化，返回离散化后的关键点
@@ -755,11 +784,5 @@ QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE)
     {
         AngelChange4.push_back(Angels4[i]-Angels4[i-1]);
     }
-
-
-
-
-
-
 
 }

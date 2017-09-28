@@ -222,7 +222,9 @@ void MainWindow::ReadtxtButton()
 {
     //预先清空缓存
     Array.clear();
+
     ui->textBrowser->setText("");
+
     ui->Message_Label->clear();
     //*EXCEL导入方式//
 
@@ -326,7 +328,7 @@ void MainWindow::SetCoordinate(double x, double y, double z)
 {
     m_dBoltSpeed=ui->BoltSpeed_spinBox->text().toDouble();
     int dir=ui->SpeedDirection_comboBox->currentIndex();
-    CoorCount=0;
+
     /*加入世界坐标*/
     m_dXbase=ui->Xbase_spin->text().toDouble();
     m_dYbase=ui->Ybase_spin->text().toDouble();
@@ -361,38 +363,42 @@ void MainWindow::SetCoordinate(double x, double y, double z)
     }
     if(ui->BoltSpeed_checkBox->isChecked())
     {
-        Coordinate[0][CoorCount]=x+m_dXspeed;
-        Coordinate[1][CoorCount]=y+m_dYspeed;
-        Coordinate[2][CoorCount]=z+m_dZspeed;
-        Discoor[3*CoorCount]=x+m_dXspeed;
-        Discoor[3*CoorCount+1]=y+m_dYspeed;
-        Discoor[3*CoorCount+2]=z+m_dZspeed;
+        Coordinate[0][CoorCount]=x+m_dXspeed+m_dXbase;
+        Coordinate[1][CoorCount]=y+m_dYspeed+m_dYbase;
+        Coordinate[2][CoorCount]=z+m_dZspeed+m_dZbase;
+        Discoor[3*CoorCount]=x+m_dXspeed+m_dXbase;
+        Discoor[3*CoorCount+1]=y+m_dYspeed+m_dYbase;
+        Discoor[3*CoorCount+2]=z+m_dZspeed+m_dZbase;
 
     }
     else
     {
-        Coordinate[0][CoorCount]=x;
-        Coordinate[1][CoorCount]=y;
-        Coordinate[2][CoorCount]=z;
-        Discoor[3*CoorCount]=x;
-        Discoor[3*CoorCount+1]=y;
-        Discoor[3*CoorCount+2]=z;
+        Coordinate[0][CoorCount]=x+m_dXbase;
+        Coordinate[1][CoorCount]=y+m_dYbase;
+        Coordinate[2][CoorCount]=z+m_dZbase;
+        Discoor[3*CoorCount]=x+m_dXbase;
+        Discoor[3*CoorCount+1]=y+m_dYbase;
+        Discoor[3*CoorCount+2]=z+m_dZbase;
     }
     CoorCount++;
 
     Todisplay.append(QString::number(x,'g',4).toUpper());//double转化为qstring
+
     Todisplay.append(" ");
+
     Todisplay.append(QString::number(y,'g',4).toUpper());
+
     Todisplay.append(" ");
+
     Todisplay.append(QString::number(z,'g',4).toUpper());
+
     Todisplay.append('\n');
 
+  //  qDebug()<<Todisplay;
 
 }
 void MainWindow::CreadOrders()
 {
-    qDebug()<<"2312312312313";
-
     int SpeedValue=ui->Speed_Percentage->text().toInt();
     FullOrder.append("G94 F=");
     FullOrder.append(QString::number(SpeedValue));
@@ -416,13 +422,11 @@ void MainWindow::CreadOrders()
         QString PreOrder="G00 ";
         QString Fix=" A=3.14 B=0 C=0\n";
         DD=PreOrder+Xp+X+Yp+Y+Zp+Z+Fix;
-
-
         Array.push_back(DD);
     }
 
     ui->Creat_code->setEnabled(true);
-
+    ui->AutoSend_Button->setEnabled(true);
 
 }
 void MainWindow::CreatGcodefile()
@@ -1213,10 +1217,15 @@ QImage MainWindow::GetOutLine(QImage II)
                 rx.setPixel(OnlyOutLine[i].x(),OnlyOutLine[i].y(),qRgb(253,0,0));
             }
         }
+
         Ix.setPixel(SumX/pixcount,SumY/pixcount,qRgb(255,0,0));
+
         int alltime=GOLtimer.elapsed();
+
         qDebug()<<"Get out line time used:"<<alltime;
+
         delete []outlineX;
+
         delete []outlineY;
 
 
@@ -1454,6 +1463,7 @@ void MainWindow::ReadPngButton()
 
     int elapsed=WhoseTime.elapsed()-readstart;
 
+    m_bReadState=true;
     ui->time_label->setText(QString::number(elapsed)+" ms");
 
 }
@@ -1672,7 +1682,7 @@ void MainWindow::ClearVector()
     FullOrder.clear();
     ctrlPoints.clear();
     curvePoints.clear();
-
+    CoorCount=0;
 
 }
 void MainWindow::CameraPreView()
@@ -1747,13 +1757,6 @@ void MainWindow::DynamicEncoding(QVector <QVector2D> DE)
     }
     CreadOrders();
 }
-
-void MainWindow::EmptySlots()
-{
-
-}
-
-
 
 void MainWindow::on_Canny_button_clicked()
 {
@@ -2030,16 +2033,24 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
     //替代Excursion函数和Slopecheck函数
     //此函数筛查这些转折点然后找出关键的特征点
     qDebug()<<"CharacteristcCalculate";
+
     int length=CC.length();
+
     if(length==0)
     {
         ErrorFunction();
     }
+
     QVector<QVector2D> toslope;
+
     QVector<int> copyCC=CC;
+
     QVector<double> toslopereturn;
+
     QVector<int> SimpledBreak;
+
     int lengthcheck=-5;
+
     int outcount=0;
 
     while(lengthcheck!=copyCC.length())
@@ -2060,14 +2071,19 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
         }
 
         toslopereturn= Slope(toslope);//计算全部点的斜率
+
         SimpledBreak=SimplifySlope(toslopereturn,copyCC);//此时得到斜率匹配后的转折点
+
         copyCC.clear();
+
         copyCC=SimpledBreak;
+
         SimpledBreak.clear();
 
         toslope.clear();
 
         toslopereturn.clear();
+
         if(copyCC.length()>Max_C_num)
         {
             QMessageBox::information(this,"notice",QString::number(copyCC.length()));
@@ -2075,18 +2091,24 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
         }
 
         outcount++;
+
         if(outcount>10)//最多进行十次迭代，然后退出
         {
             QMessageBox::information(this,"notice","Too much number of iterations");
             break;
         }
     }
+
     CharacteristicPoint.clear();
+
     QVector2D ToC;
+
     for(int i=0;i<copyCC.length();i++)
     {
         ToC.setX(OrderdOutLine[copyCC[i]].x());
+
         ToC.setY(OrderdOutLine[copyCC[i]].y());
+
         CharacteristicPoint.push_back(ToC);
     }
 
@@ -2095,21 +2117,15 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
     /*
     //直线之间分断检查
     //先看前面有咩有bug
+
     QVector<double>EachDis;
 
     toslopereturn= Slope(toslope);//计算全部点的斜率
     EachDis=Distance(toslope);//计算两两点之间距离
 
-
-
     SimpledBreak=SimplifySlope(toslopereturn,CC);//此时得到斜率匹配后的转折点
 
 */
-
-
-
-
-
 
     if(CharacteristicPoint.length()<3)
     {
@@ -2120,8 +2136,9 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
 
     for(int i=0;i<CharacteristicPoint.length();i++)
     {
-        SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),600);
+        SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
     }
+
 
     CreadOrders();
 
