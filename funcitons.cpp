@@ -639,32 +639,8 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
     int length=P.length();
     int num=P[length]-P[0];//获取总共点数
     QVector<QVector2D> ToReturn;
-    if(num<8)
-    {
-        CurveD=2;
-    }else if(num>=8&&num<20)
-    {
-        CurveD=3;
-    }
-    else if(num>=20&&num<36)
-    {
-        CurveD=4;
-    }
-    else if(num>=36&&num<56)
-    {
-        CurveD=5;
-    }
-    else if(num>=56&&num<98)
-    {
-        CurveD=6;
-    }
-    else if(num>=98&&num<154)
-    {
-        CurveD=8;
-    }
-    else{
-        CurveD=MaxInterval;
-    }
+
+    CurveD=P2Pcalculate(num);//计算获取间距
 
     if(!isgetcurve){
 
@@ -674,10 +650,10 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
         for(int i=0;i<num;i++)
         {
             needed.setX(Outline[P[i]].x());
-            needed.setX(Outline[P[i]].y());
+            needed.setY(Outline[P[i]].y());
             Vd_Toslope.push_back(needed);//从Outline中提取出需要的点
         }
-        QVector<int> OK;
+
         while(!IsCurve){
             Vd_slope=Slope(Vd_Toslope,CurveD);//获取多间隔斜率
             //检测斜率规律
@@ -688,30 +664,8 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                 //step one 渐变检测，看是不是逐渐增加或者逐渐减少
                 change.push_back(Vd_slope[q]-Vd_slope[q-1]);
             }
-            float thresh=15.0;//误差阈值15°
-            QVector<int>  positive;//记录满足误差阈值的点在change中的位置(正数误差)
-            QVector<int>  minis;//记录满足误差阈值的点在change中的位置（负数误差）
-            QVector<int>  strait;//记录满足误差阈值的点在change中的位置（直线）
-            QVector<int>  toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
-            for(int q=0;q<change.length();q++)
-            {
-                if(change[q]<thresh&&change[q]>0)//正向角度误差0~15°
-                {
-                    positive.push_back(q);
-                }
-                else if(change[q]>-thresh&&change[q]<0)//逆向角度误差0~15°
-                {
-                    minis.push_back(q);
-                }
-                else if(change[q]==0)//前后两点斜率相同，此为直线
-                {
-                    strait.push_back(q);
-                }
-                else
-                {//超过6°的阈值，可能是变化激增，很小的圆，但是跨距选大了
-                    toomax.push_back(q);
-                }
-            }
+            QVector<int>unqualified;
+            unqualified=Performance(change);
 
             //对上述提取的四种数据进行分析
             //考虑是不是做函数
@@ -719,17 +673,39 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
 
 
             //先对跨距太大的点进行测试
-
-
-            if(toomax.length()>3){
-                for(int l=0;l<toomax.length();l++)
+            if(unqualified.length()!=1||unqualified[0]!=-8){
+                for(int l=0;l<unqualified.length();l++)
                 {
-                    int pstart=toomax[l];
-                    int pend=toomax[l]+2;
+                    int pstart=unqualified[l];
+                    int pend=unqualified[l]+2;
+                    int shortcount=pend-pstart;
+                    tempCurved=P2Pcalculate(shortcount);//recalculate a new gap
+                    //用新的间距重新离散
+                    Vd_Toslope.clear();//清除数据
+                    Vd_slope.clear();
+                    for(int i=0;i<num;i++)
+                    {
+                        needed.setX(Outline[P[i]].x());
+                        needed.setY(Outline[P[i]].y());
+                        Vd_Toslope.push_back(needed);//从Outline中提取出需要的点
+                    }
 
-
-
-
+                    Vd_slope=Slope(Vd_Toslope,tempCurved);//获取多间隔斜率
+                    change.clear();
+                    for(int q=1;q<Vd_slope.length();q++)
+                    {
+                        //step one 渐变检测，看是不是逐渐增加或者逐渐减少
+                        change.push_back(Vd_slope[q]-Vd_slope[q-1]);
+                    }
+                    QVector<int>  tttoomax;
+                    tttoomax.clear();
+                    for(int q=0;q<change.length();q++)
+                    {
+                        if(abs(change[q])>thresh)//正向角度误差0~15°
+                        {//超过6°的阈值，可能是变化激增，很小的圆，但是跨距选大了
+                            tttoomax.push_back(q);
+                        }
+                    }
 
                 }
 
@@ -798,4 +774,54 @@ QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE)
         AngelChange4.push_back(Angels4[i]-Angels4[i-1]);
     }
 
+}
+int P2Pcalculate(int pnum){
+
+    int toreturn=0;
+
+    if(pnum<8)
+    {
+        toreturn=2;
+    }else if(pnum>=8&&pnum<24)
+    {
+        toreturn=4;
+    }
+    else if(pnum>=24&&pnum<56)
+    {
+        toreturn=8;
+    }
+    else if(pnum>=56&&pnum<112)
+    {
+        toreturn=12;
+    }
+    else if(pnum>=112&&pnum<176)
+    {
+        toreturn=16;
+    }
+    else if(pnum>=176&&pnum<256)
+    {
+        toreturn=20;
+    }
+    else{
+         toreturn=20+(length-246)/10;
+    }
+    return toreturn;
+}
+QVector<int>Performance( QVector<double> change)
+{
+    float thresh=15.0;//误差阈值15°
+
+    QVector<int>  toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
+    for(int q=0;q<change.length();q++)
+    {
+        if(abs(change[q])<thresh)//正向角度误差0~15°
+        {
+            toomax.push_back(q);
+        }
+    }
+    if(toomax.length()==0)
+    {
+        toomax.push_back(-8);
+    }
+    return toomax;
 }
