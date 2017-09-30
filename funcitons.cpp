@@ -669,7 +669,8 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                 qualified.push_back(checkreturn[x].y());
             }else if(checkreturn[x].x()==-8)
             {
-
+                qDebug()<<"checkreturn is zero! wrong!";
+                          exit(0);
             }
             else
             {
@@ -680,7 +681,7 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
         //对上述提取的四种数据进行分析
         //考虑是不是做函数
         //先对跨距太大的点进行测试
-        if(unqualified.length()!=1||unqualified.x()!=-8)
+        if(unqualified.length()!=1||unqualified[0]!=-8)
         {
             for(int l=0;l<unqualified.length();l++)
             {
@@ -700,10 +701,28 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
 
                 }
                 shortcount=pend-pstart;
+
                 tempCurved=P2Pcalculate(shortcount);//recalculate a new gap
 
                 //用新的间距重新离散
-                QVector<int>  tttoomax;
+                QVector<QVector2D>  tempcheckreturn;
+                QVector<int> tempunqualified;
+
+                for(int x=0;x<tempcheckreturn.length();x++)
+                {
+                    if(tempcheckreturn[x].x()==1){
+                        qualified.push_back(tempcheckreturn[x].y());
+                    }else if(tempcheckreturn[x].x()==-8)
+                    {
+                        qDebug()<<"tempcheckreturn is zero! wrong!";
+                                  exit(0);
+                    }
+                    else
+                    {
+                        tempunqualified.push_back(checkreturn[x].y());
+                    }
+                }
+
                 int outcount=0;
                 do{
                     Vd_Toslope.clear();//清除数据
