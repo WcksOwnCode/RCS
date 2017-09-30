@@ -555,6 +555,8 @@ void MainWindow::AutoSendClicked()
     ui->Creat_code->setEnabled(false);
     ui->Read_txt_Button->setEnabled(false);
     m_bStrCompare=false;
+    ui->progressBar->setRange(0,Array.length());
+    ui->progressBar->setValue(0);
     m_iSendRepeatedlyCount=0;
     for(int i=0;i<CoorCount+1;i++)
     {
@@ -566,7 +568,7 @@ void MainWindow::AutoSendClicked()
 
         while(!m_bStrCompare&&m_iSendRepeatedlyCount<10){
             QEventLoop eventloop;
-            QTimer::singleShot(200, &eventloop, SLOT(quit()));//50ms后跳出
+            QTimer::singleShot(500, &eventloop, SLOT(quit()));//5000ms后跳出
             eventloop.exec();
             m_iSendRepeatedlyCount++;
             serial->write(sendstr.toLatin1());
@@ -583,6 +585,7 @@ void MainWindow::AutoSendClicked()
         }
         else{
             m_iSendCount++;
+            ui->progressBar->setValue(i);
             m_bStrCompare=false;
             m_iSendRepeatedlyCount=0;
         }

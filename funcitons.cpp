@@ -2,15 +2,12 @@
 
 /*此处存放的函数主要是用来计算曲线特征点的函数，为了在mainwindow里看起来简单一些
  * 主要是距离计算  斜率计算  斜率简化 等函数组成，目的在于找到曲线行走必须的点
-
-
-
 /**************************************************************************************************/
 
 
 #include "funcitons.h"
-#include<cmath>
-#include<QMessageBox>
+#include <cmath>
+#include <QMessageBox>
 
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
@@ -630,16 +627,14 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
     //P是全部的候选点序列
     //返回类型是QVector2D的序列，记录方式是[曲线1起点，曲线1结束点]，[曲线2起点，曲线2结束点]....
     //该函数应该放置在直线检测之后，检测直线之间的点是否是曲线点
-    // isgetcurve 默认参数是false，这个参数表示该函数是否进行曲线检测，false是进行，true是直接返回曲线离散点
+    // isgetcurve 默认参数是false，这个参数表示该函数是否进行曲线检测，false是进行，true是直接返回曲线离散点(等距)
     //返回 曲线离散点的时候 记录方式每一个2D记录数据相同
     int CurveD=2;//间隔多少个点进行一次求取
     int tempCurved=2;//当CerveD太大，用tempCurved来离散
-    const int MaxInterval=10;//最大间隔点数
-    bool IsCurve=false;
     int length=P.length();
     int num=P[length]-P[0];//获取总共点数
     QVector<QVector2D> ToReturn;
-
+    float thresh=15.0;
     CurveD=P2Pcalculate(num);//计算获取间距
 
     if(!isgetcurve){
@@ -654,33 +649,63 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
             Vd_Toslope.push_back(needed);//从Outline中提取出需要的点
         }
 
-        while(!IsCurve){
-            Vd_slope=Slope(Vd_Toslope,CurveD);//获取多间隔斜率
-            //检测斜率规律
-            QVector<double>change;
 
-            for(int q=1;q<Vd_slope.length();q++)
+        Vd_slope=Slope(Vd_Toslope,CurveD);//获取多间隔斜率
+        //检测斜率规律
+        QVector<double>change;
+
+        for(int q=1;q<Vd_slope.length();q++)
+        {
+            //step one 渐变检测，看是不是逐渐增加或者逐渐减少
+            change.push_back(Vd_slope[q]-Vd_slope[q-1]);
+        }
+        QVector<QVector2D>checkreturn;
+        QVector<int>unqualified;
+        QVector<int>qualified;
+        checkreturn=Performance(change);
+        for(int x=0;x<checkreturn.length();x++)
+        {
+            if(checkreturn[x].x()==1){
+                qualified.push_back(checkreturn[x].y());
+            }else if(checkreturn[x].x()==-8)
             {
-                //step one 渐变检测，看是不是逐渐增加或者逐渐减少
-                change.push_back(Vd_slope[q]-Vd_slope[q-1]);
+
             }
-            QVector<int>unqualified;
-            unqualified=Performance(change);
-
-            //对上述提取的四种数据进行分析
-            //考虑是不是做函数
-
-
-
-            //先对跨距太大的点进行测试
-            if(unqualified.length()!=1||unqualified[0]!=-8){
-                for(int l=0;l<unqualified.length();l++)
+            else
+            {
+                unqualified.push_back(checkreturn[x].y());
+            }
+        }
+        //分理出合格和不合格的点
+        //对上述提取的四种数据进行分析
+        //考虑是不是做函数
+        //先对跨距太大的点进行测试
+        if(unqualified.length()!=1||unqualified.x()!=-8)
+        {
+            for(int l=0;l<unqualified.length();l++)
+            {
+                int pstart;
+                int pend;
+                int shortcount;
+                pstart=unqualified[l];
+                if(unqualified[l]+1==unqualified[l+1])
                 {
-                    int pstart=unqualified[l];
-                    int pend=unqualified[l]+2;
-                    int shortcount=pend-pstart;
-                    tempCurved=P2Pcalculate(shortcount);//recalculate a new gap
-                    //用新的间距重新离散
+                     pend=unqualified[l+1]+1;
+                     l++;
+                     continue;
+                }
+                else
+                {
+                     pend=unqualified[l]+2;
+
+                }
+                shortcount=pend-pstart;
+                tempCurved=P2Pcalculate(shortcount);//recalculate a new gap
+
+                //用新的间距重新离散
+                QVector<int>  tttoomax;
+                int outcount=0;
+                do{
                     Vd_Toslope.clear();//清除数据
                     Vd_slope.clear();
                     for(int i=0;i<num;i++)
@@ -697,19 +722,26 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                         //step one 渐变检测，看是不是逐渐增加或者逐渐减少
                         change.push_back(Vd_slope[q]-Vd_slope[q-1]);
                     }
-                    QVector<int>  tttoomax;
+
                     tttoomax.clear();
                     for(int q=0;q<change.length();q++)
                     {
                         if(abs(change[q])>thresh)//正向角度误差0~15°
-                        {//超过6°的阈值，可能是变化激增，很小的圆，但是跨距选大了
+                        {//超过15°的阈值，可能是变化激增，很小的圆，但是跨距选大了
                             tttoomax.push_back(q);
                         }
                     }
-
-                }
+                    tempCurved--;
+                    outcount++;
+                    if(outcount>15||tempCurved==2)
+                    {
+                        QMessageBox::information(NULL,"NOTICE","循环次数太多，无法达到最好的分段");
+                        break;
+                    }
+                }while(tttoomax.length()>1);
 
             }
+
         }
     }
     else//直接进行曲线等距离散化，返回离散化后的关键点
@@ -775,7 +807,8 @@ QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE)
     }
 
 }
-int P2Pcalculate(int pnum){
+int P2Pcalculate(int pnum)
+{
 
     int toreturn=0;
 
@@ -803,25 +836,34 @@ int P2Pcalculate(int pnum){
         toreturn=20;
     }
     else{
-         toreturn=20+(length-246)/10;
+        toreturn=20+(pnum-246)/10;
     }
     return toreturn;
 }
-QVector<int>Performance( QVector<double> change)
+QVector<QVector2D>Performance( QVector<double> change)
 {
+    //返回是2维int数组，第一个标签，1表示合格，0表示不合格，第二列是合格点
     float thresh=15.0;//误差阈值15°
-
-    QVector<int>  toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
+    QVector<QVector2D>toreturn;
+    QVector2D  toomax;//记录满足误差阈值的点在change中的位置（过度角度便宜误差）
     for(int q=0;q<change.length();q++)
     {
         if(abs(change[q])<thresh)//正向角度误差0~15°
         {
-            toomax.push_back(q);
+            toomax.setX(1);
+            toomax.setY(q);
+            toreturn.push_back(toomax);
+        }else
+        {
+            toomax.setX(0);
+            toomax.setY(q);
+            toreturn.push_back(toomax);
         }
     }
-    if(toomax.length()==0)
+    if(toreturn.length()==0)
     {
-        toomax.push_back(-8);
+
+        toreturn.push_back((-8,-8));
     }
-    return toomax;
+    return toreturn;
 }

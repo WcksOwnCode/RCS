@@ -43,6 +43,6 @@ QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE);
 
 int P2Pcalculate(int pnum);
 
-QVector<int>Performance( QVector<double> change);
+QVector<QVector2D> Performance( QVector<double> change);
 
 #endif // FUNCITONS_H
