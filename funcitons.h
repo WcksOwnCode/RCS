@@ -45,4 +45,7 @@ int P2Pcalculate(int pnum);
 
 QVector<QVector2D> Performance( QVector<double> change);
 
+void HoughTransform(QVector<QVector2D> Outlines);
+
+
 #endif // FUNCITONS_H

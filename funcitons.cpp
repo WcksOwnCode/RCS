@@ -590,9 +590,7 @@ QVector<int> CheckPointInline(QVector<double> dis, QVector<double> slope, QVecto
                     }
                 }else if(orderdis<=5&&d_dis<10)//点数小于3,距离小于10
                 {
-                    //  double gD=SingelSlopeCalculate(OOL[BP[line[i]]],OOL[BP[line[i+1]+1]]);
-
-
+                    //double gD=SingelSlopeCalculate(OOL[BP[line[i]]],OOL[BP[line[i+1]+1]]);
                     if(orderdis>1)
                     {
                         for(int j=line[i]+2;j<=line[i+1]-1;j++)
@@ -670,7 +668,7 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
             }else if(checkreturn[x].x()==-8)
             {
                 qDebug()<<"checkreturn is zero! wrong!";
-                          exit(0);
+                exit(0);
             }
             else
             {
@@ -691,13 +689,13 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                 pstart=unqualified[l];
                 if(unqualified[l]+1==unqualified[l+1])
                 {
-                     pend=unqualified[l+1]+1;
-                     l++;
-                     continue;
+                    pend=unqualified[l+1]+1;
+                    l++;
+                    continue;
                 }
                 else
                 {
-                     pend=unqualified[l]+2;
+                    pend=unqualified[l]+2;
 
                 }
                 shortcount=pend-pstart;
@@ -715,7 +713,7 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                     }else if(tempcheckreturn[x].x()==-8)
                     {
                         qDebug()<<"tempcheckreturn is zero! wrong!";
-                                  exit(0);
+                        exit(0);
                     }
                     else
                     {
@@ -741,7 +739,6 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetc
                         //step one 渐变检测，看是不是逐渐增加或者逐渐减少
                         change.push_back(Vd_slope[q]-Vd_slope[q-1]);
                     }
-
                     tttoomax.clear();
                     for(int q=0;q<change.length();q++)
                     {
@@ -881,8 +878,85 @@ QVector<QVector2D>Performance( QVector<double> change)
     }
     if(toreturn.length()==0)
     {
-
         toreturn.push_back((-8,-8));
     }
     return toreturn;
+}
+void HoughTransform(QVector<QVector2D> Outlines)
+{
+    // this function is for hough transform to get the curve and strait line
+    // and the formula is:
+
+    /*
+     * Rho=X*Cos(Theta)+Y*Sin(Theta)
+    */
+    int length=Outlines.length();//get the numbers of the outline points
+    //part one strait line check
+    QVector<QVector3D> HTpara;//(Rho,Theta,Count);Theta Range is -pi/2 to pi/2
+    QVector<QVector2D> Para;//(Rho,Theta)
+    QVector3D store;
+    QVector2D parastore;
+    const float f_thetastep=0.01; //Increased step length of the theta ,if the step is too small
+    // there will be a huge amount of computation
+    int P_x;
+    int P_y;
+    float Rho;
+    bool same;
+    int threshhold=length*0.15;//lower than this value can not be a strait line
+    int linecount=0;
+    //Iterate all points of outlines
+
+    for(int i=0;i<length;i++)
+    {
+        P_x=Outlines[i].x();
+        P_y=Outlines[i].y();
+        for(float ss=-3.14;ss<3.14;ss+=f_thetastep)
+        {
+            same=false;
+            Rho=P_x*cos(ss)+P_y*sin(ss);
+            if(HTpara.length()==0){
+                store.setX(Rho);
+                store.setY(ss);
+                store.setZ(1);
+                HTpara.push_back(store);
+            }
+            else{
+                for(int j=0;j<HTpara.length();j++)
+                {
+                   if(Rho==HTpara[j].x()||ss==HTpara[j].y())
+                   {
+                       HTpara[j].setZ(HTpara[j].z()+1);
+                       same=true;
+                       break;
+                   }
+                }
+                if(!same)
+                {
+                    store.setX(Rho);
+                    store.setY(ss);
+                    store.setZ(1);
+                    HTpara.push_back(store);
+                }
+            }
+        }
+
+
+
+    }
+
+    for(int i=0;i<HTpara.length();i++)
+    {
+        if(HTpara[i].z()>=threshhold)
+        {
+            linecount++;
+            parastore.setX(HTpara[i].x());
+            parastore.setY(HTpara[i].y());
+            Para.push_back(parastore);
+        }
+    }
+
+
+
+
+
 }
