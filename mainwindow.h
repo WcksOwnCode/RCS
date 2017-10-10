@@ -349,6 +349,8 @@ private slots:
 
     void on_DisperseSlider_valueChanged(int value);
 
+    void on_CheckCode_Button_clicked();
+
 signals:
     /*************************************/
     //From APOtoCommunicate

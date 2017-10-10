@@ -210,6 +210,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="CheckCode_Button">
+       <property name="text">
+        <string>查看代码</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

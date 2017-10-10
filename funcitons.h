@@ -47,5 +47,8 @@ QVector<QVector2D> Performance( QVector<double> change);
 
 void HoughTransform(QVector<QVector2D> Outlines);
 
+QImage cvMat2QImage(const cv::Mat& mat);
+
+cv::Mat QImage2cvMat(QImage image);
 
 #endif // FUNCITONS_H

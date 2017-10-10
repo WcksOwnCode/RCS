@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include"funcitons.h"
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -394,7 +396,7 @@ void MainWindow::SetCoordinate(double x, double y, double z)
 
     Todisplay.append('\n');
 
-  //  qDebug()<<Todisplay;
+    //  qDebug()<<Todisplay;
 
 }
 void MainWindow::CreadOrders()
@@ -585,7 +587,7 @@ void MainWindow::AutoSendClicked()
         }
         else{
             m_iSendCount++;
-            ui->progressBar->setValue(i);
+            ui->progressBar->setValue(i+1);
             m_bStrCompare=false;
             m_iSendRepeatedlyCount=0;
         }
@@ -1405,6 +1407,11 @@ void MainWindow::ReadPngButton()
 
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
 
+
+
+
+
+
     // pp=pp.fromImage(OulineImage);
     // ui->final_label->setPixmap(pp);
     SmoothOutline();
@@ -1463,6 +1470,98 @@ void MainWindow::ReadPngButton()
     ui->openCamera->setEnabled(true);
 
     //DynamicEncoding(CharacteristicPoint);
+
+
+
+
+    using namespace cv;
+
+    QImage tocv;
+    tocv=spaceImage;
+    for(int i=0;i<width;i++)
+    {
+        for(int j=0;j<height;j++)
+        {
+           tocv.setPixel(i,j,qRgb(0,0,0));
+        }
+    }
+    for(int i=0;i<OrderdOutLine.length();i++){
+
+        tocv.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,255,255));
+    }
+
+
+
+  /*  Mat srcImage = imread("C:\\Users\\duke\\Desktop\\t2.png");  //工程目录下应该有一张名为1.jpg的素材图
+    Mat midImage,dstImage;//临时变量和目标图的定义
+
+       //【2】进行边缘检测和转化为灰度图
+     Canny(srcImage, midImage, 50, 200, 3);//进行一此canny边缘检测
+     imshow("midImage",midImage);
+     cvtColor(midImage,dstImage, CV_GRAY2BGR);//转化边缘检测后的图为灰度图
+
+    imshow("dst",dstImage);
+    std::cout<<midImage<<std::endl;
+    waitKey(0);
+    exit(0);*/
+
+
+    Mat mat,graymat;
+
+    mat=QImage2cvMat(tocv);
+    QMessageBox::information(this,"mat",QString::number(mat.channels()));
+    cvtColor(mat,graymat, CV_RGBA2GRAY);
+
+   // std::cout<<graymat<<std::endl;
+
+
+
+    imshow("origin", mat);
+    qDebug()<<"gray mat channels  "<<graymat.channels();
+    imshow("graymat",graymat);
+
+    vector<Vec2f> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+
+    HoughLines(graymat, lines, 1, CV_PI/180, 80, 0, 0 );
+
+    qDebug()<<"lines length: "<<lines.size();
+
+    for(size_t i=0;i<lines.size();i++)
+    {
+        qDebug()<<lines[i][0]<<"   "<<lines[i][1];
+    }
+    //依次在图中绘制出每条线段
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        float rho = lines[i][0], theta = lines[i][1];
+
+        cv::Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a*rho, y0 = b*rho;
+        pt1.x = cvRound(x0 + 1000*(-b));//here has problem the inverse transform is not currect!
+        pt1.y = cvRound(y0 + 1000*(a));
+        pt2.x = cvRound(x0 - 1000*(-b));
+        pt2.y = cvRound(y0 - 1000*(a));
+        qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
+        qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
+        line( mat, pt1, pt2, Scalar(255,255,255),2,CV_AA);//(image,startpoint,endpoint,color,board,linetype,decemal)
+    }
+
+
+
+
+    imshow("after", graymat);
+
+    waitKey(0);
+
+
+
+
+
+
+
+
+
 
     int elapsed=WhoseTime.elapsed()-readstart;
 
@@ -1607,8 +1706,7 @@ void MainWindow::AutoRun()
     for(int i=0;i<OrderdOutLine.length();i++){
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
-    qDebug()<<"CharacteristicPoint.length()"<<CharacteristicPoint.length();
-    qDebug()<<"breakpoints.length()"<<BreakPoints.length();
+
     //qDebug()<<"CharacteristicPoint"<<CharacteristicPoint;
     for(int i=0;i<CharacteristicPoint.length();i++)
     {
@@ -2124,7 +2222,7 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
 
         for(int i=0;i<OrderdOutLine.length();i=i+disperse)
         {
-           CharacteristicPoint.push_back(OrderdOutLine[i]);
+            CharacteristicPoint.push_back(OrderdOutLine[i]);
         }
     }
     CharacteristicPoint.push_back(CharacteristicPoint[0]);
@@ -2190,4 +2288,22 @@ void MainWindow::on_DisperseSlider_valueChanged(int value)
 {
     disperse=2+value/4;
     ui->Shownumber_for_disperse->setText(QString::number(disperse));
+}
+
+void MainWindow::on_CheckCode_Button_clicked()
+{
+    if(Array.length()>0)
+    {
+        ui->Message_Label->clear();
+        QString dis;
+        for(int i=0;i<Array.length();i++)
+        {
+            dis.append(Array[i]);
+        }
+       QMessageBox::information(this,"codes",dis);
+
+    }else
+    {
+        QMessageBox::warning(NULL,"warning","no code");
+    }
 }
