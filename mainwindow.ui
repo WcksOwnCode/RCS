@@ -601,8 +601,8 @@
        <widget class="QRadioButton" name="StrictSlope_RadioButton">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>20</y>
+          <x>550</x>
+          <y>10</y>
           <width>115</width>
           <height>19</height>
          </rect>
@@ -871,8 +871,8 @@
        <widget class="QComboBox" name="currentK_comBox">
         <property name="geometry">
          <rect>
-          <x>570</x>
-          <y>70</y>
+          <x>560</x>
+          <y>40</y>
           <width>87</width>
           <height>21</height>
          </rect>
@@ -896,7 +896,7 @@
        <widget class="QCheckBox" name="disperse_checkBox">
         <property name="geometry">
          <rect>
-          <x>320</x>
+          <x>260</x>
           <y>110</y>
           <width>102</width>
           <height>19</height>
@@ -909,7 +909,7 @@
        <widget class="QSlider" name="DisperseSlider">
         <property name="geometry">
          <rect>
-          <x>440</x>
+          <x>360</x>
           <y>110</y>
           <width>160</width>
           <height>22</height>
@@ -930,6 +930,19 @@
         </property>
         <property name="text">
          <string/>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="Hough_Button">
+        <property name="geometry">
+         <rect>
+          <x>530</x>
+          <y>70</y>
+          <width>161</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>霍夫变换测试</string>
         </property>
        </widget>
        <zorder>EmergencyStop_Button</zorder>
@@ -961,6 +974,7 @@
        <zorder>disperse_checkBox</zorder>
        <zorder>DisperseSlider</zorder>
        <zorder>Shownumber_for_disperse</zorder>
+       <zorder>Hough_Button</zorder>
       </widget>
      </item>
     </layout>

@@ -3,6 +3,7 @@
 #include"funcitons.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include"codewindow.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -243,9 +244,6 @@ void MainWindow::ReadtxtButton()
     QAxObject *work_books = excel.querySubObject("WorkBooks");
     work_books->dynamicCall("Open (const QString&)", QString(fileadd));
     QAxObject *work_book = excel.querySubObject("ActiveWorkBook");
-
-
-
     QAxObject *work_sheet = work_book->querySubObject("Sheets(int)", 1);
     QAxObject *used_range = work_sheet->querySubObject("UsedRange");
     QAxObject *rows = used_range->querySubObject("Rows");
@@ -1474,87 +1472,6 @@ void MainWindow::ReadPngButton()
 
 
 
-    using namespace cv;
-
-    QImage tocv;
-    tocv=spaceImage;
-    for(int i=0;i<width;i++)
-    {
-        for(int j=0;j<height;j++)
-        {
-           tocv.setPixel(i,j,qRgb(0,0,0));
-        }
-    }
-    for(int i=0;i<OrderdOutLine.length();i++){
-
-        tocv.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,255,255));
-    }
-
-
-
-  /*  Mat srcImage = imread("C:\\Users\\duke\\Desktop\\t2.png");  //工程目录下应该有一张名为1.jpg的素材图
-    Mat midImage,dstImage;//临时变量和目标图的定义
-
-       //【2】进行边缘检测和转化为灰度图
-     Canny(srcImage, midImage, 50, 200, 3);//进行一此canny边缘检测
-     imshow("midImage",midImage);
-     cvtColor(midImage,dstImage, CV_GRAY2BGR);//转化边缘检测后的图为灰度图
-
-    imshow("dst",dstImage);
-    std::cout<<midImage<<std::endl;
-    waitKey(0);
-    exit(0);*/
-
-
-    Mat mat,graymat;
-
-    mat=QImage2cvMat(tocv);
-    QMessageBox::information(this,"mat",QString::number(mat.channels()));
-    cvtColor(mat,graymat, CV_RGBA2GRAY);
-
-   // std::cout<<graymat<<std::endl;
-
-
-
-    imshow("origin", mat);
-    qDebug()<<"gray mat channels  "<<graymat.channels();
-    imshow("graymat",graymat);
-
-    vector<Vec2f> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
-
-    HoughLines(graymat, lines, 1, CV_PI/180, 80, 0, 0 );
-
-    qDebug()<<"lines length: "<<lines.size();
-
-    for(size_t i=0;i<lines.size();i++)
-    {
-        qDebug()<<lines[i][0]<<"   "<<lines[i][1];
-    }
-    //依次在图中绘制出每条线段
-    for( size_t i = 0; i < lines.size(); i++ )
-    {
-        float rho = lines[i][0], theta = lines[i][1];
-
-        cv::Point pt1, pt2;
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-        pt1.x = cvRound(x0 + 1000*(-b));//here has problem the inverse transform is not currect!
-        pt1.y = cvRound(y0 + 1000*(a));
-        pt2.x = cvRound(x0 - 1000*(-b));
-        pt2.y = cvRound(y0 - 1000*(a));
-        qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
-        qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
-        line( mat, pt1, pt2, Scalar(255,255,255),2,CV_AA);//(image,startpoint,endpoint,color,board,linetype,decemal)
-    }
-
-
-
-
-    imshow("after", graymat);
-
-    waitKey(0);
-
-
 
 
 
@@ -2300,10 +2217,150 @@ void MainWindow::on_CheckCode_Button_clicked()
         {
             dis.append(Array[i]);
         }
-       QMessageBox::information(this,"codes",dis);
+
+        CodeWindow *x=new CodeWindow(dis);
+        x->show();
 
     }else
     {
         QMessageBox::warning(NULL,"warning","no code");
     }
+
+
+
+
+
+}
+
+void MainWindow::on_Hough_Button_clicked()
+{
+
+
+    using namespace cv;
+
+
+   //方式一：全部使用opencv的函数
+
+     Mat oriImage = imread("C:\\Users\\duke\\Desktop\\D3.png");  //工程目录下应该有一张名为1.jpg的素材图
+     Mat Blured,Image2,lastImage;//临时变量和目标图的定义
+
+       //【2】进行边缘检测和转化为灰度图
+
+     cv::GaussianBlur(oriImage,Blured,Size(11,11),2);
+      imshow("oriImage",oriImage);
+      imshow("blured",Blured);
+      Canny(oriImage, Image2, 50, 200, 3);//进行一此canny边缘检测
+      cvtColor(Image2,lastImage, CV_GRAY2BGR);//转化边缘检测后的图为灰度图
+
+      Mat newlast=oriImage;
+
+      vector<Vec2f> cvlines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+      vector<Vec4i> Pcvlines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+
+      HoughLines(Image2, cvlines, 1, CV_PI/180, 50, 0, 0 );
+      HoughLinesP(Image2, Pcvlines, 1, CV_PI/180,50, 25, 5);
+
+
+      for( size_t i = 0; i < cvlines.size(); i++ )
+          {
+              float rho = cvlines[i][0], theta = cvlines[i][1];
+              Point pt1, pt2;
+              double a = cos(theta), b = sin(theta);
+              double x0 = a*rho, y0 = b*rho;
+              pt1.x = cvRound(x0 + 1000*(-b));
+              pt1.y = cvRound(y0 + 1000*(a));
+              pt2.x = cvRound(x0 - 1000*(-b));
+              pt2.y = cvRound(y0 - 1000*(a));
+              line( lastImage, pt1, pt2, Scalar(55,100,195), 1, CV_AA);
+          }
+
+      for( size_t i = 0; i < Pcvlines.size(); i++ )
+        {
+              Vec4i l = Pcvlines[i];
+              line( newlast, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(186,88,255), 3, CV_AA);
+      }
+
+      imshow("lastimage",lastImage);
+
+      imshow("newlastimage",newlast);
+
+
+
+
+
+
+
+
+
+    QImage tocv,todraw;
+    todraw=tocv=spaceImage;
+    for(int i=0;i<width;i++)
+    {
+        for(int j=0;j<height;j++)
+        {
+           tocv.setPixel(i,j,qRgb(0,0,0));
+           todraw.setPixel(i,j,qRgb(255,255,255));
+        }
+    }
+    for(int i=0;i<OrderdOutLine.length();i++){
+
+        tocv.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,255,255));
+        todraw.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
+    }
+
+
+
+
+
+
+    Mat mat,graymat,drawmat;
+
+    mat=QImage2cvMat(tocv);
+    drawmat=QImage2cvMat(todraw);
+
+
+    cvtColor(mat,graymat, CV_RGBA2GRAY);
+
+   // std::cout<<graymat<<std::endl;
+
+
+
+    imshow("origin", mat);
+    qDebug()<<"gray mat channels  "<<graymat.channels();
+    imshow("graymat",graymat);
+
+    vector<Vec2f> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+
+    HoughLines(graymat, lines, 1, CV_PI/180, 50, 0, 0 );
+
+    qDebug()<<"lines length: "<<lines.size();
+
+    for(size_t i=0;i<lines.size();i++)
+    {
+        qDebug()<<lines[i][0]<<"   "<<lines[i][1];
+    }
+    //依次在图中绘制出每条线段
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        float rho = lines[i][0], theta = lines[i][1];
+
+        cv::Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a*rho, y0 = b*rho;
+        pt1.x = cvRound(x0 + 335*(-b));//here has problem the inverse transform is not currect!
+        pt1.y = cvRound(y0 + 335*(a));
+        pt2.x = cvRound(x0 - 335*(-b));
+        pt2.y = cvRound(y0 - 335*(a));
+        qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
+        qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
+        line( drawmat, pt1, pt2, Scalar(0,255,0),1,CV_AA);//(image,startpoint,endpoint,color,board,linetype,decemal)
+    }
+
+
+
+
+    imshow("after",drawmat);
+
+    waitKey(0);
+
 }

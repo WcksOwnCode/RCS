@@ -351,6 +351,8 @@ private slots:
 
     void on_CheckCode_Button_clicked();
 
+    void on_Hough_Button_clicked();
+
 signals:
     /*************************************/
     //From APOtoCommunicate
