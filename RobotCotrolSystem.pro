@@ -31,16 +31,19 @@ SOURCES += main.cpp\
     curvefit.cpp \
     funcitons.cpp \
     matrix_4.cpp \
-    codewindow.cpp
+    codewindow.cpp \
+    imagewatch.cpp
 
 HEADERS  += mainwindow.h \
     curvefit.h \
     funcitons.h \
     matrix_4.h \
-    codewindow.h
+    codewindow.h \
+    imagewatch.h
 
 FORMS    += mainwindow.ui \
-    codewindow.ui
+    codewindow.ui \
+    imagewatch.ui
 SUBDIRS += \
     qextserialport-1.2win-alpha/qextserialport.pro
 INCLUDEPATH += D:\opencv\opencv\build\include

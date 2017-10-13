@@ -608,7 +608,6 @@ void MainWindow::BoltSpeedCheckBox_checked()
 /*||||||||||API||||||||||||||API|||||||||||||||END||||||||||||||||||*/
 /*==============================================================*/
 /*=======================================================*/
-/*=======================================================*/
 QImage MainWindow::GaussianBlur(QImage GB)
 {
     //高斯模糊函数，
@@ -2362,5 +2361,28 @@ void MainWindow::on_Hough_Button_clicked()
     imshow("after",drawmat);
 
     waitKey(0);
+
+}
+
+void MainWindow::on_replace_pushButton_clicked()
+{
+    QString Spot="G10 A=0 B=0 C=0 D=0 E=0 F=0\n";
+    serial->write(Spot.toLatin1());
+    ui->replace_pushButton->setEnabled(false);
+    QEventLoop tsg;
+    QTimer::singleShot(2000,&tsg,SLOT(quit()));
+    tsg.exec();
+    ui->replace_pushButton->setEnabled(true);
+}
+
+void MainWindow::on_ImageWatch_pushButton_clicked()
+{
+    AllImage.push_back(origin_image);
+    AllImage.push_back(Timage);
+    AllImage.push_back(grayImage);
+    AllImage.push_back(OulineImage);
+    AllImage.push_back(SmoothOulineImage);
+    ImageWatch *IW=new ImageWatch(AllImage);
+    IW->show();
 
 }

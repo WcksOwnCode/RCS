@@ -48,6 +48,7 @@
 #include <curvefit.h>
 #include "funcitons.h"
 #include "matrix_4.h"
+#include"imagewatch.h"
 
 namespace Ui {
 class MainWindow;
@@ -302,6 +303,8 @@ private:
 
     int disperse=2;
 
+    QVector<QImage> AllImage;
+
 private slots:
     /*************************************/
     //From APOtoCommunicate
@@ -352,6 +355,10 @@ private slots:
     void on_CheckCode_Button_clicked();
 
     void on_Hough_Button_clicked();
+
+    void on_replace_pushButton_clicked();
+
+    void on_ImageWatch_pushButton_clicked();
 
 signals:
     /*************************************/
