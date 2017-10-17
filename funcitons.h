@@ -51,4 +51,6 @@ QImage cvMat2QImage(const cv::Mat& mat);
 
 cv::Mat QImage2cvMat(QImage image);
 
+void Output2File(QVector<QVector2D>InputArray,QString Outputadd="");
+void Output2File(QVector<QVector4D>InputArray,QString Outputadd="");
 #endif // FUNCITONS_H

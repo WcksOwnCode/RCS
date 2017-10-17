@@ -2236,11 +2236,9 @@ void MainWindow::on_Hough_Button_clicked()
 
 
     using namespace cv;
-
-
    //方式一：全部使用opencv的函数
 
-     Mat oriImage = imread("C:\\Users\\duke\\Desktop\\D3.png");  //工程目录下应该有一张名为1.jpg的素材图
+     Mat oriImage = imread("C:\\Users\\duke\\Desktop\\t2.png");  //工程目录下应该有一张名为1.jpg的素材图
      Mat Blured,Image2,lastImage;//临时变量和目标图的定义
 
        //【2】进行边缘检测和转化为灰度图
@@ -2273,22 +2271,37 @@ void MainWindow::on_Hough_Button_clicked()
               line( lastImage, pt1, pt2, Scalar(55,100,195), 1, CV_AA);
           }
 
+      QVector<QVector4D>SLines;//stroe all lines （p1.x,p1.y;p2.x,p2.y）
+      QVector4D Pis;
       for( size_t i = 0; i < Pcvlines.size(); i++ )
-        {
+      {
               Vec4i l = Pcvlines[i];
               line( newlast, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(186,88,255), 3, CV_AA);
+              Pis.setX(l[0]);
+              Pis.setY(l[1]);
+              Pis.setZ(l[2]);
+              Pis.setW(l[3]);
+              SLines.push_back(Pis);
       }
+
+
+    Output2File(SLines,"C:/Users/duke/Desktop/SLines.txt");
+
+    Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
+    for(size_t i=0;i<SLines.size();i++)
+    {
+        qDebug()<<SLines[i]<<"SLines is this";
+    }
+
+    size_t sizei=Pcvlines.size();
+
+    qDebug()<<sizei<<"length  of Pcvlines";
+
+
 
       imshow("lastimage",lastImage);
 
       imshow("newlastimage",newlast);
-
-
-
-
-
-
-
 
 
     QImage tocv,todraw;
@@ -2311,12 +2324,10 @@ void MainWindow::on_Hough_Button_clicked()
 
 
 
-
     Mat mat,graymat,drawmat;
 
     mat=QImage2cvMat(tocv);
     drawmat=QImage2cvMat(todraw);
-
 
     cvtColor(mat,graymat, CV_RGBA2GRAY);
 

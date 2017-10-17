@@ -36,5 +36,5 @@ void ImageWatch::on_image_comboBox_currentIndexChanged(int index)
 
 void ImageWatch::on_size_horizontalSlider_valueChanged(int value)
 {
-    ui->graphicsView->setScene();
+
 }

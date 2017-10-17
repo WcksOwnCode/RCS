@@ -925,12 +925,12 @@ void HoughTransform(QVector<QVector2D> Outlines)
             else{
                 for(int j=0;j<HTpara.length();j++)
                 {
-                   if(Rho==HTpara[j].x()||ss==HTpara[j].y())
-                   {
-                       HTpara[j].setZ(HTpara[j].z()+1);
-                       same=true;
-                       break;
-                   }
+                    if(Rho==HTpara[j].x()||ss==HTpara[j].y())
+                    {
+                        HTpara[j].setZ(HTpara[j].z()+1);
+                        same=true;
+                        break;
+                    }
                 }
                 if(!same)
                 {
@@ -1032,4 +1032,66 @@ cv::Mat QImage2cvMat(QImage image)
         exit(0);
     }
     return mat;
+}
+void Output2File(QVector<QVector2D>InputArray,QString Outputadd)
+{
+    if(Outputadd.isEmpty()){
+        QMessageBox::information(NULL,"warning","no out put file address!");
+        Outputadd="C:/Users/duke/Desktop/outputfiles.txt";;
+    }
+    int length=InputArray.length();
+
+
+    QFile *outflie=new QFile;
+    outflie->setFileName(Outputadd);
+    bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+    if(ok){
+        QTextStream out(outflie);
+        for(int i=0;i<length-1;i++)
+        {
+
+            QString outstr;
+            outstr=QString::number(InputArray[i].x());
+            outstr.append(" ");
+            outstr.append(QString::number(InputArray[i].y()));
+            out<<outstr;
+            out<<endl;
+        }
+        outflie->close();
+        delete outflie;
+    }
+}
+void Output2File(QVector<QVector4D>InputArray,QString Outputadd)
+{
+    if(Outputadd.isEmpty()){
+        QMessageBox::information(NULL,"warning","no out put file address!");
+        Outputadd="C:/Users/duke/Desktop/outputfiles.txt";;
+    }
+    int length=InputArray.length();
+
+
+    QFile *outflie=new QFile;
+    outflie->setFileName(Outputadd);
+    bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+    if(ok){
+        QTextStream out(outflie);
+        for(int i=0;i<length-1;i++)
+        {
+
+            QString outstr;
+            outstr=QString::number(InputArray[i].x());
+            outstr.append(" ");
+            outstr.append(QString::number(InputArray[i].y()));
+            out<<outstr;
+            out<<endl;
+            outstr.clear();
+            outstr=QString::number(InputArray[i].z());
+            outstr.append(" ");
+            outstr.append(QString::number(InputArray[i].w()));
+            out<<outstr;
+            out<<endl;
+        }
+        outflie->close();
+        delete outflie;
+    }
 }
