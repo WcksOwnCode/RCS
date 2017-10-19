@@ -82,7 +82,11 @@ public:
     void CharacteristicCalculate(QVector<int> CC); 
     void DeleteOutlineNoise();
     void ReOrderOutline(QVector <QVector2D> RO);
-    void  ErrorFunction();
+    void ErrorFunction();
+
+
+
+
 void CurveFit(QVector <QVector2D> Curve);
     void DrawImage(QImage im, QVector<QVector2D> P, QColor Color);
    // QString teststring="G97 X=52.36,Y=69.25,Z=63.25,A=3.14,B=0,C=0";
@@ -219,6 +223,8 @@ private:
     QVector <QVector2D> OutLine_copy;
 
     QVector <QVector2D> OnlyOutLine;
+
+    QVector <QVector2D> Outline_template;
 
     QVector <QVector2D> OnlyOutLine_count;
 
@@ -359,6 +365,8 @@ private slots:
     void on_replace_pushButton_clicked();
 
     void on_ImageWatch_pushButton_clicked();
+
+    void on_Outline_Button_clicked();
 
 signals:
     /*************************************/

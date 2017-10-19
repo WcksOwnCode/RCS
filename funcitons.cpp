@@ -8,6 +8,9 @@
 #include "funcitons.h"
 #include <cmath>
 #include <QMessageBox>
+#include"mainwindow.h"
+
+
 
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
@@ -389,15 +392,13 @@ QVector<double> Slope(QVector<QVector2D> S, int d)
     return toreturn;
 }
 
-
-
-QVector<int> SimplifySlope(QVector<double>S_Slope,QVector<int> BP)
+QVector<QVector2D> SimplifySlope(QVector<double>S_Slope, QVector<QVector2D> inputP)
 {
     //Slope是计算出的斜率数据
 
-    //BP对应的转折点
+    //inputP 输入的坐标点
 
-    //返回简化后的转折点(即特征点)
+    //返回简化后的坐标点序列
 
     //简化方式是进行斜率匹配
 
@@ -416,25 +417,30 @@ QVector<int> SimplifySlope(QVector<double>S_Slope,QVector<int> BP)
     QVector<int> toreturn;
 
     const double miss=4.0;//正负miss°的角度匹配值
+    QVector<double>inputPdis;
 
-    for(int i=1;i<length;i++)
+    inputPdis=Distance(inputP);//calculate all distance
+
+
+
+    for(int i=1;i<length;i+=2)
     {
 
         if(abs(S_Slope[i])-abs(S_Slope[i]-1)<=miss)
         {
-            toreturn.push_back(BP[i-1]);
+            toreturn.push_back(inputP[i-1]);
 
-            toreturn.push_back(BP[i+1]);
+            toreturn.push_back(inputP[i+1]);
         }
 
         else
 
         {
-            toreturn.push_back(BP[i-1]);
+            toreturn.push_back(inputP[i-1]);
 
-            toreturn.push_back(BP[i]);
+            toreturn.push_back(inputP[i]);
 
-            toreturn.push_back(BP[i+1]);
+            toreturn.push_back(inputP[i+1]);
         }
     }
 
@@ -443,6 +449,9 @@ QVector<int> SimplifySlope(QVector<double>S_Slope,QVector<int> BP)
     QVector<int>::iterator end_unique=std::unique(toreturn.begin(),toreturn.end());
 
     toreturn.erase(end_unique,toreturn.end());
+
+
+
 
     if(outtotxt)
     {
@@ -469,7 +478,7 @@ QVector<int> SimplifySlope(QVector<double>S_Slope,QVector<int> BP)
 
 }
 
-QVector<double> Distance(QVector<QVector2D> Into)
+QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
 {
     //into 是传入的点阵位置矩阵，求出两个点之间的距离
     int length=Into.length();
@@ -482,13 +491,29 @@ QVector<double> Distance(QVector<QVector2D> Into)
     QString outaddr="C:/Users/duke/Desktop/distance.txt";
     QVector<double> toreturn;
     double temp;
-    for(int i=1;i<length;i++)
-    {
-        temp=DisCalFuc(Into[i].x(),Into[i].y(),Into[i-1].x(),Into[i-1].y());
-        toreturn.push_back(temp);
+
+    if(mode==0){//mode=0 that means calculate Adjacent two points distance
+        for(int i=1;i<length;i++)
+        {
+            temp=DisCalFuc(Into[i].x(),Into[i].y(),Into[i-1].x(),Into[i-1].y());
+            toreturn.push_back(temp);
+        }
+
     }
+    else{//mode!=0 that means calculate every two points distance
+        for(int i=0;i<length;i++)
+        {
+            for(int j=i+1;j<length;j++)
+            {
+                temp=DisCalFuc(Into[i].x(),Into[i].y(),Into[j].x(),Into[j].y());
+                toreturn.push_back(temp);
+            }
+
+        }
 
 
+
+    }
     if(outtotxt)
     {
         QFile *outflie=new QFile;
@@ -884,79 +909,82 @@ QVector<QVector2D>Performance( QVector<double> change)
     }
     return toreturn;
 }
-void HoughTransform(QVector<QVector2D> Outlines)
+QVector<QVector2D> HoughTransform(QImage OutlineImage)
 {
     // this function is for hough transform to get the curve and strait line
-    // and the formula is:
 
-    /*
-     * Rho=X*Cos(Theta)+Y*Sin(Theta)
-    */
-    int length=Outlines.length();//get the numbers of the outline points
+    QImage newtocv=OutlineImage;
+
+    for(int i=0;i<OutlineImage.width();i++)
+    {
+        for(int j=0;j<OutlineImage.height();j++)
+        {
+            QColor it=OutlineImage.pixelColor(i,j);
+            if(it.red()==255&&it.blue()==255){
+                newtocv.setPixel(i,j,qRgb(0,0,0));
+            }else
+            {
+                newtocv.setPixel(i,j,qRgb(255,255,255));
+            }
+        }
+    }
+
     //part one strait line check
-    QVector<QVector3D> HTpara;//(Rho,Theta,Count);Theta Range is -pi/2 to pi/2
-    QVector<QVector2D> Para;//(Rho,Theta)
-    QVector3D store;
-    QVector2D parastore;
-    const float f_thetastep=0.01; //Increased step length of the theta ,if the step is too small
-    // there will be a huge amount of computation
-    int P_x;
-    int P_y;
-    float Rho;
-    bool same;
-    int threshhold=length*0.15;//lower than this value can not be a strait line
-    int linecount=0;
-    //Iterate all points of outlines
+    cv::Mat mat,graymat,drawmat;
 
-    for(int i=0;i<length;i++)
+    mat=QImage2cvMat(newtocv);
+
+    cvtColor(mat,graymat, CV_RGBA2GRAY);// change to one channels gray image
+    imshow("mat",graymat);
+
+
+    drawmat=graymat.clone();
+    std::vector<cv::Vec4i> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+
+    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,20,15,60); //(in,out,rho,theta,threshold,minlength,maxgap)
+
+
+    qDebug()<<"lines length: "<<lines.size();
+
+    QVector<QVector4D>SLines;//stroe all lines （p1.x,p1.y;p2.x,p2.y）
+    QVector4D Pis;
+    for( size_t i = 0; i < lines.size(); i++ )
     {
-        P_x=Outlines[i].x();
-        P_y=Outlines[i].y();
-        for(float ss=-3.14;ss<3.14;ss+=f_thetastep)
-        {
-            same=false;
-            Rho=P_x*cos(ss)+P_y*sin(ss);
-            if(HTpara.length()==0){
-                store.setX(Rho);
-                store.setY(ss);
-                store.setZ(1);
-                HTpara.push_back(store);
-            }
-            else{
-                for(int j=0;j<HTpara.length();j++)
-                {
-                    if(Rho==HTpara[j].x()||ss==HTpara[j].y())
-                    {
-                        HTpara[j].setZ(HTpara[j].z()+1);
-                        same=true;
-                        break;
-                    }
-                }
-                if(!same)
-                {
-                    store.setX(Rho);
-                    store.setY(ss);
-                    store.setZ(1);
-                    HTpara.push_back(store);
-                }
-            }
-        }
+        cv::Vec4i l = lines[i];
+        line( drawmat, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(186,88,255), 5, CV_AA);
+        Pis.setX(l[0]);
+        Pis.setY(l[1]);
+        Pis.setZ(l[2]);
+        Pis.setW(l[3]);
+        SLines.push_back(Pis);
+    }
 
 
+    //Output2File(SLines,"C:/Users/duke/Desktop/SLines.txt");
+    cv::imwrite("C:/Users/duke/Desktop/cvsave.png",drawmat);
+
+    /* for(size_t i=0;i<SLines.size();i++)
+  {
+      qDebug()<<SLines[i]<<"Lines is this";
+  }*/
+    QVector<QVector2D> OrderedSline;
+    QVector<QVector2D> Sline2D;
+    for(int i=0;i<SLines.length();i++)
+    {
+        QVector2D tit;
+        tit.setX(SLines[i].x());
+        tit.setY(SLines[i].y());
+        Sline2D.push_back(tit);
+        tit.setX(SLines[i].z());
+        tit.setY(SLines[i].w());
+        Sline2D.push_back(tit);
 
     }
 
-    for(int i=0;i<HTpara.length();i++)
-    {
-        if(HTpara[i].z()>=threshhold)
-        {
-            linecount++;
-            parastore.setX(HTpara[i].x());
-            parastore.setY(HTpara[i].y());
-            Para.push_back(parastore);
-        }
-    }
+    imshow("lines",drawmat);
 
+
+    return Sline2D;
 
 
 
@@ -1094,4 +1122,183 @@ void Output2File(QVector<QVector4D>InputArray,QString Outputadd)
         outflie->close();
         delete outflie;
     }
+}
+
+QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray)
+{
+    int templength=templateArray.length();
+
+    int inputLength=input.length();
+
+    int *spoto=new int[inputLength];
+
+
+    QVector<QVector2D>Toreturn;
+
+    if(inputLength==0){
+        QMessageBox::information(NULL,
+                                 "length","the length of the input is zero!");
+        exit(0);
+    }
+    if(templength==0){
+        QMessageBox::information(NULL,
+                                 "length","the length of the template array is zero!");
+        exit(0);
+    }
+
+    double mindis;
+    double tempdis;
+
+    for(int j=0;j<inputLength;j++)
+    {
+        bool find=false;
+
+        for(int i=0;i<templength;i++)
+        {
+
+            if(input[j].x()==templateArray[i].x()&&input[j].y()==templateArray[i].y())
+            {
+                spoto[j]=i;
+                find=true;
+                break;
+            }
+        }
+        if(!find)
+        {
+            //means no correctly same points
+            mindis=DisCalFuc(input[j].x(),input[j].y(),templateArray[0].x(),templateArray[0].y());
+
+             spoto[j]=0;
+
+            for(int i=1;i<templength-1;i++)
+            {
+                tempdis=DisCalFuc(input[j].x(),input[j].y(),templateArray[i].x(),templateArray[i].y());
+
+                if(mindis>=tempdis)
+                {
+                    mindis=tempdis;
+
+                    spoto[j]=i;
+                }
+            }
+        }
+
+    }
+
+
+    qDebug()<<"input length:    "<<inputLength;
+    for(int j=0;j<inputLength;j++)
+    {
+        int mins=0;
+        int minv=spoto[0];
+
+        for(int i=1;i<inputLength;i++)
+        {
+
+            if(minv>spoto[i])
+            {
+                mins=i;
+                minv=spoto[i];
+            }
+
+        }
+
+       Toreturn.push_back(input[mins]);
+
+       spoto[mins]=52000;
+
+    }
+
+
+
+
+
+    //then check the length
+    if(Toreturn.length()!=inputLength)
+    {
+        //that means the some the input points may not in outline points,it has fault
+        QMessageBox::information(NULL,"NOTICE",
+                                 "Here is not right,some of the poits are not in template array,please check");
+
+        exit(0);
+
+
+    }
+
+
+    qDebug()<<"toreturen:    "<<Toreturn;
+
+    qDebug()<<Toreturn.length()<<"this is toreturn's length ";
+
+    delete[] spoto;
+
+    spoto=NULL;
+
+    return Toreturn;
+
+}
+
+
+void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
+{
+    //to find all the points center
+    int length=Circle.length();
+
+    for(int i=0;i<length;i++)
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+QVector<QVector2D> LineMerge(QVector<QVector2D>input)
+{
+    //after houghlinesP function ,we will get some strait line which is represeted by two points(start
+    // and end points)
+    int length=input.length();
+    if(length<2)
+    {
+        QMessageBox::information(NULL,"LineMergeFunction","Length is not enough for a line!");
+        return input;
+    }
+
+    QVector<QVector2D> Toreturn;
+    double disthresh=5;//if there are two adjacent points distance is miner than this ,they will be merged
+    double dis;
+    QVector<double>lineslope;
+
+    //get the slope between lines;
+
+    lineslope= Slope(input);
+
+
+
+
+    for(int i=1;i<length;i+=2)
+    {
+        dis=DisCalFuc(input[i].x(),input[i].y(),input[i+1].x(),input[i+1].y());
+
+        if(dis<disthresh)
+        {
+            QVector2D newpoint;
+
+            newpoint.setX(0.5*(input[i].x()+input[i+1].x()));
+            newpoint.setY(0.5*(input[i].y()+input[i+1].y()));
+
+        }
+
+    }
+
+
 }

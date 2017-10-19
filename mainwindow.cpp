@@ -1470,10 +1470,21 @@ void MainWindow::ReadPngButton()
 
 
 
+    QVector<QVector2D>HoughPoints;
+
+    HoughPoints=HoughTransform(OulineImage);
 
 
+    QVector<QVector2D>OrderedSline;
 
 
+    OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
+
+    Output2File(OrderedSline,"C:/Users/duke/Desktop/OrderedSline.txt");
+
+    Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
+
+//    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
 
 
 
@@ -1617,8 +1628,11 @@ void MainWindow::AutoRun()
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
     // pp=pp.fromImage(OulineImage);
     // ui->final_label->setPixmap(pp);
+
     SmoothOutline();
+
     SmoothOulineImage=spaceImage;
+
     for(int i=0;i<OrderdOutLine.length();i++){
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
@@ -2393,7 +2407,50 @@ void MainWindow::on_ImageWatch_pushButton_clicked()
     AllImage.push_back(grayImage);
     AllImage.push_back(OulineImage);
     AllImage.push_back(SmoothOulineImage);
+
     ImageWatch *IW=new ImageWatch(AllImage);
+
     IW->show();
+
+}
+
+void MainWindow::on_Outline_Button_clicked()
+{
+    QString fileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.xlsx");
+    if(fileadd.isEmpty())
+    {
+        QMessageBox::information(this,"notice","not opened");
+        return;
+    }
+    QAxObject excel("Excel.Application");
+    excel.setProperty("Visible", false);
+    QAxObject *work_books = excel.querySubObject("WorkBooks");
+    work_books->dynamicCall("Open (const QString&)", QString(fileadd));
+    QAxObject *work_book = excel.querySubObject("ActiveWorkBook");
+    QAxObject *work_sheet = work_book->querySubObject("Sheets(int)", 1);
+    QAxObject *used_range = work_sheet->querySubObject("UsedRange");
+    QAxObject *rows = used_range->querySubObject("Rows");
+    QAxObject *columns = used_range->querySubObject("Columns");
+    row_start = used_range->property("Row").toInt();  //获取起始行
+    column_start = used_range->property("Column").toInt();  //获取起始列
+    row_count = rows->property("Count").toInt();  //获取行数
+    column_count = columns->property("Count").toInt();  //获取列数
+    QVector2D sc;
+    for(int i=2;i<row_count+1;i++)
+    {
+        QAxObject *x = work_sheet->querySubObject("Cells(int,int)", i, 1);
+        QVariant x_value = x->property("Value");  //获取单元格内容
+        QAxObject *y = work_sheet->querySubObject("Cells(int,int)", i, 2);
+        QVariant y_value = y->property("Value");  //获取单元格内容
+        sc.setX(x_value.toDouble());
+        sc.setY(y_value.toDouble());
+        Outline_template.push_back(sc);
+
+    }
+
+    /*************************/
+    work_book->dynamicCall("Close(Boolean)", false);  //关闭文件
+    excel.dynamicCall("Quit(void)");
+    QMessageBox::information(NULL,"Read template","模板导入完毕");
 
 }

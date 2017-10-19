@@ -163,6 +163,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="Outline_Button">
+       <property name="text">
+        <string>轮廓模板</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="CameraView_Button">
        <property name="text">
         <string>相机预览</string>

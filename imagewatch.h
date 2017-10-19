@@ -3,9 +3,9 @@
 
 #include <QWidget>
 #include<QVector>
-
+#include <opencv2/opencv.hpp>
 #include<QPixmap>
-
+#include"funcitons.h"
 namespace Ui {
 class ImageWatch;
 }
@@ -23,11 +23,23 @@ private slots:
 
     void on_size_horizontalSlider_valueChanged(int value);
 
+    void on_size_horizontalSlider_sliderReleased();
+
 private:
     Ui::ImageWatch *ui;
+
     QVector<QImage> Ima;
+
+    cv::Mat Ima_Mat;
+
     QImage Image;
+
+    int m_CurrentIndex;
+
+    double m_CurrentScale;
+
     QPixmap pixmap;
+
     int ImageCount=0;
 };
 

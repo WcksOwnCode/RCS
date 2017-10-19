@@ -1,7 +1,10 @@
 #include"mainwindow.h"
 #include"matrix_4.h"
+
+#include <opencv2/opencv.hpp>
 #ifndef FUNCITONS_H
 #define FUNCITONS_H
+#pragma once
 //here to write some funcitons
 
 double DisCalFuc(int x1,int y1,int x2,int y2);
@@ -16,6 +19,8 @@ bool comparison(double x,double y);
 
 void SmoothFunctions(QVector<QVector2D> SF);
 
+
+
 QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF);//计算传入的矩阵的两点间方向
 
 double SingelSlopeCalculate(QVector2D SSC1, QVector2D SSC2);
@@ -23,8 +28,9 @@ double SingelSlopeCalculate(QVector2D SSC1, QVector2D SSC2);
 QVector<double> Slope(QVector<QVector2D> S,int d=1);//计算斜率
 
 QVector<int> SimplifySlope(QVector<double> S_Slope, QVector<int> BP);//斜率精简
+QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inputP);//斜率精简2
 
-QVector<double> Distance(QVector<QVector2D> Into);//计算全部距离
+QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
 
 QVector<int> CheckPointInline(QVector<double> dis, QVector<QVector2D> slope, QVector<int> BP,QVector<QVector2D>OOL);
 
@@ -45,7 +51,7 @@ int P2Pcalculate(int pnum);
 
 QVector<QVector2D> Performance( QVector<double> change);
 
-void HoughTransform(QVector<QVector2D> Outlines);
+QVector<QVector2D> HoughTransform(QImage OutlineImage);
 
 QImage cvMat2QImage(const cv::Mat& mat);
 
@@ -53,4 +59,11 @@ cv::Mat QImage2cvMat(QImage image);
 
 void Output2File(QVector<QVector2D>InputArray,QString Outputadd="");
 void Output2File(QVector<QVector4D>InputArray,QString Outputadd="");
+QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
+
+QVector<QVector2D> LineMerge(QVector<QVector2D>input);
+
+void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
+
+
 #endif // FUNCITONS_H
