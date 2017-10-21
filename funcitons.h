@@ -9,12 +9,12 @@
 
 double DisCalFuc(int x1,int y1,int x2,int y2);
 
-void ReorderArray(int *p,int length,int n);
+QVector<int> ReorderArray(QVector<int> Array, int n);
 
 void ReorderArray(double *p,int n);
 
 void SwapT(double &a,double &b);
-
+void SwapT_int_int(int &a,int &b);
 bool comparison(double x,double y);
 
 void SmoothFunctions(QVector<QVector2D> SF);
@@ -29,7 +29,7 @@ QVector<double> Slope(QVector<QVector2D> S,int d=1);//计算斜率
 
 QVector<int> SimplifySlope(QVector<double> S_Slope, QVector<int> BP);//斜率精简
 QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inputP);//斜率精简2
-
+QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP);
 QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
 
 QVector<int> CheckPointInline(QVector<double> dis, QVector<QVector2D> slope, QVector<int> BP,QVector<QVector2D>OOL);
@@ -51,7 +51,7 @@ int P2Pcalculate(int pnum);
 
 QVector<QVector2D> Performance( QVector<double> change);
 
-QVector<QVector2D> HoughTransform(QImage OutlineImage);
+QVector<QVector2D> HoughTransform(QImage OutlineImage,int PointCount,int minmumLine=10);
 
 QImage cvMat2QImage(const cv::Mat& mat);
 
@@ -60,8 +60,8 @@ cv::Mat QImage2cvMat(QImage image);
 void Output2File(QVector<QVector2D>InputArray,QString Outputadd="");
 void Output2File(QVector<QVector4D>InputArray,QString Outputadd="");
 QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
-
-QVector<QVector2D> LineMerge(QVector<QVector2D>input);
+QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray);
+QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D> input_Point);
 
 void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
 

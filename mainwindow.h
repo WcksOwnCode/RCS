@@ -59,6 +59,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+
+
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void SetCoordinate(double x,double y,double z);
@@ -180,6 +182,8 @@ private:
     int count;
 
     int all;
+
+    const int minmumLine=10;
 
    // int DomainOrder[100];
     const int m_iTotwoValue=156;//转二值图的时候的阈值

@@ -32,14 +32,16 @@ SOURCES += main.cpp\
     funcitons.cpp \
     matrix_4.cpp \
     codewindow.cpp \
-    imagewatch.cpp
+    imagewatch.cpp \
+    worldvalues.cpp
 
 HEADERS  += mainwindow.h \
     curvefit.h \
     funcitons.h \
     matrix_4.h \
     codewindow.h \
-    imagewatch.h
+    imagewatch.h \
+    worldvalues.h
 
 FORMS    += mainwindow.ui \
     codewindow.ui \

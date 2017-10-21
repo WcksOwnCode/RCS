@@ -9,8 +9,7 @@
 #include <cmath>
 #include <QMessageBox>
 #include"mainwindow.h"
-
-
+#include"worldvalues.h"
 
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
@@ -18,43 +17,52 @@ double DisCalFuc(int x1, int y1, int x2, int y2)
     re=sqrt(pow(y2-y1,2)+pow(x2-x1,2));
     return re;
 }
-void ReorderArray(int *p, int length, int n)
+QVector<int> ReorderArray(QVector<int>p, int n)
 {
 
-    if(n=0){
-        //从小到大排列
-        for(int i=length;i>0;i--)
+    int length=p.length();
+
+    if(n==0){
+
+        //from maxmum to minmum
+
+        for(int i=0;i<length;i++)
         {
-            for(int j=0;j<i;j++)
+            for(int j=i;j<length;j++)
+            {
+
+                if(p[i]<p[j])
+                {
+
+                    SwapT_int_int(p[i],p[j]);
+                }
+
+            }
+
+        }
+    }
+    else if(n==1)
+    {
+        //from minmum to maxmum
+
+        for(int i=0;i<length;i++)
+        {
+            for(int j=i;j<length;j++)
             {
                 if(p[i]>p[j])
                 {
-                    //  SwapT(p[i],p[j]);
+                    SwapT_int_int(p[i],p[j]);
                 }
             }
 
         }
     }
-    else if(n=1)
-    {
-        //从da到xiao排列
-        for(int i=length;i>0;i--)
-        {
-            for(int j=0;j<i;j++)
-            {
-                if(p[i]<p[j])
-                {
-                    //SwapT(p[i],p[j]);
-                }
-            }
-
-        }
-    }
-    else
+    else if(n!=1&&n!=0)
     {
         QMessageBox::information(NULL,"notice!","the third parameter is inappropriate!");
         exit(0);
     }
+    return p;
 }
 
 void SwapT(double &a,double &b)
@@ -64,7 +72,13 @@ void SwapT(double &a,double &b)
     a=b;
     b=x;
 }
-
+void SwapT_int_int(int &a,int &b)
+{
+    int x;
+    x=a;
+    a=b;
+    b=x;
+}
 bool comparison(double x, double y)
 {
     return x>=y?true:false;
@@ -311,12 +325,14 @@ QVector<double> Slope(QVector<QVector2D> S, int d)
     //S是传入的点阵序列，
     //d是间隔求取的的数量
     int length=S.length();
+
     if(length<3)
     {
         QMessageBox::information(NULL,"notice","length is not enough!  (Simplelify the slopes)");
 
     }
     bool outtotxt=false;
+
     QString outaddr="C:/Users/duke/Desktop/slope.txt";
 
     double *d_slope=new double[length-1];
@@ -338,7 +354,7 @@ QVector<double> Slope(QVector<QVector2D> S, int d)
                 }
                 else
                 {
-                    d_slope[i-1]=180.0;
+                    d_slope[i-1]=CV_PI;
                 }
 
             }
@@ -347,11 +363,11 @@ QVector<double> Slope(QVector<QVector2D> S, int d)
         {
             if(S[i].y()>S[i-1].y())
             {
-                d_slope[i-1]=90.0;
+                d_slope[i-1]=CV_PI/2;
             }
             else if(S[i].y()<S[i-1].y())
             {
-                d_slope[i-1]=270.0;
+                d_slope[i-1]=1.5*CV_PI;
             }
             else//超级特殊情况，分子分母都为零,说明两个特征点重合，要避免，我会在前面家一个unique，这个不会发生什么，但是报警一下
             {
@@ -417,30 +433,38 @@ QVector<QVector2D> SimplifySlope(QVector<double>S_Slope, QVector<QVector2D> inpu
     QVector<int> toreturn;
 
     const double miss=4.0;//正负miss°的角度匹配值
+    const double disthresh=3.0;
+
     QVector<double>inputPdis;
 
-    inputPdis=Distance(inputP);//calculate all distance
+    inputPdis=Distance(inputP,0);//calculate all distance
 
+    for(int i=0;i<inputPdis.length();i++)
+    {
+        if(inputPdis[i]<disthresh)
+        {
 
+        }
+    }
 
-    for(int i=1;i<length;i+=2)
+    for(int i=0;i<length;i+=2)
     {
 
-        if(abs(S_Slope[i])-abs(S_Slope[i]-1)<=miss)
+        if(abs(S_Slope[i])-abs(S_Slope[i+2])<=miss)
         {
-            toreturn.push_back(inputP[i-1]);
+            // toreturn.push_back(inputP[i-1]);
 
-            toreturn.push_back(inputP[i+1]);
+            //  toreturn.push_back(inputP[i+1]);
         }
 
         else
 
         {
-            toreturn.push_back(inputP[i-1]);
+            //  toreturn.push_back(inputP[i-1]);
 
-            toreturn.push_back(inputP[i]);
+            //   toreturn.push_back(inputP[i]);
 
-            toreturn.push_back(inputP[i+1]);
+            //  toreturn.push_back(inputP[i+1]);
         }
     }
 
@@ -473,10 +497,88 @@ QVector<QVector2D> SimplifySlope(QVector<double>S_Slope, QVector<QVector2D> inpu
         }
     }
 
-    return toreturn;
+    return inputP;
 
 
 }
+
+QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP)
+{
+    //Slope是计算出的斜率数据
+
+    //BP对应的转折点
+
+    //返回简化后的转折点(即特征点)
+
+    //简化方式是进行斜率匹配
+
+    int length=S_Slope.length();
+
+    if(length<3)
+    {
+        QMessageBox::information(NULL,"notice","length is not enough!  (Simplelify the slopes)");
+
+    }
+
+    bool outtotxt=false;
+
+    QString outaddr="C:/Users/duke/Desktop/SimplifySlope.txt";
+
+    QVector<int> toreturn;
+
+    const double miss=4.0;//正负miss°的角度匹配值
+
+    for(int i=1;i<length;i++)
+    {
+
+        if(abs(S_Slope[i])-abs(S_Slope[i]-1)<=miss)
+        {
+            toreturn.push_back(BP[i-1]);
+
+            toreturn.push_back(BP[i+1]);
+        }
+
+        else
+
+        {
+            toreturn.push_back(BP[i-1]);
+
+            toreturn.push_back(BP[i]);
+
+            toreturn.push_back(BP[i+1]);
+        }
+    }
+
+    qSort(toreturn.begin(),toreturn.end());
+
+    QVector<int>::iterator end_unique=std::unique(toreturn.begin(),toreturn.end());
+
+    toreturn.erase(end_unique,toreturn.end());
+
+    if(outtotxt)
+    {
+        QFile *outflie=new QFile;
+        outflie->setFileName(outaddr);
+        bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+        if(ok){
+            QTextStream out(outflie);
+            for(int i=0;i<length-1;i++){
+                double tempintx=toreturn[i];//error
+
+                QString outstr;
+                outstr.append(QString::number(tempintx));
+                out<<outstr;
+                out<<endl;
+            }
+            outflie->close();
+            delete outflie;
+        }
+    }
+
+    return toreturn;
+}
+
+
 
 QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
 {
@@ -909,7 +1011,7 @@ QVector<QVector2D>Performance( QVector<double> change)
     }
     return toreturn;
 }
-QVector<QVector2D> HoughTransform(QImage OutlineImage)
+QVector<QVector2D> HoughTransform(QImage OutlineImage, int PointCount, int minmumLine)
 {
     // this function is for hough transform to get the curve and strait line
 
@@ -941,10 +1043,9 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage)
     drawmat=graymat.clone();
     std::vector<cv::Vec4i> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
 
-    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,20,15,60); //(in,out,rho,theta,threshold,minlength,maxgap)
+    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*2,200); //(in,out,rho,theta,threshold,minlength,maxgap)
 
 
-    qDebug()<<"lines length: "<<lines.size();
 
     QVector<QVector4D>SLines;//stroe all lines （p1.x,p1.y;p2.x,p2.y）
     QVector4D Pis;
@@ -959,15 +1060,15 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage)
         SLines.push_back(Pis);
     }
 
-
-    //Output2File(SLines,"C:/Users/duke/Desktop/SLines.txt");
+    qDebug()<<"Slines length is:     "<<SLines.length();
+    Output2File(SLines,"C:/Users/duke/Desktop/oriSLines.txt");
     cv::imwrite("C:/Users/duke/Desktop/cvsave.png",drawmat);
 
     /* for(size_t i=0;i<SLines.size();i++)
   {
       qDebug()<<SLines[i]<<"Lines is this";
   }*/
-    QVector<QVector2D> OrderedSline;
+
     QVector<QVector2D> Sline2D;
     for(int i=0;i<SLines.length();i++)
     {
@@ -1040,7 +1141,7 @@ QImage cvMat2QImage(const cv::Mat& mat)
 cv::Mat QImage2cvMat(QImage image)
 {
     cv::Mat mat;
-    qDebug() <<"image format: "<< image.format();
+
     switch(image.format())
     {
     case QImage::Format_ARGB32:
@@ -1061,6 +1162,7 @@ cv::Mat QImage2cvMat(QImage image)
     }
     return mat;
 }
+
 void Output2File(QVector<QVector2D>InputArray,QString Outputadd)
 {
     if(Outputadd.isEmpty()){
@@ -1073,9 +1175,10 @@ void Output2File(QVector<QVector2D>InputArray,QString Outputadd)
     QFile *outflie=new QFile;
     outflie->setFileName(Outputadd);
     bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
-    if(ok){
+    if(ok)
+    {
         QTextStream out(outflie);
-        for(int i=0;i<length-1;i++)
+        for(int i=0;i<length;i++)
         {
 
             QString outstr;
@@ -1084,6 +1187,7 @@ void Output2File(QVector<QVector2D>InputArray,QString Outputadd)
             outstr.append(QString::number(InputArray[i].y()));
             out<<outstr;
             out<<endl;
+
         }
         outflie->close();
         delete outflie;
@@ -1102,8 +1206,9 @@ void Output2File(QVector<QVector4D>InputArray,QString Outputadd)
     outflie->setFileName(Outputadd);
     bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
     if(ok){
+
         QTextStream out(outflie);
-        for(int i=0;i<length-1;i++)
+        for(int i=0;i<length;i++)
         {
 
             QString outstr;
@@ -1118,7 +1223,9 @@ void Output2File(QVector<QVector4D>InputArray,QString Outputadd)
             outstr.append(QString::number(InputArray[i].w()));
             out<<outstr;
             out<<endl;
+
         }
+
         outflie->close();
         delete outflie;
     }
@@ -1168,7 +1275,7 @@ QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templa
             //means no correctly same points
             mindis=DisCalFuc(input[j].x(),input[j].y(),templateArray[0].x(),templateArray[0].y());
 
-             spoto[j]=0;
+            spoto[j]=0;
 
             for(int i=1;i<templength-1;i++)
             {
@@ -1203,9 +1310,9 @@ QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templa
 
         }
 
-       Toreturn.push_back(input[mins]);
+        Toreturn.push_back(input[mins]);
 
-       spoto[mins]=52000;
+        spoto[mins]=52000;
 
     }
 
@@ -1238,6 +1345,131 @@ QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templa
 
 }
 
+QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray)
+{
+
+    int templength=templateArray.length();
+
+    int inputLength=input.length();
+
+    QVector<int>Toreturn;
+
+    if(inputLength==0){
+        QMessageBox::information(NULL,
+                                 "length","the length of the input is zero!");
+        exit(0);
+    }
+    if(templength==0){
+        QMessageBox::information(NULL,
+                                 "length","the length of the template array is zero!");
+        exit(0);
+    }
+
+    double mindis;
+    double tempdis;
+
+    for(int j=0;j<inputLength;j++)
+    {
+        bool find=false;
+
+        for(int i=0;i<templength;i++)
+        {
+
+            if(input[j].x()==templateArray[i].x()&&input[j].y()==templateArray[i].y())
+            {
+                Toreturn.push_back(i);
+                find=true;
+                break;
+            }
+        }
+        if(!find)
+        {
+            //means no correctly same points
+            mindis=DisCalFuc(input[j].x(),input[j].y(),templateArray[0].x(),templateArray[0].y());
+
+            int tempxx=0;
+
+            for(int i=1;i<templength-1;i++)
+            {
+                tempdis=DisCalFuc(input[j].x(),input[j].y(),templateArray[i].x(),templateArray[i].y());
+
+                if(mindis>=tempdis)
+                {
+                    mindis=tempdis;
+
+                    tempxx=i;
+                }
+            }
+            Toreturn.push_back(tempxx);
+        }
+
+    }
+
+
+    qDebug()<<"befor reorder function: "<<endl<<Toreturn;
+
+    if(Toreturn.length()%2!=0){
+        QMessageBox::warning(NULL,"warning","the length of the is not odd");
+        exit(0);
+    }
+
+    for(int i=0;i<Toreturn.length();i+=2)
+    {
+        if(Toreturn[i]>Toreturn[i+1])
+        {
+            SwapT_int_int(Toreturn[i],Toreturn[i+1]);
+        }
+    }
+    QVector<int>toorder;
+    QVector<int>getorder;
+    for(int i=0;i<Toreturn.length();i+=2)
+    {
+        toorder.push_back(Toreturn[i]);
+    }
+    getorder=ReorderArray(toorder,1);
+
+    QVector<int>newtoreturn;
+    for(int i=0;i<getorder.length();i++)
+    {
+        for(int j=0;j<Toreturn.length();j+=2)
+        {
+            if(getorder[i]==Toreturn[j])
+            {
+                newtoreturn.push_back(Toreturn[j]);
+                newtoreturn.push_back(Toreturn[j+1]);
+            }
+        }
+    }
+
+
+    Toreturn.clear();
+    Toreturn=newtoreturn;
+
+    qDebug()<<"After the reorder:    "<<endl<<Toreturn;
+
+    //then check the length
+    if(Toreturn.length()!=inputLength)
+    {
+        //that means the some the input points may not in outline points,it has fault
+        QMessageBox::information(NULL,"NOTICE",
+                                 "Here is not right,some of the poits are not in template array,please check");
+
+        exit(0);
+
+
+    }
+
+
+
+
+    // qDebug()<<Toreturn.length()<<"this is toreturn's length ";
+
+
+
+
+
+    return Toreturn;
+}
 
 void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
 {
@@ -1262,43 +1494,126 @@ void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
 
 
 }
-QVector<QVector2D> LineMerge(QVector<QVector2D>input)
+QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point)
 {
     //after houghlinesP function ,we will get some strait line which is represeted by two points(start
     // and end points)
-    int length=input.length();
+
+    if(input_int.length()!=input_Point.length())
+    {
+        QMessageBox::information(NULL,"LineMergeFunction","Two input array's length is not the same!");
+        exit(0);
+    }
+    int length=input_int.length();
+
+
     if(length<2)
     {
         QMessageBox::information(NULL,"LineMergeFunction","Length is not enough for a line!");
-        return input;
+        return input_int;
     }
-
-    QVector<QVector2D> Toreturn;
+    QVector<QVector2D>CurveP;//store the Curve start point and end point;send it to Curve Check;
+    QVector<int> Toreturn;
     double disthresh=5;//if there are two adjacent points distance is miner than this ,they will be merged
     double dis;
+    const double degreeT=CV_PI*10/180;
     QVector<double>lineslope;
 
     //get the slope between lines;
 
-    lineslope= Slope(input);
+    lineslope= Slope(input_Point);
+    qDebug()<<lineslope<<"   lineslope is this!";
+    int slopelength=lineslope.length();
 
 
 
+    QVector<int>RemoveP_int;
 
-    for(int i=1;i<length;i+=2)
+    for(int i=0;i<length-1;i++)
     {
-        dis=DisCalFuc(input[i].x(),input[i].y(),input[i+1].x(),input[i+1].y());
-
-        if(dis<disthresh)
+        if(abs(input_int[i]-input_int[i+1])<=1)
         {
-            QVector2D newpoint;
 
-            newpoint.setX(0.5*(input[i].x()+input[i+1].x()));
-            newpoint.setY(0.5*(input[i].y()+input[i+1].y()));
+
+            if(i+1<=slopelength)
+            {//to check will here index out of range
+                if(abs(lineslope[i-1]-lineslope[i+1])<degreeT)
+                {
+                    // mergetwo line
+
+                    RemoveP_int.push_back(input_int[i]);
+
+                    RemoveP_int.push_back(input_int[i+1]);
+                }
+                else
+                {
+                    //该点转折,把两个点融合
+                    //判定领域方式再融合
+
+                    input_int[i]=input_int[i+1];
+                    input_Point[i]=input_Point[i+1];
+
+
+
+                }
+
+            }
+
+            else{
+                QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
+                exit(0);
+            }
 
         }
+        else if(abs(input_int[i]-input_int[i+1])<=18&&abs(input_int[i]-input_int[i+1]>1))//直线不会短于18
+        {
+            if(i+1<=slopelength)
+            {//to check will here index out of range
+                if(qAbs(lineslope[i-1]-lineslope[i+1])<degreeT)
+                {
+                    //int tempomid=(input_int[i]+input_int[i+1])/2;
+                    qDebug()<<"the slope is : "<<qAbs(lineslope[i-1]-lineslope[i+1]);
+                    RemoveP_int.push_back(input_int[i]);
+
+                    RemoveP_int.push_back(input_int[i+1]);
+                }
+                else
+                {
+                    input_int[i]=(input_int[i+1]+input_int[i])/2;
+
+                }
+            }
+            else{
+                QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
+                exit(0);
+            }
+        }
+
 
     }
 
+    for(int i=0;i<length;i++)
+    {
+        if(RemoveP_int.length()==0)
+        {
+            Toreturn.push_back(input_int[i]);
+        }
+        else
+        {
+            bool Nooth=false;
+            for(int j=0;j<RemoveP_int.length();j++)
+            {
+                if(input_int[i]==RemoveP_int[j])
+                {
+                    Nooth=true;
+                }
+            }
+            if(!Nooth){
+                Toreturn.push_back(input_int[i]);
+            }
+        }
+    }
 
+
+    return Toreturn;
 }

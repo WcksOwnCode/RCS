@@ -4,11 +4,13 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include"codewindow.h"
+#include"worldvalues.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     WhoseTime.start();
+
     /******************************************************/
     /*                    From API                        */
     /********************************************************/
@@ -1405,12 +1407,6 @@ void MainWindow::ReadPngButton()
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
 
 
-
-
-
-
-    // pp=pp.fromImage(OulineImage);
-    // ui->final_label->setPixmap(pp);
     SmoothOutline();
 
     SmoothOulineImage=spaceImage;
@@ -1444,20 +1440,7 @@ void MainWindow::ReadPngButton()
         SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+3,CharacteristicPoint[i].y(),qRgb(0,255,255));
     }
 
-    /* for(int i=0;i<BreakPoints.length();i++){
-        SmoothOulineImage.setPixel(BreakPoints[i].y(),BreakPoints[i].z(),qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()-2,BreakPoints[i].z()-2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z()+2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()-2,BreakPoints[i].z()+2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z()-2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y(),BreakPoints[i].z()-2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y(),BreakPoints[i].z()+2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()-2,BreakPoints[i].z(),qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z(),qRgb(0,0,0));
 
-
-
-    }*/
     pp=pp.fromImage(SmoothOulineImage);
     ui->final_label->setPixmap(pp);
 
@@ -1472,11 +1455,15 @@ void MainWindow::ReadPngButton()
 
     QVector<QVector2D>HoughPoints;
 
-    HoughPoints=HoughTransform(OulineImage);
+    HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/15,minmumLine);
 
 
     QVector<QVector2D>OrderedSline;
 
+    QVector<int>testorder;
+    QVector<QVector2D>test2D;
+
+    testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
 
     OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
 
@@ -1484,7 +1471,37 @@ void MainWindow::ReadPngButton()
 
     Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
 
-//    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
+
+    QVector<int>m_Int_Line;
+
+
+    m_Int_Line=LineMerge(testorder,OrderedSline);
+
+    qDebug()<<m_Int_Line<<"    m_Int_Line is this!";
+    qDebug()<<testorder<<"    testorder is this!";
+
+    QVector<QVector2D>testMerge;
+
+    for(int j=0;j<testorder.length();j++)
+    {
+
+        test2D.push_back(OrderdOutLine[testorder[j]]);
+
+    }
+
+    for(int j=0;j<m_Int_Line.length();j++)
+    {
+
+        testMerge.push_back(OrderdOutLine[m_Int_Line[j]]);
+
+    }
+
+    Output2File(test2D,"C:/Users/duke/Desktop/test2D.txt");
+
+    Output2File(testMerge,"C:/Users/duke/Desktop/testMerge.txt");
+
+
+    //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
 
 
 
@@ -1714,7 +1731,6 @@ void MainWindow::ClearVector()
     ctrlPoints.clear();
     curvePoints.clear();
     CoorCount=0;
-
 }
 void MainWindow::CameraPreView()
 {
@@ -2032,24 +2048,8 @@ void MainWindow::CurveFit(QVector<QVector2D> Curve)
 
     int CurveCast=CurveTimer.elapsed();
 
-    QFile *file3=new QFile;
-    file3->setFileName("C:/Users/duke/Desktop/Fits.txt");
-    bool ok3=file3->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
-    if(ok3){
-        QTextStream out(file3);
-        for(int i=0;i<curvePoints.length();i++){
-            float tempint=curvePoints[i].x();
-            QString outstr;
-            outstr.append(QString::number(tempint));
-            outstr.append(" ");
-            tempint=curvePoints[i].y();
-            outstr.append(QString::number(tempint));
-            out<<outstr;
-            out<<endl;
-        }
-        file3->close();
 
-    }
+
 
     qDebug()<<"CurveFit time Cast:    "<<CurveCast;
 
@@ -2063,7 +2063,6 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
     //算法重新考虑中
     //替代Excursion函数和Slopecheck函数
     //此函数筛查这些转折点然后找出关键的特征点
-    qDebug()<<"CharacteristcCalculate";
 
     int length=CC.length();
 
@@ -2184,30 +2183,6 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
 
     CreadOrders();
 
-
-
-
-
-    QFile *file4=new QFile;
-    file4->setFileName("C:/Users/duke/Desktop/chara.txt");
-    bool ok4=file4->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
-    if(ok4){
-        QTextStream out(file4);
-        for(int i=0;i<CharacteristicPoint.length();i++){
-            float tempint=CharacteristicPoint[i].x();
-            QString outstr;
-            outstr.append(QString::number(tempint));
-            outstr.append(" ");
-            tempint=CharacteristicPoint[i].y();
-            outstr.append(QString::number(tempint));
-            out<<outstr;
-            out<<endl;
-        }
-        file4->close();
-
-    }
-
-
 }
 void MainWindow::DrawImage(QImage im,QVector<QVector2D> P,QColor Color)
 {
@@ -2250,58 +2225,59 @@ void MainWindow::on_Hough_Button_clicked()
 
 
     using namespace cv;
-   //方式一：全部使用opencv的函数
+    //方式一：全部使用opencv的函数
 
-     Mat oriImage = imread("C:\\Users\\duke\\Desktop\\t2.png");  //工程目录下应该有一张名为1.jpg的素材图
-     Mat Blured,Image2,lastImage;//临时变量和目标图的定义
+    Mat oriImage = imread("C:\\Users\\duke\\Desktop\\t2.png");  //工程目录下应该有一张名为1.jpg的素材图
+    Mat Blured,Image2,lastImage;//临时变量和目标图的定义
 
-       //【2】进行边缘检测和转化为灰度图
+    //【2】进行边缘检测和转化为灰度图
 
-     cv::GaussianBlur(oriImage,Blured,Size(11,11),2);
-      imshow("oriImage",oriImage);
-      imshow("blured",Blured);
-      Canny(oriImage, Image2, 50, 200, 3);//进行一此canny边缘检测
-      cvtColor(Image2,lastImage, CV_GRAY2BGR);//转化边缘检测后的图为灰度图
+    cv::GaussianBlur(oriImage,Blured,Size(11,11),2);
+    imshow("oriImage",oriImage);
+    imshow("blured",Blured);
+    Canny(oriImage, Image2, 50, 200, 3);//进行一此canny边缘检测
+    cvtColor(Image2,lastImage, CV_GRAY2BGR);//转化边缘检测后的图为灰度图
 
-      Mat newlast=oriImage;
+    Mat newlast=oriImage;
 
-      vector<Vec2f> cvlines;//定义一个矢量结构lines用于存放得到的线段矢量集合
-      vector<Vec4i> Pcvlines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+    vector<Vec2f> cvlines;//定义一个矢量结构lines用于存放得到的线段矢量集合
+    vector<Vec4i> Pcvlines;//定义一个矢量结构lines用于存放得到的线段矢量集合
 
-      HoughLines(Image2, cvlines, 1, CV_PI/180, 50, 0, 0 );
-      HoughLinesP(Image2, Pcvlines, 1, CV_PI/180,50, 25, 5);
+    HoughLines(Image2, cvlines, 1, CV_PI/180, 50, 0, 0 );
+    HoughLinesP(Image2, Pcvlines, 1, CV_PI/180,50, 25, 5);
 
 
-      for( size_t i = 0; i < cvlines.size(); i++ )
-          {
-              float rho = cvlines[i][0], theta = cvlines[i][1];
-              Point pt1, pt2;
-              double a = cos(theta), b = sin(theta);
-              double x0 = a*rho, y0 = b*rho;
-              pt1.x = cvRound(x0 + 1000*(-b));
-              pt1.y = cvRound(y0 + 1000*(a));
-              pt2.x = cvRound(x0 - 1000*(-b));
-              pt2.y = cvRound(y0 - 1000*(a));
-              line( lastImage, pt1, pt2, Scalar(55,100,195), 1, CV_AA);
-          }
+    for( size_t i = 0; i < cvlines.size(); i++ )
+    {
+        float rho = cvlines[i][0], theta = cvlines[i][1];
+        Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a*rho, y0 = b*rho;
+        pt1.x = cvRound(x0 + 1000*(-b));
+        pt1.y = cvRound(y0 + 1000*(a));
+        pt2.x = cvRound(x0 - 1000*(-b));
+        pt2.y = cvRound(y0 - 1000*(a));
+        line( lastImage, pt1, pt2, Scalar(55,100,195), 1, CV_AA);
+    }
 
-      QVector<QVector4D>SLines;//stroe all lines （p1.x,p1.y;p2.x,p2.y）
-      QVector4D Pis;
-      for( size_t i = 0; i < Pcvlines.size(); i++ )
-      {
-              Vec4i l = Pcvlines[i];
-              line( newlast, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(186,88,255), 3, CV_AA);
-              Pis.setX(l[0]);
-              Pis.setY(l[1]);
-              Pis.setZ(l[2]);
-              Pis.setW(l[3]);
-              SLines.push_back(Pis);
-      }
+    QVector<QVector4D>SLines;//stroe all lines （p1.x,p1.y;p2.x,p2.y）
+    QVector4D Pis;
+    for( size_t i = 0; i < Pcvlines.size(); i++ )
+    {
+        Vec4i l = Pcvlines[i];
+        line( newlast, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(186,88,255), 3, CV_AA);
+        Pis.setX(l[0]);
+        Pis.setY(l[1]);
+        Pis.setZ(l[2]);
+        Pis.setW(l[3]);
+        SLines.push_back(Pis);
+    }
 
 
     Output2File(SLines,"C:/Users/duke/Desktop/SLines.txt");
 
     Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
+
     for(size_t i=0;i<SLines.size();i++)
     {
         qDebug()<<SLines[i]<<"SLines is this";
@@ -2313,9 +2289,9 @@ void MainWindow::on_Hough_Button_clicked()
 
 
 
-      imshow("lastimage",lastImage);
+    imshow("lastimage",lastImage);
 
-      imshow("newlastimage",newlast);
+    imshow("newlastimage",newlast);
 
 
     QImage tocv,todraw;
@@ -2324,8 +2300,8 @@ void MainWindow::on_Hough_Button_clicked()
     {
         for(int j=0;j<height;j++)
         {
-           tocv.setPixel(i,j,qRgb(0,0,0));
-           todraw.setPixel(i,j,qRgb(255,255,255));
+            tocv.setPixel(i,j,qRgb(0,0,0));
+            todraw.setPixel(i,j,qRgb(255,255,255));
         }
     }
     for(int i=0;i<OrderdOutLine.length();i++){
@@ -2345,19 +2321,18 @@ void MainWindow::on_Hough_Button_clicked()
 
     cvtColor(mat,graymat, CV_RGBA2GRAY);
 
-   // std::cout<<graymat<<std::endl;
+    // std::cout<<graymat<<std::endl;
 
 
 
     imshow("origin", mat);
-    qDebug()<<"gray mat channels  "<<graymat.channels();
+
     imshow("graymat",graymat);
 
     vector<Vec2f> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
 
     HoughLines(graymat, lines, 1, CV_PI/180, 50, 0, 0 );
 
-    qDebug()<<"lines length: "<<lines.size();
 
     for(size_t i=0;i<lines.size();i++)
     {
