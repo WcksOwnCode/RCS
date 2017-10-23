@@ -116,6 +116,7 @@ private:
 
     QString FullOrder;
 
+    int minmumDcres=10;//曲线离散后最短直线
 
     int rows;
 

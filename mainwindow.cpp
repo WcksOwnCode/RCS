@@ -1456,57 +1456,68 @@ void MainWindow::ReadPngButton()
     QVector<QVector2D>HoughPoints;
 
     HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/15,minmumLine);
+    if(HoughPoints.length()>=4){
+
+        QVector<QVector2D>OrderedSline;
+
+        QVector<int>testorder;
+        QVector<QVector2D>test2D;
+
+        testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
+
+        OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
+
+        Output2File(OrderedSline,"C:/Users/duke/Desktop/OrderedSline.txt");
+
+        Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
 
 
-    QVector<QVector2D>OrderedSline;
+        QVector<int>m_Int_Line;
 
-    QVector<int>testorder;
-    QVector<QVector2D>test2D;
+        /*****************************************************************/
+        /*                                                               */
+        /*                                                               */
+        /*                                                               */
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine);
+        /*                                                               */
+        /*                                                               */
+        /*                                                               */
+        /*                                                               */
+        /*****************************************************************/
+        qDebug()<<m_Int_Line<<"    m_Int_Line is this!";
+        qDebug()<<testorder<<"    testorder is this!";
 
-    testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
+        QVector<QVector2D>testMerge;
 
-    OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
+        for(int j=0;j<testorder.length();j++)
+        {
 
-    Output2File(OrderedSline,"C:/Users/duke/Desktop/OrderedSline.txt");
+            test2D.push_back(OrderdOutLine[testorder[j]]);
 
-    Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
+        }
+
+        for(int j=0;j<m_Int_Line.length();j++)
+        {
+
+            testMerge.push_back(OrderdOutLine[m_Int_Line[j]]);
+
+        }
+
+        Output2File(test2D,"C:/Users/duke/Desktop/test2D.txt");
+
+        Output2File(testMerge,"C:/Users/duke/Desktop/testMerge.txt");
 
 
-    QVector<int>m_Int_Line;
-
-
-    m_Int_Line=LineMerge(testorder,OrderedSline);
-
-    qDebug()<<m_Int_Line<<"    m_Int_Line is this!";
-    qDebug()<<testorder<<"    testorder is this!";
-
-    QVector<QVector2D>testMerge;
-
-    for(int j=0;j<testorder.length();j++)
-    {
-
-        test2D.push_back(OrderdOutLine[testorder[j]]);
+        //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
 
     }
-
-    for(int j=0;j<m_Int_Line.length();j++)
+    else
     {
 
-        testMerge.push_back(OrderdOutLine[m_Int_Line[j]]);
+        //直线数量不足，说明全部是曲线，直接进行曲线检测
+
 
     }
-
-    Output2File(test2D,"C:/Users/duke/Desktop/test2D.txt");
-
-    Output2File(testMerge,"C:/Users/duke/Desktop/testMerge.txt");
-
-
-    //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
-
-
-
-
-
     int elapsed=WhoseTime.elapsed()-readstart;
 
     m_bReadState=true;
