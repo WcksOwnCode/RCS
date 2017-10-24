@@ -1478,7 +1478,7 @@ void MainWindow::ReadPngButton()
         /*                                                               */
         /*                                                               */
         /*                                                               */
-        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine);
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,10);
         /*                                                               */
         /*                                                               */
         /*                                                               */
@@ -1519,6 +1519,19 @@ void MainWindow::ReadPngButton()
 
     }
     int elapsed=WhoseTime.elapsed()-readstart;
+
+    QVector<QVector2D>Toshow;
+    for(int q=0;q<BreakPoints.length();q++)
+    {
+        Toshow.push_back(OrderdOutLine[BreakPoints[q]]);
+    }
+
+    Output2File(Toshow);
+
+
+
+
+
 
     m_bReadState=true;
     ui->time_label->setText(QString::number(elapsed)+" ms");

@@ -284,7 +284,7 @@ double SingelSlopeCalculate(QVector2D SSC1,QVector2D SSC2)
 {
     //用于计算两点斜率用的
     //SSC1\SSC2分别是两个需要计算的点的坐标，都是二维的xy
-    //返回两点的斜率角度0-360
+    //返回两点的斜率弧度
     double toreturn;
     if(SSC1.x()!=SSC2.x())//分母不能为0
     {
@@ -636,7 +636,8 @@ QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
     }
     return toreturn;
 }
-QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope, QVector<QVector2D> OOL, int MinL)
+QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
+                              QVector<QVector2D> OOL, QVector<int>BreakP,int MinL)
 {
     //此函数用在进行了斜率简化后的对长线段之间的点进行筛查用的
     //主要检测两个长线段之间的点是否有必要保留
@@ -656,7 +657,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
 
 
-    if(Pcount<=minL)
+    if(Pcount<=MinL)
     {//先查看是不是可能为有一点小波动的直线
 
         QVector<QVector2D>Linep;
@@ -667,35 +668,70 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         {
             midPoints.push_back(OOL[BP[i]]);
         }
-       QVector<double>alldis= PointToLineDis(Linep,midPoints);
-       double sumdis;
-       double maxdis;
-       int maxpos;
-       //对alldis进行考察：
-       maxdis=0;
-       maxpos=0;
-       for(int k=0;k<alldis.length();k+=2)
-       {
-           sumdis=sumdis+alldis[k];
-           if(maxdis<alldis[k])
-           {
-               maxdis=alldis[k];
-               maxpos=k;
-           }
-       }
-       if(sumdis<10&&maxdis<4){
-          //视作直线
-           Toreturn.push_back(BP[0]);
-           Toreturn.push_back(BP.end());
-       }else
-       {
-           Toreturn.push_back(BP[maxpos]);
-       }
+        QVector<double>alldis= PointToLineDis(Linep,midPoints);
+        double sumdis;
+        double maxdis;
+        int maxpos;
+        //对alldis进行考察：
+        maxdis=0;
+        maxpos=0;
+        for(int k=0;k<alldis.length();k+=2)
+        {
+            sumdis=sumdis+alldis[k];
+            if(maxdis<alldis[k])
+            {
+                maxdis=alldis[k];
+                maxpos=k;
+            }
+        }
+        if(sumdis<10&&maxdis<4){
+            //视作直线
+            Toreturn.push_back(BP[0]);
+            Toreturn.push_back(BP[BP.length()-1]);
+        }else
+        {
+            Toreturn.push_back(BP[maxpos]);
+        }
 
     }
     else
     {
-        //对曲线进行9个点依次的离散
+        //BreakP中存放着所有的转折发生点的位置序号，这个时候就需要查询调用这个数据了
+        QVector<double>BreakP_slop;
+
+        QVector<int>ImportentP;
+
+        for(int jj=1;jj<BP.length()-1;jj++)
+        {
+            int precheck,aftercheck;
+            if(BP[jj]>inidecrese){
+                precheck=BP[jj]-inidecrese;
+                if(BP[jj]+inidecrese>OOL.length())
+                {
+                    aftercheck=BP[jj]+inidecrese-OOL.length();//形状是个环
+                }
+                else{
+                    aftercheck=BP[jj]+inidecrese;
+                }
+
+            }
+            else
+            {
+                aftercheck=BP[jj]+inidecrese;
+                precheck=BP[jj]-inidecrese+OOL.length();
+
+
+            }
+            if(abs(SingelSlopeCalculate(OOL[precheck],OOL[BP[jj]])-SingelSlopeCalculate(OOL[BP[jj]],OOL[aftercheck]))>CV_PI/5)
+            {
+                ImportentP.push_back(BP[jj]);//两端点斜率较大则认为这个点不可忽略
+            }
+
+
+
+        }
+
+
 
 
     }
@@ -1457,7 +1493,8 @@ void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
 
 
 }
-QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,QVector<QVector2D>allp,int minL=10)
+QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
+                       QVector<QVector2D>allp,QVector<int>BreakP,int minL=10)
 {
     //after houghlinesP function ,we will get some strait line which is represeted by two points(start
     // and end points)
@@ -1477,15 +1514,16 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,QVect
     }
     QVector<QVector2D>CurveP;//store the Curve start point and end point;send it to Curve Check;
     QVector<int> Toreturn;
-    double disthresh=5;//if there are two adjacent points distance is miner than this ,they will be merged
-    double dis;
+
     const double degreeT=CV_PI*10/180;
     QVector<double>lineslope;
 
     //get the slope between lines;
 
     lineslope= Slope(input_Point);
+
     qDebug()<<lineslope<<"   lineslope is this!";
+
     int slopelength=lineslope.length();
 
 
@@ -1515,9 +1553,6 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,QVect
 
                     input_int[i]=input_int[i+1];
                     input_Point[i]=input_Point[i+1];
-
-
-
                 }
 
             }
@@ -1530,6 +1565,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,QVect
         }
         else if(abs(input_int[i]-input_int[i+1])<=minL&&abs(input_int[i]-input_int[i+1]>1))//直线不会短于minL
         {
+
             if(i+1<=slopelength)
             {//to check will here index out of range
                 if(qAbs(lineslope[i-1]-lineslope[i+1])<degreeT)
@@ -1554,26 +1590,35 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,QVect
         }else
         {
             //gap is longer than minL
-
+            //长度过长的直接送入CheckPointsinline函数
+            //预处理：
+            //Gap_Point二维存放曲线起止点位置序号，也就是两段直线，前直线的尾点，和后直线的起点
+            //
+            //
+            //
+            qDebug()<<"this is start points:";
             QVector2D Gap_Point;
             Gap_Point.setX(input_int[i]);
             Gap_Point.setY(input_int[i+1]);
             QVector<QVector2D>Curve_Points;
             QVector<double>Lslope;
-            Lslope.push_back(lineslope[i-1]);
-            Lslope.push_back(lineslope[i+1]);
-            int CurveP_count=input_int[i+1]-input_int[i]+1;
-            for(int k=0;k<=CurveP_count;k++)
-            {
-                Curve_Points.push_back(allp[input_int[i]+k]);
-            }
-           // CheckPointInline(Curve_Points,CurveP_count,Lslope,allp);
+           // Lslope.push_back(lineslope[i-1]);//here out of range
+            //Lslope.push_back(lineslope[i+1]);
+           // int CurveP_count=input_int[i+1]-input_int[i]+1;
+            qDebug()<<"this is middle points";
+          //  for(int k=0;k<=CurveP_count;k++)
+         //   {
+           //    Curve_Points.push_back(allp[input_int[i]+k]);
+           // }
+            qDebug()<<"this is end end end points:";
+            // CheckPointInline(Curve_Points,CurveP_count,Lslope,allp,BreakP);
 
         }
 
 
     }
 
+qDebug()<<"gegegegag5e4g6a54ege564g6a54g6ea54g65";
     for(int i=0;i<length;i++)
     {
         if(RemoveP_int.length()==0)
@@ -1613,8 +1658,8 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
     ss=SingelSlopeCalculate(LinePoint[0],LinePoint[1]);
     //判断斜率情况，写出Ax+By+C=0的直线方程
     //返回的距离参数，同时还标明方向，设定为，直线方向的左手边为+1，右手边为-1,在直线上设定为
-    switch (ss) {
-    case CV_PI/2:
+
+    if(ss= CV_PI/2){
         //竖直
         for(int i=0;i<Points.length();i++)
         {
@@ -1630,10 +1675,10 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
         }
 
+    }else if(ss=CV_PI*1.5){
 
 
-        break;
-    case CU_PI*1.5:
+
         //竖直
         for(int i=0;i<Points.length();i++)
         {
@@ -1647,9 +1692,10 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
                 Toreturn.push_back(1.0);
             }
         }
-        break;
-    default:
 
+    }
+
+    else{
         double k=tan(ss);
         double c=LinePoint[0].y()-k*LinePoint[0].x();
         for(int i=0;i<Points.length();i++)
@@ -1666,15 +1712,15 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
             }
             else
             {
-               Toreturn.push_back(0);
+                Toreturn.push_back(0);
             }
         }
 
 
-        break;
+
     }
 
-    return Toreturn
+    return Toreturn;
 
 
 
