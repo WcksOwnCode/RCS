@@ -1270,6 +1270,7 @@ void MainWindow::SmoothOutline()
     //获取特征点
 
     CharacteristicCalculate(BreakPoints);//此处未完待续
+
     /*************************************************************/
     int SOalltime=SOtimer.elapsed();
     qDebug()<<"smooth outline time used:"<<SOalltime;

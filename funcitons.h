@@ -25,7 +25,7 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF);//计算传入的矩
 
 double SingelSlopeCalculate(QVector2D SSC1, QVector2D SSC2);
 
-QVector<double> Slope(QVector<QVector2D> S,int d=1);//计算斜率
+QVector<double> Slope(QVector<QVector2D> S,int d=1,bool iscriecal=false);//计算斜率
 
 QVector<int> SimplifySlope(QVector<double> S_Slope, QVector<int> BP);//斜率精简
 QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inputP);//斜率精简2
@@ -61,7 +61,7 @@ void Output2File(QVector<QVector2D>InputArray,QString Outputadd="");
 void Output2File(QVector<QVector4D>InputArray,QString Outputadd="");
 QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
 QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray);
-QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D> input_Point, QVector<QVector2D> allp, QVector<int> BreakP, int minL);
+QVector<int> LineMerge(QVector<int> input_int,QVector<QVector2D>input_Point, QVector<QVector2D> allp, QVector<int> BreakP, int minL);
 
 void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
 
