@@ -86,7 +86,8 @@ public:
     void ReOrderOutline(QVector <QVector2D> RO);
     void ErrorFunction();
 
-
+    void ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int width=400,
+                              int height=300);
 
 
 void CurveFit(QVector <QVector2D> Curve);
@@ -189,9 +190,9 @@ private:
    // int DomainOrder[100];
     const int m_iTotwoValue=156;//转二值图的时候的阈值
 
-    const int width=400;//设定图片长宽
+    const int width=800;//设定图片长宽
 
-    const int height=300;
+    const int height=600;
 
     int tempus=-1;
 

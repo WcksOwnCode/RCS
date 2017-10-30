@@ -1,3 +1,4 @@
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include"funcitons.h"
@@ -1316,8 +1317,15 @@ void MainWindow::ReadPngButton()
 {
     ui->CameraView_Button->setEnabled(false);
     ui->openCamera->setEnabled(false);
-    ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
-    ui->final_label->setPixmap(QPixmap::fromImage(spaceImage));
+    // ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
+
+    ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
+
+    //ui->final_label->setPixmap(QPixmap::fromImage(spaceImage));
+
+    ImageDisplayFunciton(ui->final_label,spaceImage,400,300);
+
+
     ClearVector();
     readfileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.png");
     if(readfileadd.isEmpty())
@@ -1340,9 +1348,10 @@ void MainWindow::ReadPngButton()
     }
     Timage=origin_image;//二色图
     grayImage=origin_image;//灰度图
-    pp=pp.fromImage(origin_image);
-    ui->Origin_Label->setPixmap(pp);
+    //pp=pp.fromImage(origin_image);
+    //ui->Origin_Label->setPixmap(pp);
 
+    ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
 
     /*********************************************************/
     ToGray();
@@ -1442,9 +1451,11 @@ void MainWindow::ReadPngButton()
     }
 
 
-    pp=pp.fromImage(SmoothOulineImage);
-    ui->final_label->setPixmap(pp);
+    /* pp=pp.fromImage(SmoothOulineImage);
 
+    ui->final_label->setPixmap(pp);*/
+
+    ImageDisplayFunciton(ui->final_label,SmoothOulineImage,400,300);
 
     ui->CameraView_Button->setEnabled(true);
 
@@ -1456,7 +1467,8 @@ void MainWindow::ReadPngButton()
 
     QVector<QVector2D>HoughPoints;
 
-    HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/15,minmumLine);
+    HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
+
     if(HoughPoints.length()>=4){
 
         QVector<QVector2D>OrderedSline;
@@ -1485,8 +1497,8 @@ void MainWindow::ReadPngButton()
         /*                                                               */
         /*                                                               */
         /*****************************************************************/
-        qDebug()<<m_Int_Line<<"    m_Int_Line is this!";
-        qDebug()<<testorder<<"    testorder is this!";
+        //qDebug()<<m_Int_Line<<"    m_Int_Line is this!";
+        //  qDebug()<<testorder<<"    testorder is this!";
 
         QVector<QVector2D>testMerge;
 
@@ -1528,7 +1540,6 @@ void MainWindow::ReadPngButton()
     }
 
     Output2File(Toshow);
-
 
 
 
@@ -1584,7 +1595,9 @@ void MainWindow::readFarme()
 
 
     }
-    ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
+    //ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
+    ImageDisplayFunciton(ui->Origin_Label,image,400,300);
+
 
 }
 void MainWindow::EmptyFunction()
@@ -1606,8 +1619,11 @@ void MainWindow::AutoRun()
     origin_image = origin_image.scaled(width, height);
     Timage=origin_image;//二色图
     grayImage=origin_image;//灰度图
-    pp=pp.fromImage(origin_image);
-    ui->Origin_Label->setPixmap(pp);
+    // pp=pp.fromImage(origin_image);
+    // ui->Origin_Label->setPixmap(pp);
+    ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
+
+
     spaceImage=origin_image;
     for(int i=0;i<width;i++){//creat a all white but the same size as origin
         for(int j=0;j<height;j++)
@@ -1716,8 +1732,10 @@ void MainWindow::AutoRun()
         SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z(),qRgb(0,0,0));
 
     }*/
-    pp=pp.fromImage(SmoothOulineImage);
-    ui->final_label->setPixmap(pp);
+    // pp=pp.fromImage(SmoothOulineImage);
+    // ui->final_label->setPixmap(pp);
+
+    ImageDisplayFunciton(ui->final_label,SmoothOulineImage,400,300);
 
     ui->CameraView_Button->setEnabled(true);
     ui->openCamera->setEnabled(true);
@@ -1775,7 +1793,11 @@ void MainWindow::CameraPreView()
         connect(timer, SIGNAL(timeout()), this, SLOT(EmptyFunction()));
         cvReleaseCapture(&cam);
         ui->openCamera->setEnabled(true);
-        ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
+        // ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
+
+        ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
+
+
     }
 
 }
@@ -1875,23 +1897,31 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(int index)
 {
     if(index==0)
     {
-        pp=pp.fromImage(SmoothOulineImage);
-        ui->final_label->setPixmap(pp);
+        // pp=pp.fromImage(SmoothOulineImage);
+        //ui->final_label->setPixmap(pp);
+        ImageDisplayFunciton(ui->final_label,SmoothOulineImage,400,300);
+
+
     }
     else if(index==1)
     {
-        pp=pp.fromImage(grayImage);
-        ui->final_label->setPixmap(pp);
+        // pp=pp.fromImage(grayImage);
+        // ui->final_label->setPixmap(pp);
+        ImageDisplayFunciton(ui->final_label,grayImage,400,300);
+
+
     }
     else if(index==2)
     {
-        pp=pp.fromImage(Timage);
-        ui->final_label->setPixmap(pp);
+        //pp=pp.fromImage(Timage);
+        // ui->final_label->setPixmap(pp);
+        ImageDisplayFunciton(ui->final_label,Timage,400,300);
     }
     else if(index==3)
     {
-        pp=pp.fromImage(OulineImage);
-        ui->final_label->setPixmap(pp);
+        ///pp=pp.fromImage(OulineImage);
+        //ui->final_label->setPixmap(pp);
+        ImageDisplayFunciton(ui->final_label,OulineImage,400,300);
     }
 }
 void MainWindow::DeleteOutlineNoise()
@@ -2453,4 +2483,22 @@ void MainWindow::on_Outline_Button_clicked()
     excel.dynamicCall("Quit(void)");
     QMessageBox::information(NULL,"Read template","模板导入完毕");
 
+}
+void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int width,
+                                      int height)
+{
+    /*QLabel *outputlabel 需要显示的目标标签框
+    QImage inputImg  输入的Image
+    int width  显示宽度 默认400
+    int height  显示高度 默认300
+
+
+            */
+    QImage Todis;
+
+    QPixmap TP;
+
+    Todis=inputImg.scaled(width,height);
+    TP=TP.fromImage(Todis);
+    outputlabel->setPixmap(TP);
 }

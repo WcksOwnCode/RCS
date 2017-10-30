@@ -23,7 +23,7 @@ void SmoothFunctions(QVector<QVector2D> SF);
 
 QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF);//计算传入的矩阵的两点间方向
 
-double SingelSlopeCalculate(QVector2D SSC1, QVector2D SSC2);
+double SingelSlopeCalculate(QVector2D P2, QVector2D zero);
 
 QVector<double> Slope(QVector<QVector2D> S,int d=1,bool iscriecal=false);//计算斜率
 
