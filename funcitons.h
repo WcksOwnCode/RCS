@@ -59,6 +59,8 @@ cv::Mat QImage2cvMat(QImage image);
 
 void Output2File(QVector<QVector2D>InputArray,QString Outputadd="");
 void Output2File(QVector<QVector4D>InputArray,QString Outputadd="");
+void Output2File(QVector<int>InputArray,QString Outputadd="",int newline=1);
+void Output2File(QVector<double>InputArray,QString Outputadd="",int newline=1);
 QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
 QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray);
 QVector<int> LineMerge(QVector<int> input_int,QVector<QVector2D>input_Point, QVector<QVector2D> allp, QVector<int> BreakP, int minL);
@@ -67,4 +69,5 @@ void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0
 
 QVector<QVector2D> CircularStitching(QVector<QVector2D>Line1,QVector<QVector2D>Line2);
 QVector<double> PointToLineDis(QVector<QVector2D> LinePoint, QVector<QVector2D>Points);
+bool AngelCompare(double slope1,double slope2,double tolerance);
 #endif // FUNCITONS_H

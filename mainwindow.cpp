@@ -1480,9 +1480,9 @@ void MainWindow::ReadPngButton()
 
         OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
 
-        Output2File(OrderedSline,"C:/Users/duke/Desktop/OrderedSline.txt");
+        Output2File(OrderedSline,"C:/Users/duke/Desktop/output/OrderedSline.txt");
 
-        Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
+        Output2File(OrderdOutLine,"C:/Users/duke/Desktop/output/Orderdoutline.txt");
 
 
         QVector<int>m_Int_Line;
@@ -1516,9 +1516,9 @@ void MainWindow::ReadPngButton()
 
         }
 
-        Output2File(test2D,"C:/Users/duke/Desktop/test2D.txt");
+        Output2File(test2D,"C:/Users/duke/Desktop/output/test2D.txt");
 
-        Output2File(testMerge,"C:/Users/duke/Desktop/testMerge.txt");
+        Output2File(testMerge,"C:/Users/duke/Desktop/output/testMerge.txt");
 
 
         //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
@@ -2329,9 +2329,9 @@ void MainWindow::on_Hough_Button_clicked()
     }
 
 
-    Output2File(SLines,"C:/Users/duke/Desktop/SLines.txt");
+    Output2File(SLines,"C:/Users/duke/Desktop/output/SLines.txt");
 
-    Output2File(OrderdOutLine,"C:/Users/duke/Desktop/Orderdoutline.txt");
+    Output2File(OrderdOutLine,"C:/Users/duke/Desktop/output/Orderdoutline.txt");
 
     for(size_t i=0;i<SLines.size();i++)
     {

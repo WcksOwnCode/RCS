@@ -293,14 +293,17 @@ double SingelSlopeCalculate(QVector2D P2,QVector2D zero)
         if(P2.y()!=zero.y())//分子不为0，为0就是水平
         {
             toreturn=atan((P2.y()-zero.y())/(P2.x()-zero.x()));
-            if(P2.y()>0&&P2.x()<0)//象限转换
-            {
-               toreturn=CV_PI+toreturn;
-            }
-            else if(P2.y()<0&&P2.x()<0)
+            double RelativeX=P2.x()-zero.x();
+            double RelativeY=P2.y()-zero.y();
+
+            if(RelativeY>0&&RelativeX<0)//象限转换
             {
                 toreturn=CV_PI+toreturn;
-            }else if(P2.y()<0&&P2.x()>0)
+            }
+            else if(RelativeY<0&&RelativeX<0)
+            {
+                toreturn=CV_PI+toreturn;
+            }else if(RelativeY<0&&RelativeX>0)
             {
                 toreturn=CV_PI*2+toreturn;
             }
@@ -366,9 +369,9 @@ QVector<double> Slope(QVector<QVector2D> S, int d, bool iscriecal)
         {
 
 
-           d_slope[i-1]=SingelSlopeCalculate(S[i],S[i-1]);
+            d_slope[i-1]=SingelSlopeCalculate(S[i],S[i-1]);
 
-          /*  if(S[i].x()!=S[i-1].x())//分母不能为0
+            /*  if(S[i].x()!=S[i-1].x())//分母不能为0
             {
                 if(S[i].y()!=S[i-1].y())//分子不为0，为0就是水平
                 {
@@ -687,42 +690,113 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     QVector<QVector2D>CurvePoints;
     QVector<int>Break_int;
     QVector<QVector2D>Break_2D;
-
+    QVector<int>Break_Gap;
+    QVector<QVector2D>PreThree;
+    QVector<QVector2D>AfterThree;
+    QVector<double>APslope;
+    QVector<double>todis;
+    qsrand(QTime::currentTime().msec());
     for(int i=0;i<BP.length();i++)
     {
         CurvePoints.push_back(OOL[BP[i]]);//get the coordinate of the curve points;
+        for(int j=0;j<BreakP.length();j++)
+        {
+            if(BP[i]==BreakP[j])
+            {
+                Break_2D.push_back(OOL[BreakP[j]]);
+                Break_int.push_back(BreakP[j]);
+            }
+        }
+
+    }
+    for(int k=1;k<Break_int.length();k++)
+    {
+        Break_Gap.push_back(Break_int[k]-Break_int[k-1]);
+    }
+
+
+    /*a new try for find the characteristic points*/
+    for(int i=0;i<Break_int.length();i++)
+    {
+        if(Break_int[i]-6>0&&Break_int[i]+6<OOL.length())
+        {
+            PreThree.push_back(OOL[Break_int[i]-6]);
+            PreThree.push_back(OOL[Break_int[i]-4]);
+            PreThree.push_back(OOL[Break_int[i]-2]);
+            AfterThree.push_back(OOL[Break_int[i]+2]);
+            AfterThree.push_back(OOL[Break_int[i]+4]);
+            AfterThree.push_back(OOL[Break_int[i]+6]);
+        }
+        else if(Break_int[i]-6<0&&Break_int[i]+6<OOL.length())
+        {
+            int leng=Break_int[i];
+            if(leng>1&&leng<6){
+                PreThree.push_back(OOL[Break_int[i]-leng]);
+                PreThree.push_back(OOL[Break_int[i]-leng/2]);
+                PreThree.push_back(OOL[Break_int[i]-leng/4]);
+                AfterThree.push_back(OOL[Break_int[i]+2]);
+                AfterThree.push_back(OOL[Break_int[i]+4]);
+                AfterThree.push_back(OOL[Break_int[i]+6]);
+            }
+        }else if(Break_int[i]-6>0&&Break_int[i]+6<OOL.length())
+        {
+            int leng=Break_int[i];
+            if(leng>1&&leng<6){
+                PreThree.push_back(OOL[Break_int[i]-6]);
+                PreThree.push_back(OOL[Break_int[i]-4]);
+                PreThree.push_back(OOL[Break_int[i]-2]);
+                AfterThree.push_back(OOL[Break_int[i]+leng/4]);
+                AfterThree.push_back(OOL[Break_int[i]+leng/2]);
+                AfterThree.push_back(OOL[Break_int[i]+leng]);
+            }
+        }
+
+        for(int j=0;j<3;j++)
+        {
+            double mi;
+            mid=SingelSlopeCalculate(PreThree[j],Break_2D[i]);
+            APslope.push_back(mi);
+        }
+        for(int j=0;j<3;j++)
+        {
+            double mi;
+            mid=SingelSlopeCalculate(AfterThree[j],Break_2D[i]);
+            APslope.push_back(mi);
+        }
 
     }
 
 
+
+
+
+    /*a new try for find the characteristic points*/
+
+
+
+    Output2File(Break_int,"C:/Users/duke/Desktop/output/Gap"+QString::number(QTime::currentTime().msec())+".txt");
+    Output2File(Break_2D,"C:/Users/duke/Desktop/output/Curvebreakp"+QString::number(QTime::currentTime().msec())+".txt");
+
+    qDebug()<<"Curve point length: "<<CurvePoints.length();
+
     qDebug()<<"to get the subscript and coordinate of breakp";
-
-
     if(CurvePoints.length()==0){
         exit(0);
     }
 
 
-    Output2File(CurvePoints,"C:/Users/duke/Desktop/TestforBreak2D"+QString::number(qrand())+".txt");
+    Output2File(CurvePoints,"C:/Users/duke/Desktop/output/TestforCurvePoint"+QString::number(QTime::currentTime().msec())+".txt");
 
 
 
     qDebug()<<"Finish the geting!";
 
     QVector<double>slo;
-    if(CurvePoints.length()>=10)
+    if(Break_2D.length()>=10)
     {
-        slo=Slope(CurvePoints,1,false);
-        qDebug()<<"slo:    "<<slo<<endl;
+        slo=Slope(Break_2D,1,false);
+        Output2File(slo,"C:/Users/duke/Desktop/output/slo"+QString::number(QTime::currentTime().msec())+".txt",1);
     }
-
-
-
-
-
-
-
-
 
 
 
@@ -1214,7 +1288,42 @@ void Output2File(QVector<QVector4D>InputArray,QString Outputadd)
         delete outflie;
     }
 }
+void Output2File(QVector<int>InputArray,QString Outputadd,int newline)
+{
+    //newline means that every line can only contain 1 word
+    if(Outputadd.isEmpty()){
+        QMessageBox::information(NULL,"warning","no out put file address!");
+        Outputadd="C:/Users/duke/Desktop/visiontest/outputfiles"+QString::number(qrand())+".txt";
+    }
+    int length=InputArray.length();
 
+
+    QFile *outflie=new QFile;
+    outflie->setFileName(Outputadd);
+    bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+    if(ok)
+    {
+        int count=0;
+        QTextStream out(outflie);
+        for(int i=0;i<length;i++)
+        {
+
+            QString outstr;
+            outstr=QString::number(InputArray[i]);
+            outstr.append(" ");
+
+            out<<outstr;
+            count++;
+            if(count==newline){
+                out<<endl;
+                count=0;
+            }
+
+        }
+        outflie->close();
+        delete outflie;
+    }
+}
 QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray)
 {
 
@@ -1491,6 +1600,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
     //BreakP 是轮廓点全部的转折点
     //MinL 是最小离散长度
     qDebug()<<"enter function line merge";
+
     if(input_int.length()!=input_Point.length())
     {
         QMessageBox::information(NULL,"LineMergeFunction","Two input array's length is not the same!");
@@ -1516,7 +1626,9 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
     }
 
     QVector<int> Toreturn;
+
     QVector<int>fortemp;
+
     const double degreeT=CV_PI*10/180;
 
     QVector<double>lineslope;
@@ -1588,7 +1700,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
                 }
                 else
                 {
-                    //直线做圆弧拼接
+                    //直线做直接拼接
                     input_int[i]=(input_int[i+1]+input_int[i])/2;
 
                 }
@@ -1619,7 +1731,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             QVector<int> Gap_Point;//Curve point's order in OrderdOutLine
 
 
-            for(int qq=input_int[i];qq<input_int[i+1];qq++)
+            for(int qq=input_int[i];qq<=input_int[i+1];qq++)
             {
                 Gap_Point.push_back(qq);
             }//获取所有曲线点位置序号
@@ -1637,7 +1749,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
                 QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
             }
 
-            qDebug()<<"send to check point inline:";
+            qDebug()<<"case one send to check point inline:";
             fortemp= CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
             qDebug()<<"out from large gap!";
         }
@@ -1675,6 +1787,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
                 QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
                 qDebug()<<input_int[0]<<"   "<<input_int[length-1];
             }
+            qDebug()<<"case 2 send to checkpoint in line";
             fortemp= CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
         }
 
@@ -1685,7 +1798,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
         QVector<int> Gap_Point;//Curve point's order in OrderdOutLine
 
-        for(int qq=input_int[length-1];qq<=allp.length()-1;qq++)
+        for(int qq=input_int[input_int.length()-1];qq<=allp.length()-1;qq++)
         {
             Gap_Point.push_back(qq);
         }
@@ -1698,10 +1811,15 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         //获取曲线两端直线的斜率
         QVector<double>TwoSlope;
 
-        TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
-        TwoSlope.push_back(lineslope[lineslope.length()-2]);
-
-        fortemp=CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
+        if(Gap_Point.length()<minL){
+            input_int[input_int.length()-1]=(input_int[input_int.length()-1]+input_int[0])/2;
+            input_int[0]=(input_int[input_int.length()-1]+input_int[0])/2;
+        }else{
+            TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
+            TwoSlope.push_back(lineslope[lineslope.length()-2]);
+            qDebug()<<"case 3 send to checkpoint in line";
+            fortemp=CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
+        }
     }
 
 
@@ -1820,4 +1938,70 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
 
 
+}
+bool AngelCompare(double slope1,double slope2,double tolerance)
+{
+    //this function is to identify the two slope near or not!
+    if(slope1>1.5*CV_PI&&slope2<0.5*CV_PI)
+    {
+        double dvalue=slope2+CV_PI-slope1;
+        if(dvalue<tolerance){
+            return true;
+        }else{
+            return false;
+        }
+    }else if(slope2>1.5*CV_PI&&slope1<0.5*CV_PI)
+    {
+        double dvalue=slope1+CV_PI-slope2;
+        if(dvalue<tolerance){
+            return true;
+        }else{
+            return false;
+        }
+    }else{
+        double dvalue=abs(slope1-slope2);
+        if(dvalue<tolerance){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+
+}
+
+void Output2File(QVector<double>InputArray,QString Outputadd,int newline){
+    //newline means that every line can only contain 1 word
+    if(Outputadd.isEmpty()){
+        QMessageBox::information(NULL,"warning","no out put file address!");
+        Outputadd="C:/Users/duke/Desktop/visiontest/outputfiles"+QString::number(qrand())+".txt";
+    }
+    int length=InputArray.length();
+
+
+    QFile *outflie=new QFile;
+    outflie->setFileName(Outputadd);
+    bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+    if(ok)
+    {
+        int count=0;
+        QTextStream out(outflie);
+        for(int i=0;i<length;i++)
+        {
+
+            QString outstr;
+            outstr=QString::number(InputArray[i]);
+            outstr.append(" ");
+
+            out<<outstr;
+            count++;
+            if(count==newline){
+                out<<endl;
+                count=0;
+            }
+
+        }
+        outflie->close();
+        delete outflie;
+    }
 }
