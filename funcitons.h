@@ -69,5 +69,7 @@ void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0
 
 QVector<QVector2D> CircularStitching(QVector<QVector2D>Line1,QVector<QVector2D>Line2);
 QVector<double> PointToLineDis(QVector<QVector2D> LinePoint, QVector<QVector2D>Points);
-bool AngelCompare(double slope1,double slope2,double tolerance);
+int AngelCompare(double slope1,double slope2,double tolerance);
+
+bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double tolerance);
 #endif // FUNCITONS_H

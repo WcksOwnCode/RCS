@@ -190,9 +190,9 @@ private:
    // int DomainOrder[100];
     const int m_iTotwoValue=156;//转二值图的时候的阈值
 
-    const int width=800;//设定图片长宽
+    const int width=1200;//设定图片长宽
 
-    const int height=600;
+    const int height=900;
 
     int tempus=-1;
 

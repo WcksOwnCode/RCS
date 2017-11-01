@@ -10,7 +10,7 @@
 #include <QMessageBox>
 #include"mainwindow.h"
 #include"worldvalues.h"
-
+#include<QDatetime>
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
     double re=0;
@@ -132,13 +132,15 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
 {
     bool outtotxt=false;
     QString outaddr="C:/Users/duke/Desktop/visiontest/Derections.txt";
+
     int length=DCF.length();
+
     if(length==0)
     {
         QMessageBox::information(NULL,"notice","length is zero!  (DRECTIONCalFunc)");
         return DCF;
     }
-    QVector2D tempDere;
+
     QVector2D ThisDerec;
     QVector<QVector2D> num_Dere;
     for(int i=1;i<length;i++)
@@ -151,17 +153,17 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
             switch (tempyyy)
             {
             case -1:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(1);
                 num_Dere.push_back(ThisDerec);
                 break;
             case 0:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(8);
                 num_Dere.push_back(ThisDerec);
                 break;
             default:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(7);
                 num_Dere.push_back(ThisDerec);
                 break;
@@ -171,16 +173,14 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
             switch (tempyyy)
             {
             case -1:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(2);
                 num_Dere.push_back(ThisDerec);
                 break;
             case 1:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(6);
                 num_Dere.push_back(ThisDerec);
-                break;
-            default:
                 break;
             }
             break;
@@ -188,17 +188,17 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
             switch (tempyyy)
             {
             case -1:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(3);
                 num_Dere.push_back(ThisDerec);
                 break;
             case 0:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(4);
                 num_Dere.push_back(ThisDerec);
                 break;
             default:
-                ThisDerec.setX(tempDere.x());
+                ThisDerec.setX(i);
                 ThisDerec.setY(5);
                 num_Dere.push_back(ThisDerec);
                 break;
@@ -239,7 +239,7 @@ QVector<int>GetBreakPoints(QVector<QVector2D>Dec, QVector<QVector2D> Outline)
     {
         if(i>0)
         {
-            if(Dec[i]!=Dec[i-1])
+            if(Dec[i].y()!=Dec[i-1].y())
             {
                 toreturn.push_back(i-1);
             }
@@ -695,7 +695,12 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     QVector<QVector2D>AfterThree;
     QVector<double>APslope;
     QVector<double>todis;
+
     qsrand(QTime::currentTime().msec());
+
+    Break_2D.push_back(OOL[BP[0]]);//认为曲线点也是转折点
+    Break_int.push_back(BP[0]);
+    bool lastone=false;
     for(int i=0;i<BP.length();i++)
     {
         CurvePoints.push_back(OOL[BP[i]]);//get the coordinate of the curve points;
@@ -709,70 +714,31 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         }
 
     }
+
+    if(Break_int[Break_int.length()-1]!=BP[BP.length()-1])
+    {
+        Break_2D.push_back(OOL[BP[BP.length()-1]]);//认为曲线点也是转折点
+        Break_int.push_back(BP[BP.length()-1]);
+    }
+
+
+
+
+
+    QVector<QVector2D>BPS;
+
+    foreach (int kk, BreakP)
+    {
+      BPS.push_back(OOL[kk]);
+    }
+
+    Output2File(BPS,"C:/Users/duke/Desktop/output/BPS"+QString::number(QTime::currentTime().msec())+".txt");
+
+
     for(int k=1;k<Break_int.length();k++)
     {
         Break_Gap.push_back(Break_int[k]-Break_int[k-1]);
     }
-
-
-    /*a new try for find the characteristic points*/
-    for(int i=0;i<Break_int.length();i++)
-    {
-        if(Break_int[i]-6>0&&Break_int[i]+6<OOL.length())
-        {
-            PreThree.push_back(OOL[Break_int[i]-6]);
-            PreThree.push_back(OOL[Break_int[i]-4]);
-            PreThree.push_back(OOL[Break_int[i]-2]);
-            AfterThree.push_back(OOL[Break_int[i]+2]);
-            AfterThree.push_back(OOL[Break_int[i]+4]);
-            AfterThree.push_back(OOL[Break_int[i]+6]);
-        }
-        else if(Break_int[i]-6<0&&Break_int[i]+6<OOL.length())
-        {
-            int leng=Break_int[i];
-            if(leng>1&&leng<6){
-                PreThree.push_back(OOL[Break_int[i]-leng]);
-                PreThree.push_back(OOL[Break_int[i]-leng/2]);
-                PreThree.push_back(OOL[Break_int[i]-leng/4]);
-                AfterThree.push_back(OOL[Break_int[i]+2]);
-                AfterThree.push_back(OOL[Break_int[i]+4]);
-                AfterThree.push_back(OOL[Break_int[i]+6]);
-            }
-        }else if(Break_int[i]-6>0&&Break_int[i]+6<OOL.length())
-        {
-            int leng=Break_int[i];
-            if(leng>1&&leng<6){
-                PreThree.push_back(OOL[Break_int[i]-6]);
-                PreThree.push_back(OOL[Break_int[i]-4]);
-                PreThree.push_back(OOL[Break_int[i]-2]);
-                AfterThree.push_back(OOL[Break_int[i]+leng/4]);
-                AfterThree.push_back(OOL[Break_int[i]+leng/2]);
-                AfterThree.push_back(OOL[Break_int[i]+leng]);
-            }
-        }
-
-        for(int j=0;j<3;j++)
-        {
-            double mi;
-            mid=SingelSlopeCalculate(PreThree[j],Break_2D[i]);
-            APslope.push_back(mi);
-        }
-        for(int j=0;j<3;j++)
-        {
-            double mi;
-            mid=SingelSlopeCalculate(AfterThree[j],Break_2D[i]);
-            APslope.push_back(mi);
-        }
-
-    }
-
-
-
-
-
-    /*a new try for find the characteristic points*/
-
-
 
     Output2File(Break_int,"C:/Users/duke/Desktop/output/Gap"+QString::number(QTime::currentTime().msec())+".txt");
     Output2File(Break_2D,"C:/Users/duke/Desktop/output/Curvebreakp"+QString::number(QTime::currentTime().msec())+".txt");
@@ -780,6 +746,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     qDebug()<<"Curve point length: "<<CurvePoints.length();
 
     qDebug()<<"to get the subscript and coordinate of breakp";
+
     if(CurvePoints.length()==0){
         exit(0);
     }
@@ -792,11 +759,106 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     qDebug()<<"Finish the geting!";
 
     QVector<double>slo;
-    if(Break_2D.length()>=10)
-    {
+
+
         slo=Slope(Break_2D,1,false);
+
         Output2File(slo,"C:/Users/duke/Desktop/output/slo"+QString::number(QTime::currentTime().msec())+".txt",1);
+
+
+
+
+    QVector<QVector2D> P_turn;
+
+
+
+
+
+
+
+    /*a new try for find the characteristic points*/
+    for(int i=1;i<Break_int.length()-1;i++)//首尾点是曲线端点，不予考虑
+    {
+        if(Break_int[i]-12>0&&Break_int[i]+12<OOL.length())
+        {
+            PreThree.push_back(OOL[Break_int[i]-12]);
+            PreThree.push_back(OOL[Break_int[i]-8]);
+            PreThree.push_back(OOL[Break_int[i]-4]);
+            AfterThree.push_back(OOL[Break_int[i]+4]);
+            AfterThree.push_back(OOL[Break_int[i]+8]);
+            AfterThree.push_back(OOL[Break_int[i]+12]);
+        }
+        else if(Break_int[i]-12<0&&Break_int[i]+12<OOL.length())
+        {
+            int leng=Break_int[i];
+            if(leng>1&&leng<12){
+                PreThree.push_back(OOL[Break_int[i]-leng]);
+                PreThree.push_back(OOL[Break_int[i]-leng/2]);
+                PreThree.push_back(OOL[Break_int[i]-leng/4]);
+                AfterThree.push_back(OOL[Break_int[i]+4]);
+                AfterThree.push_back(OOL[Break_int[i]+8]);
+                AfterThree.push_back(OOL[Break_int[i]+12]);
+            }
+        }else if(Break_int[i]-12>0&&Break_int[i]+12<OOL.length())
+        {
+            int leng=Break_int[i];
+            if(leng>1&&leng<12){
+                PreThree.push_back(OOL[Break_int[i]-12]);
+                PreThree.push_back(OOL[Break_int[i]-8]);
+                PreThree.push_back(OOL[Break_int[i]-4]);
+                AfterThree.push_back(OOL[Break_int[i]+leng/4]);
+                AfterThree.push_back(OOL[Break_int[i]+leng/2]);
+                AfterThree.push_back(OOL[Break_int[i]+leng]);
+            }
+        }
+
+        for(int j=0;j<3;j++)
+        {
+            double mi;
+            mi=SingelSlopeCalculate(Break_2D[i],PreThree[j]);
+            APslope.push_back(mi);
+        }
+        for(int j=0;j<3;j++)
+        {
+            double mi;
+            mi=SingelSlopeCalculate(AfterThree[j],Break_2D[i]);
+            APslope.push_back(mi);
+        }
+        qDebug()<<APslope<<"APslope at time:"<<QTime::currentTime().msecsSinceStartOfDay();
+        qDebug()<<"and the points is    "<<OOL[Break_int[i]];
+        if(slo.length()>2){
+            bool ok=AngelCompare(APslope,i,slo,0.2);
+             if(ok)
+             {
+                 P_turn.push_back(OOL[Break_int[i]]);
+             }
+
+        }else{
+            qDebug()<<"slo is "<<slo;
+            qDebug()<<"break_2D"<<Break_2D;
+            qDebug()<<"Break int   "<<Break_int;
+            qDebug()<<"Curvepoints:   "<<CurvePoints;
+            exit(0);
+        }
+
+        APslope.clear();
+        PreThree.clear();
+        AfterThree.clear();
     }
+
+
+    if(P_turn.length()!=0){
+        Output2File(P_turn,"C:/Users/duke/Desktop/output/turnpoints"+QString::number(QTime::currentTime().msec())+".txt");
+    }else{
+        QMessageBox::information(NULL,"notice","no turnpoint!");
+
+    }
+
+
+    /*a new try for find the characteristic points*/
+
+
+
 
 
 
@@ -1101,7 +1163,7 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage, int PointCount, int minmu
     drawmat=graymat.clone();
     std::vector<cv::Vec4i> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
 
-    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*2,0); //(in,out,rho,theta,threshold,minlength,maxgap)
+    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*2,30); //(in,out,rho,theta,threshold,minlength,maxgap)
 
 
 
@@ -1939,31 +2001,53 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
 
 }
-bool AngelCompare(double slope1,double slope2,double tolerance)
+int AngelCompare(double slope1,double slope2,double tolerance)
 {
     //this function is to identify the two slope near or not!
+
+    //this function is to identify the two slope near or not!
+
+    //返回参数设定成 -1 方向相反，超过公差
+    //              0 方向相反，在公差内
+    //              1 方向同向，在公差内
+    //              2 方向同向，超过公差
+    //             -2 反向相差180°，如果正向则在公差内
+    qDebug()<<"enter the Campare";
     if(slope1>1.5*CV_PI&&slope2<0.5*CV_PI)
     {
+        //一、四象限做比较
         double dvalue=slope2+CV_PI-slope1;
         if(dvalue<tolerance){
-            return true;
+
+
+           qDebug()<<"out the Campare";
+            return 1;
         }else{
-            return false;
+             qDebug()<<"out the Campare";
+            return 2;
         }
-    }else if(slope2>1.5*CV_PI&&slope1<0.5*CV_PI)
+    }
+    else if(slope2>1.5*CV_PI&&slope1<0.5*CV_PI)
     {
+        //同上
         double dvalue=slope1+CV_PI-slope2;
         if(dvalue<tolerance){
-            return true;
+             qDebug()<<"out the Campare";
+            return 1;
         }else{
-            return false;
+             qDebug()<<"out the Campare";
+            return 2;
         }
-    }else{
+    }
+    else
+    {
         double dvalue=abs(slope1-slope2);
         if(dvalue<tolerance){
-            return true;
+             qDebug()<<"out the Campare";
+            return 1;
         }else{
-            return false;
+             qDebug()<<"out the Campare";
+            return 2;
         }
     }
 
@@ -2004,4 +2088,83 @@ void Output2File(QVector<double>InputArray,QString Outputadd,int newline){
         outflie->close();
         delete outflie;
     }
+}
+
+bool AngelCompare(QVector<double>Asl,int spot,QVector<double> BSlope,double tolerance)
+{
+    /*
+        Asl 是六个斜率
+        spot 是当前考察的Breakpoint的位置序号
+        BSlope 是该考察点相对于前后Breakpoint的斜率
+        tolerance 是允许的角度公差
+   */
+    qDebug()<<"enter the function AngelComapare origin one!";
+    qDebug()<<"spot      "<<spot;
+    qDebug()<<"BSlope:       "<<BSlope;
+   double *Preslo=new  double [3];
+   double *Suffixslo=new  double [3];
+   double Aslope=BSlope[spot-1];
+   double Beslope=BSlope[spot];
+    qDebug()<<"here";
+   for(int i=0;i<6;i++)
+   {
+       if(i<3){
+           Preslo[i]=Asl[i];
+       }else{
+           Suffixslo[i-3]=Asl[i];
+       }
+   }
+   qDebug()<<"here2";
+
+   double WeightedAverage_Pre=0.2*Preslo[0]+0.5*Preslo[1]+0.3*Preslo[2];
+   double WeightedAverage_Be=0.2*Suffixslo[0]+0.5*Suffixslo[1]+0.3*Suffixslo[2];
+
+   qDebug()<<"**************************************************";
+    qDebug()<<"WeightedAverage_Pre:     "<<WeightedAverage_Pre;
+    qDebug()<<"WeightedAverage_Be:     "<<WeightedAverage_Be;
+   qDebug()<<"**************************************************";
+
+  int ans= AngelCompare(WeightedAverage_Pre,WeightedAverage_Be,0.3);
+
+  if(ans==1)
+  {
+     //角度偏差小
+      //该点忽略
+      qDebug()<<"out from the function AngelComapare origin one!";
+      delete[]Preslo;
+      delete[]Suffixslo;
+      return false;
+
+  }else if(ans==2)
+  {
+      //角度偏差大
+      //不可忽略
+      qDebug()<<"out from the function AngelComapare origin one!";
+      delete[]Preslo;
+      delete[]Suffixslo;
+      return true;
+  }
+
+
+
+
+   /*int *flag=new int[4];
+     flag[0]=AngelCompare(Preslo[0],Preslo[1],2*tolerance);
+     flag[1]=AngelCompare(Preslo[1],Preslo[2],2*tolerance);
+
+     flag[2]=AngelCompare(Suffixslo[0],Suffixslo[1],2*tolerance);
+     flag[3]=AngelCompare(Suffixslo[1],Suffixslo[2],2*tolerance);
+ delete[]flag;
+   int */
+
+
+
+
+
+
+
+
+
+    qDebug()<<"out from the function AngelComapare origin one!";
+
 }

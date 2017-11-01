@@ -1262,7 +1262,7 @@ void MainWindow::SmoothOutline()
 
 
 
-    //   CharacteristicCalculate(BreakPointDistance);
+   //  CharacteristicCalculate(BreakPointDistance);
 
     //得到转折点
 
