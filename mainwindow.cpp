@@ -12,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     WhoseTime.start();
 
+
+
     /******************************************************/
     /*                    From API                        */
     /********************************************************/
@@ -82,32 +84,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //cread grid points
     int initial=WhoseTime.elapsed();
 
-    qDebug()<<"initialize time used: "<<initial;
-    /* opencv duqu tupian */
-    /*
-           cv::Mat rgb;
-          cv::Mat image2;
-          image2=cv::imread("C:/Users/duke/Desktop/t1.png",1);
-          QImage img;
-              if(image2.channels()==3)
-              {
-                  //cvt Mat BGR 2 QImage RGB
-                  cvtColor(image2,rgb,CV_BGR2RGB);
-                  img =QImage((const unsigned char*)(rgb.data),
-                              rgb.cols,rgb.rows,
-                              rgb.cols*rgb.channels(),
-                              QImage::Format_RGB888);
-              }
-              else
-              {
-                  img =QImage((const unsigned char*)(image2.data),
-                              image2.cols,image2.rows,
-                              image2.cols*image2.channels(),
-                              QImage::Format_RGB888);
-              }
+    qDebug()<<"program initialize time used: "<<initial;
 
-              ui->final_label->setPixmap(QPixmap::fromImage(img));
-                        */
 }
 MainWindow::~MainWindow()
 {

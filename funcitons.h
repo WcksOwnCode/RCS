@@ -36,7 +36,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
                               QVector<QVector2D> OOL, QVector<int> BreakP, int MinL=10);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
 
-QVector<QVector2D> CurveCheck(QVector<QVector2D>Outline, QVector<int>P, bool isgetcurve=false);
+QVector<QVector2D> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int, QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D, int Dl=8);
 
 
 QVector<QVector3D>PeriodDetection(QVector<int> PD);
@@ -72,4 +72,7 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint, QVector<QVector2D>P
 int AngelCompare(double slope1,double slope2,double tolerance);
 
 bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double tolerance);
+
+
+QVector<double> DistanceEvaluate(QVector<double>dis);
 #endif // FUNCITONS_H

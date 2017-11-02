@@ -11,6 +11,7 @@
 #include"mainwindow.h"
 #include"worldvalues.h"
 #include<QDatetime>
+
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
     double re=0;
@@ -729,7 +730,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
     foreach (int kk, BreakP)
     {
-      BPS.push_back(OOL[kk]);
+        BPS.push_back(OOL[kk]);
     }
 
     Output2File(BPS,"C:/Users/duke/Desktop/output/BPS"+QString::number(QTime::currentTime().msec())+".txt");
@@ -754,27 +755,20 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
     Output2File(CurvePoints,"C:/Users/duke/Desktop/output/TestforCurvePoint"+QString::number(QTime::currentTime().msec())+".txt");
 
-
-
     qDebug()<<"Finish the geting!";
 
     QVector<double>slo;
 
 
-        slo=Slope(Break_2D,1,false);
+    slo=Slope(Break_2D,1,false);
 
-        Output2File(slo,"C:/Users/duke/Desktop/output/slo"+QString::number(QTime::currentTime().msec())+".txt",1);
+    Output2File(slo,"C:/Users/duke/Desktop/output/slo"+QString::number(QTime::currentTime().msec())+".txt",1);
 
 
 
 
     QVector<QVector2D> P_turn;
-
-
-
-
-
-
+    QVector<int>P_turn_int;
 
     /*a new try for find the characteristic points*/
     for(int i=1;i<Break_int.length()-1;i++)//首尾点是曲线端点，不予考虑
@@ -827,17 +821,21 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         qDebug()<<APslope<<"APslope at time:"<<QTime::currentTime().msecsSinceStartOfDay();
         qDebug()<<"and the points is    "<<OOL[Break_int[i]];
         if(slo.length()>2){
-            bool ok=AngelCompare(APslope,i,slo,0.2);
-             if(ok)
-             {
-                 P_turn.push_back(OOL[Break_int[i]]);
-             }
+            qDebug()<<"现在送去检测的是点: "<<OOL[Break_int[i]];
+            bool ok=AngelCompare(APslope,i,slo,0.3);
+
+            if(ok)
+            {
+                qDebug()<<"该点满足条件: "<<OOL[Break_int[i]];
+                P_turn.push_back(OOL[Break_int[i]]);
+                P_turn_int.push_back(i);
+            }
 
         }else{
-            qDebug()<<"slo is "<<slo;
-            qDebug()<<"break_2D"<<Break_2D;
-            qDebug()<<"Break int   "<<Break_int;
-            qDebug()<<"Curvepoints:   "<<CurvePoints;
+            qDebug()<<"slo is     "<<slo;
+            qDebug()<<"break_2D    "<<Break_2D;
+            qDebug()<<"Break int     "<<Break_int;
+            qDebug()<<"Curvepoints:     "<<CurvePoints;
             exit(0);
         }
 
@@ -849,6 +847,14 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
     if(P_turn.length()!=0){
         Output2File(P_turn,"C:/Users/duke/Desktop/output/turnpoints"+QString::number(QTime::currentTime().msec())+".txt");
+
+        //找到关键点后对关键点之间的点进行等距离散
+        int length=BP[BP.length()-1]-BP[0];
+        //创建一个离散创建函数？
+
+
+
+
     }else{
         QMessageBox::information(NULL,"notice","no turnpoint!");
 
@@ -865,158 +871,192 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     return Toreturn;//temp return
 }
 
-QVector<QVector2D>CurveCheck(QVector<QVector2D>Outline,QVector<int>P,bool isgetcurve)
+QVector<QVector2D>CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
+                             QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D,int Dl)
 {
-    //该函数检测输入的点是不是曲线点，检测方式是斜率渐变。
-    //Outline是全部的边界点数据，
-    //P是全部的候选点序列
-    //返回类型是QVector2D的序列，记录方式是[曲线1起点，曲线1结束点]，[曲线2起点，曲线2结束点]....
-    //该函数应该放置在直线检测之后，检测直线之间的点是否是曲线点
-    // isgetcurve 默认参数是false，这个参数表示该函数是否进行曲线检测，false是进行，true是直接返回曲线离散点(等距)
+    //该函数对曲线进行离散。
+    //CurP_2D是曲线点的xy坐标，
+    //CurP_int是曲线点的序号
+    //CurP_keyP_int是前面检测出的关键点序号.
+    //CurP_keyP_2D 是关键点xy坐标
+    //Dl 是默认离散长度，默认8个点
     //返回 曲线离散点的时候 记录方式每一个2D记录数据相同
-    int CurveD=2;//间隔多少个点进行一次求取
-    int tempCurved=2;//当CerveD太大，用tempCurved来离散
-    int length=P.length();
-    int num=P[length]-P[0];//获取总共点数
-    QVector<QVector2D> ToReturn;
-    float thresh=15.0;
-    CurveD=P2Pcalculate(num);//计算获取间距
+    QVector<QVector2D>ToReturn;
 
-    if(!isgetcurve){
+    QVector<int>neworder;
 
-        QVector<QVector2D> Vd_Toslope;
-        QVector<double> Vd_slope;
-        QVector2D needed;
-        for(int i=0;i<num;i++)
+    int CPlength=CurP_int.length();
+
+    ToReturn.push_back(CurP_2D[0]);//先放入第一点
+
+    neworder.push_back(CurP_int[0]);
+
+    for(int i=0;i<CurP_keyP_int.length();i++)
+    {
+        if(CurP_keyP_int[i]!=neworder[0])
         {
-            needed.setX(Outline[P[i]].x());
-            needed.setY(Outline[P[i]].y());
-            Vd_Toslope.push_back(needed);//从Outline中提取出需要的点
+            neworder.push_back(CurP_keyP_int[i]);
         }
+    }
+    if(neworder[neworder.length()-1]!=CurP_int[CPlength-1]){
+        neworder.push_back(CurP_int[CPlength-1]);
+    }
 
 
-        Vd_slope=Slope(Vd_Toslope,CurveD);//获取多间隔斜率
-        //检测斜率规律
-        QVector<double>change;
 
-        for(int q=1;q<Vd_slope.length();q++)
+    for(int i=0;i<neworder.length()-1;i++)
+    {
+        int stp=neworder[i];
+        int endp=neworder[i+1];
+        int Pointin=stp-endp-1;//中间间隔点数
+        QVector<int>InsetP;
+
+        if(Pointin>Dl-2)
         {
-            //step one 渐变检测，看是不是逐渐增加或者逐渐减少
-            change.push_back(Vd_slope[q]-Vd_slope[q-1]);
-        }
-        QVector<QVector2D>checkreturn;
-        QVector<int>unqualified;
-        QVector<int>qualified;
-        checkreturn=Performance(change);
-        for(int x=0;x<checkreturn.length();x++)
-        {
-            if(checkreturn[x].x()==1){
-                qualified.push_back(checkreturn[x].y());
-            }else if(checkreturn[x].x()==-8)
+            //曲线超过了最短点数，需要插点
+            qDebug()<<"curve is long and need insert some point to smooth!";
+
+            int sq=Pointin/8;
+            InsetP.push_back(stp);
+            for(int k=1;k<=sq;k++)
             {
-                qDebug()<<"checkreturn is zero! wrong!";
-                exit(0);
+                InsetP.push_back(neworder[i]+8*k);
+            }
+
+            InsetP.push_back(endp);
+
+            QVector<QVector2D>line;
+
+            line.push_back(CurP_2D[InsetP[i]]);
+
+            line.push_back(CurP_2D[InsetP[InsetP.length()-1]]);//取出首尾点
+
+            QVector<double>P2Pdis;
+
+            QVector<QVector2D>pp;
+
+            for(int q=0;q<InsetP.length()-1;q++)
+            {
+                pp.push_back(CurP_2D[InsetP[q]]);//取出中间点
+            }
+
+            P2Pdis=PointToLineDis(line,pp);
+            QVector<int> spotstory;
+
+            for(int k=0;k<P2Pdis.length();k++)
+            {
+                if(P2Pdis[k]>3){
+
+                    spotstory.push_back(k);
+                }
+            }
+            if(spotstory.length()>1)
+            {
+                //有多个点有距离过大的情况
+                ToReturn.push_back(CurP_2D[CPlength-1]);
+
+                qDebug()<<"more than one point distance is too long return form curve check";
+                //return ToReturn;
+            }
+            else if(spotstory.length()==0)
+            {
+                ToReturn.push_back(CurP_2D[CPlength-1]);
+
+                qDebug()<<"No insert points     form curve check";
+                // return ToReturn;
             }
             else
             {
-                unqualified.push_back(checkreturn[x].y());
+                ToReturn.push_back(CurP_2D[spotstory[0]+1]);//插入一个点
+                ToReturn.push_back(CurP_2D[CPlength-1]);
+                qDebug()<<"inert one point and return form curve check";
+                // return ToReturn;
             }
+
+            InsetP.clear();
+
         }
-        //分理出合格和不合格的点
-        //对上述提取的四种数据进行分析
-        //考虑是不是做函数
-        //先对跨距太大的点进行测试
-        if(unqualified.length()!=1||unqualified[0]!=-8)
+        else
         {
-            for(int l=0;l<unqualified.length();l++)
+            //曲线很短，只有首尾端点
+            QVector<QVector2D>line;
+
+            line.push_back(CurP_2D[0]);
+
+            line.push_back(CurP_2D[CPlength-1]);//取出首尾点
+
+            QVector<double>P2Pdis;
+
+            QVector<QVector2D>pp;
+
+            for(int k=1;k<CPlength-1;k++)
             {
-                int pstart;
-                int pend;
-                int shortcount;
-                pstart=unqualified[l];
-                if(unqualified[l]+1==unqualified[l+1])
-                {
-                    pend=unqualified[l+1]+1;
-                    l++;
-                    continue;
+                pp.push_back(CurP_2D[k]);//取出中间点
+            }
+            qDebug()<<"case2 send to point to line dis";
+
+            P2Pdis=PointToLineDis(line,pp);
+
+            qDebug()<<"case2 returned from point to line dis";
+
+            QVector<int> spotstory;
+
+            for(int k=0;k<P2Pdis.length();k++)
+            {
+                if(P2Pdis[k]>3){
+
+                    spotstory.push_back(k);
                 }
-                else
-                {
-                    pend=unqualified[l]+2;
+            }
+            if(spotstory.length()>1)
+            {
+                //有多个点有距离过大的情况
+                ToReturn.push_back(CurP_2D[CPlength-1]);
 
-                }
-                shortcount=pend-pstart;
+                qDebug()<<"more than one point distance is too long return form curve check";
+                //return ToReturn;
+            }
+            else if(spotstory.length()==0)
+            {
+                ToReturn.push_back(CurP_2D[CPlength-1]);
 
-                tempCurved=P2Pcalculate(shortcount);//recalculate a new gap
-
-                //用新的间距重新离散
-                QVector<QVector2D>  tempcheckreturn;
-                QVector<int> tempunqualified;
-
-                for(int x=0;x<tempcheckreturn.length();x++)
-                {
-                    if(tempcheckreturn[x].x()==1){
-                        qualified.push_back(tempcheckreturn[x].y());
-                    }else if(tempcheckreturn[x].x()==-8)
-                    {
-                        qDebug()<<"tempcheckreturn is zero! wrong!";
-                        exit(0);
-                    }
-                    else
-                    {
-                        tempunqualified.push_back(checkreturn[x].y());
-                    }
-                }
-                QVector<int>tttoomax;
-                int outcount=0;
-                do{
-                    Vd_Toslope.clear();//清除数据
-                    Vd_slope.clear();
-                    for(int i=0;i<num;i++)
-                    {
-                        needed.setX(Outline[P[i]].x());
-                        needed.setY(Outline[P[i]].y());
-                        Vd_Toslope.push_back(needed);//从Outline中提取出需要的点
-                    }
-
-                    Vd_slope=Slope(Vd_Toslope,tempCurved);//获取多间隔斜率
-                    change.clear();
-                    for(int q=1;q<Vd_slope.length();q++)
-                    {
-                        //step one 渐变检测，看是不是逐渐增加或者逐渐减少
-                        change.push_back(Vd_slope[q]-Vd_slope[q-1]);
-                    }
-                    tttoomax.clear();
-                    for(int q=0;q<change.length();q++)
-                    {
-                        if(abs(change[q])>thresh)//正向角度误差0~15°
-                        {//超过15°的阈值，可能是变化激增，很小的圆，但是跨距选大了
-                            tttoomax.push_back(q);
-                        }
-                    }
-                    tempCurved--;
-                    outcount++;
-                    if(outcount>15||tempCurved==2)
-                    {
-                        QMessageBox::information(NULL,"NOTICE","循环次数太多，无法达到最好的分段");
-                        break;
-                    }
-                }while(tttoomax.length()>1);
-
+                qDebug()<<"No insert points     form curve check";
+                // return ToReturn;
+            }
+            else
+            {
+                ToReturn.push_back(CurP_2D[spotstory[0]+1]);//插入一个点
+                ToReturn.push_back(CurP_2D[CPlength-1]);
+                qDebug()<<"inert one point and return form curve check";
+                // return ToReturn;
             }
 
+
+
         }
+
+
+
     }
-    else//直接进行曲线等距离散化，返回离散化后的关键点
-    {
-        for(int i=0;i<=num;i=i+CurveD)
-        {
-            QVector2D tt;
-            tt.setX(i);
-            tt.setY(i);
-            ToReturn.push_back(tt);
-        }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     return ToReturn;
 
 }
@@ -1916,17 +1956,21 @@ QVector<QVector2D> CircularStitching(QVector<QVector2D>Line1,QVector<QVector2D>L
 }
 QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Points){
 
+
+    //Linepoint是确定直线的两个点xy坐标
+    //Points是需要考察到上述直线距离的点xy坐标
     int length=Points.length();
 
 
 
     QVector<double>Toreturn;
     double ss;
+
     ss=SingelSlopeCalculate(LinePoint[0],LinePoint[1]);
     //判断斜率情况，写出Ax+By+C=0的直线方程
-    //返回的距离参数，同时还标明方向，设定为，直线方向的左手边为+1，右手边为-1,在直线上设定为
+    //返回的距离参数，同时还标明方向，设定为，直线方向的左手边为+1，右手边为-1,在直线上设定为0
 
-    if(ss= CV_PI/2){
+    if(ss== CV_PI/2){
         //竖直
         for(int i=0;i<Points.length();i++)
         {
@@ -1942,7 +1986,7 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
         }
 
-    }else if(ss=CV_PI*1.5){
+    }else if(ss==CV_PI*1.5){
 
 
 
@@ -1950,12 +1994,21 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
         for(int i=0;i<Points.length();i++)
         {
             double dis=abs(Points[i].x()-LinePoint[0].x());
+
             Toreturn.push_back(dis);
+
             if(Points[i].x()<LinePoint[0].x()){
+
                 Toreturn.push_back(-1.0);
+
             }else if(Points[i].x()==LinePoint[0].x()){
+
                 Toreturn.push_back(0);
-            }else{
+
+            }
+            else
+            {
+
                 Toreturn.push_back(1.0);
             }
         }
@@ -1963,12 +2016,17 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
     }
 
     else{
+
         double k=tan(ss);
+
         double c=LinePoint[0].y()-k*LinePoint[0].x();
+
         for(int i=0;i<Points.length();i++)
         {
             double d=abs((k*Points[i].x()-Points[i].y()+c)/sqrt(pow(k,2)+1));
+
             Toreturn.push_back(d);
+
             if(SingelSlopeCalculate(LinePoint[0],Points[i])-ss>0&&SingelSlopeCalculate(LinePoint[0],Points[i])-ss<CV_PI/2)
             {
                 Toreturn.push_back(1.0);
@@ -2012,30 +2070,30 @@ int AngelCompare(double slope1,double slope2,double tolerance)
     //              1 方向同向，在公差内
     //              2 方向同向，超过公差
     //             -2 反向相差180°，如果正向则在公差内
-    qDebug()<<"enter the Campare";
+    //qDebug()<<"enter the Campare";
     if(slope1>1.5*CV_PI&&slope2<0.5*CV_PI)
     {
         //一、四象限做比较
-        double dvalue=slope2+CV_PI-slope1;
+        double dvalue=slope2-(2*CV_PI-slope1);
         if(dvalue<tolerance){
 
 
-           qDebug()<<"out the Campare";
+            qDebug()<<"out the Campare";
             return 1;
         }else{
-             qDebug()<<"out the Campare";
+            qDebug()<<"out the Campare";
             return 2;
         }
     }
     else if(slope2>1.5*CV_PI&&slope1<0.5*CV_PI)
     {
         //同上
-        double dvalue=slope1+CV_PI-slope2;
+        double dvalue=slope1-(2*CV_PI-slope2);
         if(dvalue<tolerance){
-             qDebug()<<"out the Campare";
+            qDebug()<<"out the Campare";
             return 1;
         }else{
-             qDebug()<<"out the Campare";
+            qDebug()<<"out the Campare";
             return 2;
         }
     }
@@ -2043,10 +2101,10 @@ int AngelCompare(double slope1,double slope2,double tolerance)
     {
         double dvalue=abs(slope1-slope2);
         if(dvalue<tolerance){
-             qDebug()<<"out the Campare";
+            //qDebug()<<"out the Campare";
             return 1;
         }else{
-             qDebug()<<"out the Campare";
+            //qDebug()<<"out the Campare";
             return 2;
         }
     }
@@ -2101,54 +2159,58 @@ bool AngelCompare(QVector<double>Asl,int spot,QVector<double> BSlope,double tole
     qDebug()<<"enter the function AngelComapare origin one!";
     qDebug()<<"spot      "<<spot;
     qDebug()<<"BSlope:       "<<BSlope;
-   double *Preslo=new  double [3];
-   double *Suffixslo=new  double [3];
-   double Aslope=BSlope[spot-1];
-   double Beslope=BSlope[spot];
+    double *Preslo=new  double [3];
+    double *Suffixslo=new  double [3];
+    double Aslope=BSlope[spot-1];
+    double Beslope=BSlope[spot];
     qDebug()<<"here";
-   for(int i=0;i<6;i++)
-   {
-       if(i<3){
-           Preslo[i]=Asl[i];
-       }else{
-           Suffixslo[i-3]=Asl[i];
-       }
-   }
-   qDebug()<<"here2";
+    for(int i=0;i<6;i++)
+    {
+        if(i<3){
+            Preslo[i]=Asl[i];
+        }else{
+            Suffixslo[i-3]=Asl[i];
+        }
+    }
+    qDebug()<<"here2";
 
-   double WeightedAverage_Pre=0.2*Preslo[0]+0.5*Preslo[1]+0.3*Preslo[2];
-   double WeightedAverage_Be=0.2*Suffixslo[0]+0.5*Suffixslo[1]+0.3*Suffixslo[2];
+    double WeightedAverage_Pre=0.3*Preslo[0]+0.5*Preslo[1]+0.2*Preslo[2];
+    double WeightedAverage_Be=0.2*Suffixslo[0]+0.5*Suffixslo[1]+0.3*Suffixslo[2];
 
-   qDebug()<<"**************************************************";
+    qDebug()<<"**************************************************";
     qDebug()<<"WeightedAverage_Pre:     "<<WeightedAverage_Pre;
     qDebug()<<"WeightedAverage_Be:     "<<WeightedAverage_Be;
-   qDebug()<<"**************************************************";
+    qDebug()<<"**************************************************";
 
-  int ans= AngelCompare(WeightedAverage_Pre,WeightedAverage_Be,0.3);
+    int ans= AngelCompare(WeightedAverage_Pre,WeightedAverage_Be,tolerance);
+    qDebug()<<"ans   "<<ans<<"      "<<"tolerance:   "<<tolerance;
+    if(ans==2){
+        qDebug()<<"choosed point is: "<<spot;
+    }
+    qDebug()<<"+++++++++++++++++++++++++++++++++++++++++++++++++";
+    if(ans==1)
+    {
+        //角度偏差小
+        //该点忽略
+        qDebug()<<"out from the function AngelComapare origin one!";
+        delete[]Preslo;
+        delete[]Suffixslo;
+        return false;
 
-  if(ans==1)
-  {
-     //角度偏差小
-      //该点忽略
-      qDebug()<<"out from the function AngelComapare origin one!";
-      delete[]Preslo;
-      delete[]Suffixslo;
-      return false;
-
-  }else if(ans==2)
-  {
-      //角度偏差大
-      //不可忽略
-      qDebug()<<"out from the function AngelComapare origin one!";
-      delete[]Preslo;
-      delete[]Suffixslo;
-      return true;
-  }
+    }else if(ans==2)
+    {
+        //角度偏差大
+        //不可忽略
+        qDebug()<<"out from the function AngelComapare origin one!";
+        delete[]Preslo;
+        delete[]Suffixslo;
+        return true;
+    }
 
 
 
 
-   /*int *flag=new int[4];
+    /*int *flag=new int[4];
      flag[0]=AngelCompare(Preslo[0],Preslo[1],2*tolerance);
      flag[1]=AngelCompare(Preslo[1],Preslo[2],2*tolerance);
 
@@ -2167,4 +2229,18 @@ bool AngelCompare(QVector<double>Asl,int spot,QVector<double> BSlope,double tole
 
     qDebug()<<"out from the function AngelComapare origin one!";
 
+}
+QVector<double>DistanceEvaluate(QVector<double>dis)
+{
+    qDebug()<<"enter the function *** DistanceEvaluate! ***";
+    //这个函数用来给距离序列进行评估，设定为距离为0的得分10;距离计算公式:10-dis/10,低于0分的直接给0分;
+    double Thresh=10.0;
+
+    QVector<double>Toreturn;
+    for(int i=0;i<dis.length();i++)
+    {
+
+    }
+    qDebug()<<"out from the *** funtion distanceevaluate ***";
+    return Toreturn;
 }
