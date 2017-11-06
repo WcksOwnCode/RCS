@@ -112,6 +112,8 @@ private:
 
     QString Todisplay;
 
+    QString RootAddress="F:\output";
+
 
     QVector<QString>Array;//gcode向量
 

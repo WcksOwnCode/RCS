@@ -36,8 +36,12 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
                               QVector<QVector2D> OOL, QVector<int> BreakP, int MinL=10);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
 
-QVector<QVector2D> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int, QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D, int Dl=8);
+QVector<QVector2D> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
+                              QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D,
+                              QVector<QVector2D> Alloutline, int Dl=8);
 
+QVector<QVector2D>CurveDisperce(QVector<QVector2D>AllOutline,
+                                QVector2D CurveEndpoints,int MinL=10);
 
 QVector<QVector3D>PeriodDetection(QVector<int> PD);
 

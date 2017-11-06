@@ -132,7 +132,7 @@ void SmoothFunctions(QVector<QVector2D> SF)
 QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
 {
     bool outtotxt=false;
-    QString outaddr="C:/Users/duke/Desktop/visiontest/Derections.txt";
+    QString outaddr="F:/output/Derections.txt";
 
     int length=DCF.length();
 
@@ -234,7 +234,7 @@ QVector<int>GetBreakPoints(QVector<QVector2D>Dec, QVector<QVector2D> Outline)
 
     }
     bool outtotxt=false;
-    QString outaddr="C:/Users/duke/Desktop/visiontest/Derections.txt";
+    QString outaddr="F:/output/Derections.txt";
     QVector<int> toreturn;
     for(int i=0;i<length;i++)
     {
@@ -350,7 +350,7 @@ QVector<double> Slope(QVector<QVector2D> S, int d, bool iscriecal)
 
     bool outtotxt=false;
 
-    QString outaddr="C:/Users/duke/Desktop/visiontest/slope.txt";
+    QString outaddr="F:/output/slope.txt";
 
     double *d_slope;
 
@@ -465,7 +465,7 @@ QVector<QVector2D> SimplifySlope(QVector<double>S_Slope, QVector<QVector2D> inpu
 
     bool outtotxt=false;
 
-    QString outaddr="C:/Users/duke/Desktop/visiontest/SimplifySlope.txt";
+    QString outaddr="F:/output/SimplifySlope.txt";
 
     QVector<int> toreturn;
 
@@ -559,7 +559,7 @@ QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP)
 
     bool outtotxt=false;
 
-    QString outaddr="C:/Users/duke/Desktop/visiontest/SimplifySlope.txt";
+    QString outaddr="F:/output/SimplifySlope.txt";
 
     QVector<int> toreturn;
 
@@ -627,7 +627,7 @@ QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
 
     }
     bool outtotxt=false;
-    QString outaddr="C:/Users/duke/Desktop/visiontest/distance.txt";
+    QString outaddr="F:/output/distance.txt";
     QVector<double> toreturn;
     double temp;
 
@@ -733,7 +733,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         BPS.push_back(OOL[kk]);
     }
 
-    Output2File(BPS,"C:/Users/duke/Desktop/output/BPS"+QString::number(QTime::currentTime().msec())+".txt");
+    Output2File(BPS,"F:/output/BPS"+QString::number(QTime::currentTime().msec())+".txt");
 
 
     for(int k=1;k<Break_int.length();k++)
@@ -741,8 +741,8 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         Break_Gap.push_back(Break_int[k]-Break_int[k-1]);
     }
 
-    Output2File(Break_int,"C:/Users/duke/Desktop/output/Gap"+QString::number(QTime::currentTime().msec())+".txt");
-    Output2File(Break_2D,"C:/Users/duke/Desktop/output/Curvebreakp"+QString::number(QTime::currentTime().msec())+".txt");
+    Output2File(Break_int,"F:/output/Gap"+QString::number(QTime::currentTime().msec())+".txt");
+    Output2File(Break_2D,"F:/output/Curvebreakp"+QString::number(QTime::currentTime().msec())+".txt");
 
     qDebug()<<"Curve point length: "<<CurvePoints.length();
 
@@ -753,7 +753,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     }
 
 
-    Output2File(CurvePoints,"C:/Users/duke/Desktop/output/TestforCurvePoint"+QString::number(QTime::currentTime().msec())+".txt");
+    Output2File(CurvePoints,"F:/output/TestforCurvePoint"+QString::number(QTime::currentTime().msec())+".txt");
 
     qDebug()<<"Finish the geting!";
 
@@ -762,12 +762,13 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
     slo=Slope(Break_2D,1,false);
 
-    Output2File(slo,"C:/Users/duke/Desktop/output/slo"+QString::number(QTime::currentTime().msec())+".txt",1);
+    Output2File(slo,"F:/output/slo"+QString::number(QTime::currentTime().msec())+".txt",1);
 
 
 
 
     QVector<QVector2D> P_turn;
+
     QVector<int>P_turn_int;
 
     /*a new try for find the characteristic points*/
@@ -846,13 +847,15 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
 
     if(P_turn.length()!=0){
-        Output2File(P_turn,"C:/Users/duke/Desktop/output/turnpoints"+QString::number(QTime::currentTime().msec())+".txt");
+        Output2File(P_turn,"F:/output/turnpoints"+QString::number(QTime::currentTime().msec())+".txt");
 
         //找到关键点后对关键点之间的点进行等距离散
         int length=BP[BP.length()-1]-BP[0];
         //创建一个离散创建函数？
-
-
+        QVector<QVector2D>totest;
+        qDebug()<<"go to curve check!";
+        totest =CurveCheck(BPS,BP,P_turn_int,P_turn,OOL,MinL);
+        qDebug()<<"back from curve check!";
 
 
     }else{
@@ -871,25 +874,51 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     return Toreturn;//temp return
 }
 
-QVector<QVector2D>CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
-                             QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D,int Dl)
+QVector<QVector2D> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
+                             QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D,QVector<QVector2D>Alloutline,int Dl)
 {
-    //该函数对曲线进行离散。
-    //CurP_2D是曲线点的xy坐标，
-    //CurP_int是曲线点的序号
-    //CurP_keyP_int是前面检测出的关键点序号.
-    //CurP_keyP_2D 是关键点xy坐标
-    //Dl 是默认离散长度，默认8个点
-    //返回 曲线离散点的时候 记录方式每一个2D记录数据相同
+    /*该函数对曲线进行离散。
+    CurP_2D是曲线点的xy坐标，
+    CurP_int是曲线点的序号
+    CurP_keyP_int是前面检测出的关键点序号.
+    CurP_keyP_2D 是关键点xy坐标
+    Dl 是默认离散长度，默认8个点
+    返回 曲线离散点的时候 记录方式每一个2D记录数据相同*/
+
     QVector<QVector2D>ToReturn;
+
+    QVector<QVector2D>NeedInsertP;
+
+    QVector<QVector2D> SmallDistanceP;
+
+    QVector2D tempuse;
 
     QVector<int>neworder;
 
-    int CPlength=CurP_int.length();
+    int CPlength=CurP_int.length();//曲线点总个数
+
+
+    for(int i=0;i<CurP_keyP_2D.length()-1;i++)
+    {
+        if(qAbs(CurP_keyP_int[i+1]-CurP_keyP_int[i])>=Dl)
+        {
+            //说明此处的间隔点太长
+            tempuse.setX(CurP_keyP_int[i]);
+            tempuse.setX(CurP_keyP_int[i+1]);
+            NeedInsertP.push_back(tempuse);
+        }
+        else
+        {
+            //间隔很近，直接放入小间距序列
+            tempuse.setX(CurP_keyP_int[i]);
+            tempuse.setX(CurP_keyP_int[i+1]);
+            SmallDistanceP.push_back(tempuse);
+        }
+    }
 
     ToReturn.push_back(CurP_2D[0]);//先放入第一点
 
-    neworder.push_back(CurP_int[0]);
+    neworder.push_back(CurP_int[0]);//neworder储存着包括曲线起止点和关键点的序列
 
     for(int i=0;i<CurP_keyP_int.length();i++)
     {
@@ -898,17 +927,21 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
             neworder.push_back(CurP_keyP_int[i]);
         }
     }
-    if(neworder[neworder.length()-1]!=CurP_int[CPlength-1]){
+
+    if(neworder[neworder.length()-1]!=CurP_int[CPlength-1])
+    {
         neworder.push_back(CurP_int[CPlength-1]);
     }
-
 
 
     for(int i=0;i<neworder.length()-1;i++)
     {
         int stp=neworder[i];
+
         int endp=neworder[i+1];
-        int Pointin=stp-endp-1;//中间间隔点数
+
+        int Pointin=stp-endp-1;//中间间隔点数，之后对中间间隔点数进行考察
+
         QVector<int>InsetP;
 
         if(Pointin>Dl-2)
@@ -976,19 +1009,19 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
             InsetP.clear();
 
         }
-        else
+        else//曲线很短，只有首尾端点
         {
-            //曲线很短，只有首尾端点
+
             QVector<QVector2D>line;
 
-            line.push_back(CurP_2D[0]);
+            line.push_back(Alloutline[neworder[i]]);
 
-            line.push_back(CurP_2D[CPlength-1]);//取出首尾点
+            line.push_back(Alloutline[neworder[i+1]]);//取出首尾点
 
             QVector<double>P2Pdis;
 
             QVector<QVector2D>pp;
-
+            //problem here!
             for(int k=1;k<CPlength-1;k++)
             {
                 pp.push_back(CurP_2D[k]);//取出中间点
@@ -1030,10 +1063,43 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
                 qDebug()<<"inert one point and return form curve check";
                 // return ToReturn;
             }
+        }
 
+    }
 
+    ToReturn.push_back(CurP_2D[CPlength-1]);//放入最后一点
+    return ToReturn;
+
+}
+QVector<QVector2D>CurveDisperce(QVector<QVector2D>AllOutline,
+                                QVector2D CurveEndpoints,int MinL)
+{
+ /*
+ AllOutline 是全部轮廓点的xy坐标
+ CurveEndpoints 是传入的曲线的起止点序号
+ MinL 是默认最小离散长度。
+
+    */
+    int length=CurveEndpoints.y()-CurveEndpoints.x()+1;//获取曲线长度
+    int DisperceNum=length/MinL;//获取需要离散的段数
+     QVector<QVector2D> Toreturn;
+     QVector2D tempuse;
+    if(DisperceNum==1)
+    {
+        Toreturn.push_back(AllOutline[0]);
+        qDebug()<<"Curve is very short and return the two endpoints of it!  [CurveDisperce]";
+        return Toreturn;
+    }
+    else
+    {
+        qDebug()<<"Curve length is "<<length;
+        qDebug()<<"the curve should be diperce to "<<DisperceNum<<" pieces";
+
+        for(int i=0;i<DisperceNum;i++)
+        {
 
         }
+
 
 
 
@@ -1044,22 +1110,8 @@ QVector<QVector2D>CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    return ToReturn;
-
 }
+
 QVector<QVector3D>PeriodDetection(QVector<int> PD)
 {
     QVector<QVector3D> ToReturn;
@@ -1221,8 +1273,8 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage, int PointCount, int minmu
     }
 
     qDebug()<<"Slines length is:     "<<SLines.length();
-    Output2File(SLines,"C:/Users/duke/Desktop/visiontest/oriSLines.txt");
-    cv::imwrite("C:/Users/duke/Desktop/visiontest/cvsave.png",drawmat);
+    Output2File(SLines,"F:/output/oriSLines.txt");
+    cv::imwrite("F:/output/cvsave.png",drawmat);
 
     /* for(size_t i=0;i<SLines.size();i++)
   {
@@ -1327,7 +1379,7 @@ void Output2File(QVector<QVector2D>InputArray,QString Outputadd)
 {
     if(Outputadd.isEmpty()){
         QMessageBox::information(NULL,"warning","no out put file address!");
-        Outputadd="C:/Users/duke/Desktop/visiontest/outputfiles.txt";;
+        Outputadd="F:/output/outputfiles.txt";;
     }
     int length=InputArray.length();
 
@@ -1357,7 +1409,7 @@ void Output2File(QVector<QVector4D>InputArray,QString Outputadd)
 {
     if(Outputadd.isEmpty()){
         QMessageBox::information(NULL,"warning","no out put file address!");
-        Outputadd="C:/Users/duke/Desktop/visiontest/outputfiles.txt";;
+        Outputadd="F:/output/outputfiles.txt";;
     }
     int length=InputArray.length();
 
@@ -1395,7 +1447,7 @@ void Output2File(QVector<int>InputArray,QString Outputadd,int newline)
     //newline means that every line can only contain 1 word
     if(Outputadd.isEmpty()){
         QMessageBox::information(NULL,"warning","no out put file address!");
-        Outputadd="C:/Users/duke/Desktop/visiontest/outputfiles"+QString::number(qrand())+".txt";
+        Outputadd="F:/output/outputfiles"+QString::number(qrand())+".txt";
     }
     int length=InputArray.length();
 
@@ -2116,7 +2168,7 @@ void Output2File(QVector<double>InputArray,QString Outputadd,int newline){
     //newline means that every line can only contain 1 word
     if(Outputadd.isEmpty()){
         QMessageBox::information(NULL,"warning","no out put file address!");
-        Outputadd="C:/Users/duke/Desktop/visiontest/outputfiles"+QString::number(qrand())+".txt";
+        Outputadd="F:/output/outputfiles"+QString::number(qrand())+".txt";
     }
     int length=InputArray.length();
 
