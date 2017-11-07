@@ -40,7 +40,7 @@ QVector<QVector2D> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
                               QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D,
                               QVector<QVector2D> Alloutline, int Dl=8);
 
-QVector<QVector2D>CurveDisperce(QVector<QVector2D>AllOutline,
+QVector<int> CurveDisperce(QVector<QVector2D>AllOutline,
                                 QVector2D CurveEndpoints,int MinL=10);
 
 QVector<QVector3D>PeriodDetection(QVector<int> PD);
@@ -51,7 +51,7 @@ QVector<QVector3D>PeriodDetection(QVector<double> PD);
 QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE);
 
 
-int P2Pcalculate(int pnum);
+QVector<int> InsertCalculate(int startP,int endP,int MinL=10);
 
 QVector<QVector2D> Performance( QVector<double> change);
 
@@ -79,4 +79,6 @@ bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double t
 
 
 QVector<double> DistanceEvaluate(QVector<double>dis);
+QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>input);
+
 #endif // FUNCITONS_H
