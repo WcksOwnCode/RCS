@@ -1294,6 +1294,7 @@ void MainWindow::SmoothOutline()
 void MainWindow::ReadPngButton()
 {
     ui->CameraView_Button->setEnabled(false);
+
     ui->openCamera->setEnabled(false);
     // ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
 
@@ -1458,9 +1459,9 @@ void MainWindow::ReadPngButton()
 
         OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
 
-        Output2File(OrderedSline,"C:/Users/duke/Desktop/output/OrderedSline.txt");
+        Output2File(OrderedSline,"F:/output/OrderedSline.txt");
 
-        Output2File(OrderdOutLine,"C:/Users/duke/Desktop/output/Orderdoutline.txt");
+        Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
 
         QVector<int>m_Int_Line;
@@ -1494,9 +1495,9 @@ void MainWindow::ReadPngButton()
 
         }
 
-        Output2File(test2D,"C:/Users/duke/Desktop/output/test2D.txt");
+        Output2File(test2D,"F:/output/test2D.txt");
 
-        Output2File(testMerge,"C:/Users/duke/Desktop/output/testMerge.txt");
+        Output2File(testMerge,"F:/output/testMerge.txt");
 
 
         //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
@@ -2307,9 +2308,9 @@ void MainWindow::on_Hough_Button_clicked()
     }
 
 
-    Output2File(SLines,"C:/Users/duke/Desktop/output/SLines.txt");
+    Output2File(SLines,"F:/output/SLines.txt");
 
-    Output2File(OrderdOutLine,"C:/Users/duke/Desktop/output/Orderdoutline.txt");
+    Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
     for(size_t i=0;i<SLines.size();i++)
     {
