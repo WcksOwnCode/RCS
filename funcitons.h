@@ -51,7 +51,7 @@ QVector<QVector3D>PeriodDetection(QVector<double> PD);
 QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE);
 
 
-QVector<int> InsertCalculate(int startP,int endP,int MinL=10);
+QVector<int> InsertCalculate(int startP, int endP, int maxor, int MinL=10);
 
 QVector<QVector2D> Performance( QVector<double> change);
 
@@ -81,5 +81,7 @@ bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double t
 QVector<double> DistanceEvaluate(QVector<double>dis);
 QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>input);
 QVector<int>Unique_Int(QVector<int>Input);
+
+QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
 
 #endif // FUNCITONS_H

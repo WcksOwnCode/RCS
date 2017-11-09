@@ -6,6 +6,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include"codewindow.h"
 #include"worldvalues.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -1762,8 +1763,25 @@ void MainWindow::CameraPreView()
         ui->openCamera->setEnabled(false);
         connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
         cam = cvCreateCameraCapture(0);
-        timer->start(20);
+        timer->start(50);
         ui->CameraView_Button->setText("关闭相机");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }else
     {
         m_bFrompreView=false;
@@ -2481,3 +2499,5 @@ void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int 
     TP=TP.fromImage(Todis);
     outputlabel->setPixmap(TP);
 }
+
+
