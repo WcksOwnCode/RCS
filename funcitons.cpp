@@ -11,6 +11,40 @@
 #include"mainwindow.h"
 #include"worldvalues.h"
 #include<QDatetime>
+int FindMinorMax(QVector<int>input,int M)
+{
+    /*
+     * M默认0，返回较小值的脚标
+     * 如果M=1，返回最大值的脚标
+     */
+
+
+    int min=input[0];
+    int max=input[0];
+    int minspot=0;
+    int maxspot=0;
+    for(int i=0;i<input.length();i++)
+    {
+        if(input[i]<=min)
+        {
+            min=input[i];
+            minspot=i;
+        }
+        if(input[i]>=max)
+        {
+            max=input[i];
+            maxspot=i;
+        }
+    }
+
+    if(M==0){
+        return minspot;
+    }
+    else{
+        return maxspot;
+    }
+
+}
 
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
@@ -704,18 +738,18 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     //判断曲线是不是跨越的起点的点
     bool Contained=false;
     int orispot=-1;
-      foreach (int q,BP)
+    foreach (int q,BP)
     {
         orispot++;
-      if(q==0)
-      {
-          Contained=true;//认为曲线点过了原点
-          qDebug()<<"the curve through the origin points;";
-         QVector< QVector2D> OriCurve=TransSequenceTo2D(OOL,BP);
-          Output2File(OriCurve,"F:/output/OriCurve.txt");
-          qDebug()<<"orispot:    "<<orispot;
-          break;
-      }
+        if(q==0)
+        {
+            Contained=true;//认为曲线点过了原点
+            qDebug()<<"the curve through the origin points;";
+            QVector< QVector2D> OriCurve=TransSequenceTo2D(OOL,BP);
+            Output2File(OriCurve,"F:/output/OriCurve.txt");
+            qDebug()<<"orispot:    "<<orispot;
+            break;
+        }
     }
 
 
@@ -725,35 +759,35 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         qDebug()<<"BP IS       "<<BP;
         qDebug()<<"BreakP is   "<<BreakP;
         qDebug()<<OOL.length()<<"length of OOL";
-         OOL= VectorTransposition(OOL,-orispot-2);
-         QVector<int>newbp;
-         foreach (int k, BreakP)
-         {
-             if(k+orispot+2>OOL.length()-1)
-             {
-                 k=k-OOL.length();
+        OOL= VectorTransposition(OOL,-orispot-2);
+        QVector<int>newbp;
+        foreach (int k, BreakP)
+        {
+            if(k+orispot+2>OOL.length()-1)
+            {
+                k=k-OOL.length();
 
-             }
-             newbp.push_back(k+orispot+2);
+            }
+            newbp.push_back(k+orispot+2);
 
-         }
-         BreakP.clear();
-         BreakP=newbp;
-         newbp.clear();
-         foreach (int k, BP) {
-             if(k+orispot+2>OOL.length()-1)
-             {
-                 k=k-OOL.length();
+        }
+        BreakP.clear();
+        BreakP=newbp;
+        newbp.clear();
+        foreach (int k, BP) {
+            if(k+orispot+2>OOL.length()-1)
+            {
+                k=k-OOL.length();
 
-             }
-             newbp.push_back(k+orispot+2);
-         }
+            }
+            newbp.push_back(k+orispot+2);
+        }
         BP.clear();
         BP=newbp;
         qDebug()<<"BP IS       "<<BP;
         qDebug()<<"BreakP is   "<<BreakP;
         qDebug()<<OOL.length()<<"length of OOL";
-       //exit(0);
+        //exit(0);
     }
 
 
@@ -825,13 +859,14 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
 
 
-    QVector<QVector2D> P_turn;
+    QVector<QVector2D> P_turn;//转折点 xy
 
-    QVector<int>P_turn_int;
+    QVector<int>P_turn_int;//转折点序号
 
     /*a new try for find the characteristic points*/
-    for(int i=1;i<Break_int.length()-1;i++)//首尾点是曲线端点，不予考虑
+    for(int i=1;i<Break_int.length()-1;i++)//首尾点是曲线端点，不予考虑break_int包含了曲线端点
     {
+        
         if(Break_int[i]-12>0&&Break_int[i]+12<OOL.length())
         {
             PreThree.push_back(OOL[Break_int[i]-12]);
@@ -879,13 +914,15 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         }
         qDebug()<<APslope<<"APslope at time:"<<QTime::currentTime().msecsSinceStartOfDay();
         qDebug()<<"and the points is    "<<OOL[Break_int[i]];
+        
         if(slo.length()>2){
-           // qDebug()<<"现在送去检测的是点: "<<OOL[Break_int[i]];
+            // qDebug()<<"现在送去检测的是点: "<<OOL[Break_int[i]];
+
             bool ok=AngelCompare(APslope,i,slo,0.3);
 
             if(ok)
             {
-             //   qDebug()<<"该点满足条件: "<<OOL[Break_int[i]];
+                //   qDebug()<<"该点满足条件: "<<OOL[Break_int[i]];
                 P_turn.push_back(OOL[Break_int[i]]);
                 P_turn_int.push_back(Break_int[i]);
             }
@@ -909,6 +946,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         Output2File(P_turn,"F:/output/turnpoints"+QString::number(QTime::currentTime().msec())+".txt");
 
         //找到关键点后对关键点之间的点进行等距离散
+
         int length=BP[BP.length()-1]-BP[0];
 
         //创建一个离散创建函数？
@@ -938,27 +976,27 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         //调用Curvedisperce
         Toreturn.clear();
         Toreturn=Noturn;
-       qDebug()<<"no turn points";
+        qDebug()<<"no turn points";
 
     }
 
-  if(Contained)
-  {
-      QVector<int >newtoreturn;
-      foreach (int q, Toreturn) {
-          if(q-orispot-2<0)
-          {
-             q=OOL.length()+q;
+    if(Contained)
+    {
+        QVector<int >newtoreturn;
+        foreach (int q, Toreturn) {
+            if(q-orispot-2<0)
+            {
+                q=OOL.length()+q;
 
-          }
+            }
 
 
 
-          newtoreturn.push_back(q-orispot-2);
-      }
-      Toreturn.clear();
-      Toreturn=newtoreturn;
-  }
+            newtoreturn.push_back(q-orispot-2);
+        }
+        Toreturn.clear();
+        Toreturn=newtoreturn;
+    }
 
     return Toreturn;//temp return
 }
@@ -968,14 +1006,14 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 {
     /*该函数对曲线进行离散。
     CurP_2D是曲线点的xy坐标，
-    CurP_int是曲线点的序号
+    CurP_int是曲线点的序号，不带曲线端点
     CurP_keyP_int是前面检测出的关键点序号.
     CurP_keyP_2D 是关键点xy坐标
     Dl 是默认离散长度，默认8个点
 
     返回 曲线离散点 序号*/
 
-    qDebug()<<"Enter the function Curvecheck      [CurveCheck]";
+    qDebug()<<"Enter the function Curvecheck                                            [CurveCheck]";
 
     QVector<QVector2D>ToReturn;
 
@@ -992,32 +1030,16 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
     int CPlength=CurP_int.length();//曲线点总个数
 
     Output2File(CurP_int,"F:/output/Curvepint"+QString::number(CurP_int.length())+".txt");
-     Output2File(CurP_keyP_int,"F:/output/CurP_keyP_int"+QString::number(CurP_keyP_int.length())+".txt");
+    Output2File(CurP_keyP_int,"F:/output/CurP_keyP_int"+QString::number(CurP_keyP_int.length())+".txt");
 
     //离散还有很大的问题
 
-    for(int i=0;i<CurP_keyP_2D.length()-1;i++)
-    {
-        if(qAbs(CurP_keyP_int[i+1]-CurP_keyP_int[i])>=Dl)
-        {
-            //说明此处的间隔点太长
-            tempuse.setX(CurP_keyP_int[i]);
-            tempuse.setX(CurP_keyP_int[i+1]);
-            NeedInsertP.push_back(tempuse);
-        }
-        else
-        {
-            //间隔很近，直接放入小间距序列
-            tempuse.setX(CurP_keyP_int[i]);
-            tempuse.setX(CurP_keyP_int[i+1]);
-            SmallDistanceP.push_back(tempuse);
-        }
-    }
+
 
     ToReturn.push_back(CurP_2D[0]);//先放入第一点
 
-    neworder.push_back(CurP_int[0]);//neworder储存着包括曲线起止点和关键点的序列
-//问题在这，没有调用插入计算函数S
+    neworder.push_back(CurP_int[0]);//neworder将会储存着包括曲线起止点和关键点的序列
+    //问题在这，没有调用插入计算函数S
 
 
     for(int i=0;i<CurP_keyP_int.length();i++)
@@ -1041,7 +1063,8 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 
         int endp=neworder[i+1];
 
-        int Pointin=stp-endp-1;//中间间隔点数，之后对中间间隔点数进行考察
+        int Pointin=endp-stp-1;//中间间隔点数，之后对中间间隔点数进行考察
+        qDebug()<<"point in stp and endp length:    "<<Pointin;
 
         QVector<int>InsetP;//插点序列
 
@@ -1055,16 +1078,19 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 
             Output2File(TransSequenceTo2D(Alloutline,InsetP),"F:/output/InsetPin2D"+QString::number(qrand())+".txt");
 
+
             QVector<int>ReturnFromdes;
             //做一个离散函数
             for(int k=0;k<InsetP.length()-1;k++)
 
             {
+                qDebug()<<"insetp length is "<<InsetP.length();
+                qDebug()<<"and itorator is "<<k;
                 QVector2D PP;
 
-                PP.setX(InsetP[i]);
+                PP.setX(InsetP[k]);
 
-                PP.setY(InsetP[i+1]);
+                PP.setY(InsetP[k+1]);
 
                 ReturnFromdes=CurveDisperce(Alloutline,PP);//计算是否达标，返回达标的新序列
 
@@ -1087,7 +1113,7 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
             QVector<double> P2Pdis;
 
             QVector<QVector2D> pp;
-            //problem here!
+
             for(int k=stp+1;k<endp;k++)
             {
                 pp.push_back(Alloutline[k]);//取出中间点
@@ -1146,12 +1172,12 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 
     qDebug()<<ToReturn_int;
     foreach (int kk, CurP_keyP_int) {
-       Reto.push_back(kk);
+        Reto.push_back(kk);
     }
     Reto=ReorderArray(ToReturn_int,1);
-   // qDebug()<<"before unique funciton:"<<Reto;
+    // qDebug()<<"before unique funciton:"<<Reto;
     Reto=Unique_Int(Reto);
-  //  qDebug()<<"After unique"<<Reto;
+    //  qDebug()<<"After unique"<<Reto;
 
     qDebug()<<"get the x and y coordination";
     ToReturn.clear();
@@ -1161,7 +1187,7 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 
     // Output2File(ToReturn,"F:/output/Toreturn.txt");
     // exit(0);
-    qDebug()<<"Returned from the function Curvecheck;       [CurveCheck]";
+    qDebug()<<"Returned from the function Curvecheck;       **********[CurveCheck]*************";
 
     Output2File(ToReturn_int,"F:/output/CurvepintReturn"+QString::number(CurP_int.length())+".txt");
 
@@ -1260,12 +1286,6 @@ QVector<int>CurveDisperce(QVector<QVector2D>AllOutline,
 
     }
 
-
-
-
-
-
-
     qDebug()<<"Out from the function CurveDisperce!           [CurveDisperce]";
 }
 
@@ -1274,8 +1294,8 @@ QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>inp
     qDebug()<<"enter function transSequenceTo2D  [TransSequenceTo2D]";
     QVector<QVector2D>Toreturn;
     foreach (int k, input) {
-       // qDebug()<<" the k is"<<k<<"         [TransSequenceTo2D]";
-      //  qDebug()<<"the length is "<<Alloutline.length()<<" [TransSequenceTo2D]";
+        // qDebug()<<" the k is"<<k<<"         [TransSequenceTo2D]";
+        //  qDebug()<<"the length is "<<Alloutline.length()<<" [TransSequenceTo2D]";
 
         if(k<0||k>Alloutline.length())
         {
@@ -1345,6 +1365,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
      *  startP 是传入曲线段起点序号
      *  endP 是传入曲线段终止点序号
      *  MinL 最小离散长度
+     * maxor 是最大序号
      *  返回从startP开始到endP结束的离散点序号
 */
     qDebug()<<"enter the InsetCalculate function!";
@@ -1356,7 +1377,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
 
         toreturn.push_back(startP);
         int ad=0;
-        int SumofPoints=abs(maxor-endP)+abs(maxor-startP)+3;//获取总共点数
+        int SumofPoints=abs(maxor-endP)+startP+3;//获取总共点数
         bool ok=true;
         int remainder=SumofPoints%(MinL);
         int spot=startP;
@@ -1365,6 +1386,9 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
 
         qDebug()<<"remaderis "<<remainder<<"   and piece is "<<piece;
         qDebug()<<"startp   "<<startP<<"   EndP   "<<endP<<" all num is  "<<SumofPoints;
+        QVector<int>tempad;
+        QVector<int>rema;
+
         if(remainder==0)
         {//刚好均分，就均分点放入返回
             qDebug()<<"no remainder!";
@@ -1387,25 +1411,42 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                     qDebug()<<"spot "<<spot<<"   maxor "<<maxor<<" endp "<<endP<<" startp "<<startP;
                     QMessageBox::information(NULL,"Notice","out of range [inset calculate]");
                 }
-          }
+            }
             toreturn.push_back(endP);
         }
         else
         {//有余数
             ok=true;
+
+            tempad.push_back(ad);
+            rema.push_back(remainder);
+            //找最佳ad
+
             while(remainder>=2)
             {
                 qDebug()<<"have remainder!";
                 ad++;
+
                 remainder=SumofPoints%(MinL+ad);
 
+                tempad.push_back(ad);
+
+                rema.push_back(remainder);
 
                 piece=SumofPoints/(MinL+ad)-1;
+
                 qDebug()<<"remaderis "<<remainder<<"   and piece is "<<piece;
+
                 if(ad>5)
                 {
+                    int qqk= FindMinorMax(rema);
+
                     QMessageBox::information(NULL,"warning","ad is too big");
-                    exit(0);
+                    //exit(0);
+                    remainder=rema[qqk];
+                    ad=tempad[qqk];
+                    piece=SumofPoints/(MinL+ad)-1;
+                    break;
                 }
 
             }
@@ -1414,9 +1455,12 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
 
 
         }
+
+
         if(ok){
             for(int i=0;i<piece-1;i++)
             {
+                spot=spot+MinL+ad;
                 if(spot>maxor)
                 {
                     spot=spot-maxor-1;
@@ -1424,6 +1468,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                 }
                 else
                 {
+
                     toreturn.push_back( spot);
                 }
                 if(spot<endP||spot>startP||spot>maxor)
@@ -1435,13 +1480,16 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
         }
         toreturn.push_back(endP);
 
-        //说明曲线跨越起点
+
     }
     else
     {
-
+        //说明曲线没有跨越起点
+        qDebug()<<"the curve is not contain the origin point";
         toreturn.push_back(startP);
 
+        QVector<int>tempad;
+        QVector<int>rema;
 
         int ad=0;
         int SumofPoints=abs(endP-startP)+1;//获取总共点数
@@ -1471,39 +1519,54 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
             toreturn.push_back(endP);
         }
         else
-        {//有余数
+        {
+            //有余数
             ok=true;
+            tempad.push_back(ad);
+            rema.push_back(remainder);
+            //找最佳ad
+
             while(remainder>=2)
             {
                 qDebug()<<"have remainder!";
                 ad++;
                 remainder=SumofPoints%(MinL+ad);
 
+                tempad.push_back(ad);
+                rema.push_back(remainder);
 
                 piece=SumofPoints/(MinL+ad)-1;
+
                 qDebug()<<"remaderis "<<remainder<<"   and piece is "<<piece;
                 if(ad>5)
                 {
+                    int qqk= FindMinorMax(rema);
+
                     QMessageBox::information(NULL,"warning","ad is too big");
-                    exit(0);
+                    //exit(0);
+                    remainder=rema[qqk];
+                    ad=tempad[qqk];
+                    piece=SumofPoints/(MinL+ad)-1;
+                    break;
                 }
 
             }
 
 
 
-
-        }
-        if(ok){
-            for(int i=0;i<piece-1;i++)
-            {
-                spot=spot+MinL+ad;
-                toreturn.push_back( spot);
-                if(spot>endP)
+            if(ok){
+                spot=startP;
+                for(int i=0;i<piece-1;i++)
                 {
-                    QMessageBox::information(NULL,"out","OUT OF THE RANGE");
+                    spot=spot+MinL+ad;
 
-                    exit(0);
+                    if(spot>endP)
+                    {
+                        QMessageBox::information(NULL,"out","OUT OF THE RANGE");
+
+                       continue;
+                    }
+                    toreturn.push_back( spot);
                 }
             }
         }
@@ -1513,7 +1576,11 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
 
     qDebug()<<"out the InsetCalculate function!";
 
-    Output2File(toreturn,"F:/output/insetcal"+QString::number(toreturn.length())+".txt");
+    Output2File(toreturn,"F:/output/insetcalculation"+QString::number(toreturn.length())+".txt");
+    qDebug()<<"the insertcalculation is     "<<toreturn;
+    qDebug()<<"the lengthis        "<<maxor;
+
+    QMessageBox::information(NULL,"InsertCalculation Called","This Function is called and check the output window!");
 
     return toreturn;
 }
@@ -2078,8 +2145,9 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
   */
     qDebug()<<"enter function line merge";
     QVector<int> CharacterPoints_int=input_int;//设定所有直线点为特征点
+
     QVector<QVector2D> CharacterPoints_2D=input_Point;//设定所有直线点为特征点
-    int CurveCount=0;
+
 
     if(input_int.length()!=input_Point.length())
     {
@@ -2097,7 +2165,6 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         return input_int;
     }
 
-    int TheLastOrder=allp.length();
 
     bool Linejump=false;
 
@@ -2133,8 +2200,8 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         if(abs(input_int[i]-input_int[i+1])<=1)
         {
             qDebug()<<"the gap is very small and merge!";
-            qDebug()<<"length is"<<length;
-            qDebug()<<"and now ths i is "<<i;
+            //qDebug()<<"length is"<<length;
+          //  qDebug()<<"and now ths i is "<<i;
 
 
             if(i+1<=slopelength)
@@ -2167,8 +2234,8 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         else if(abs(input_int[i]-input_int[i+1])<=minL&&abs(input_int[i]-input_int[i+1])>1&&i%2!=0)//直线不会短于minL
         {//i必须为奇数，不然就不是检测的直线之间的点
             qDebug()<<"middle gap two point merge";
-            qDebug()<<"length is"<<length;
-            qDebug()<<"and now ths i is "<<i;
+            //qDebug()<<"length is"<<length;
+            //qDebug()<<"and now ths i is "<<i;
             if(i+1<=slopelength)
             {//to check will here index out of range
                 if(qAbs(lineslope[i-1]-lineslope[i+1])<degreeT)
@@ -2257,7 +2324,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
     if(Linejump)
     {   //第一条直线跨界起点
         qDebug()<<"excute the other type!";
-        if(abs(input_int[0]-input_int[length-1])>minL)
+        if(abs(input_int[0]-input_int[length-1])>minL)//problem!!!!!!!!!!!!!!!!!!
         {
 
             //此处标明，第一条直线起点和最后一条直线尾点之间存在曲线
@@ -2291,7 +2358,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
         QVector<int> Gap_Point;//Curve point's order in OrderdOutLine
 
-        for(int qq=input_int[input_int.length()-1];qq<=allp.length()-1;qq++)
+        for(int qq=input_int[input_int.length()-1];qq<=allp.length();qq++)
         {
             Gap_Point.push_back(qq);
         }
@@ -2305,8 +2372,8 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         QVector<double>TwoSlope;
 
         if(Gap_Point.length()<minL){
-            CharacterPoints_int[input_int.length()-1]=(input_int[input_int.length()-1]+input_int[0])/2;
-             CharacterPoints_int[0]=(input_int[input_int.length()-1]+input_int[0])/2;
+            CharacterPoints_int[length-1]=(input_int[length-1]+input_int[0])/2;
+            //CharacterPoints_int[0]=(input_int[input_int.length()-1]+input_int[0])/2;
         }else{
             TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
             TwoSlope.push_back(lineslope[lineslope.length()-2]);
@@ -2324,7 +2391,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
 
     //去除 忽略点
-    Toreturn.clear();
+
 
     if(RemoveP_int.length()==0)//没有忽略点
     {
@@ -2349,6 +2416,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
         }
     }
+
     RemoveP_int.clear();
 
 
@@ -2357,21 +2425,25 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         Toreturn.push_back(k);
     }
 
-   // qDebug()<<"original to return is "<<Toreturn;
+    // qDebug()<<"original to return is "<<Toreturn;
     Toreturn=ReorderArray(Toreturn,1);
     //qDebug()<<"Orderedtoreturn is "<<Toreturn;
 
 
     Toreturn=Unique_Int(Toreturn);
 
- //   qDebug()<<"uniqued return is "<<Toreturn;
+    //   qDebug()<<"uniqued return is "<<Toreturn;
     QVector<QVector2D>To2D=TransSequenceTo2D(allp,Toreturn);
-   // qDebug()<<"2D is"<<To2D;
+
+    // qDebug()<<"2D is"<<To2D;
 
     Output2File(To2D,"F:/output/To2D.txt");
 
     qDebug()<<"out function linemerge!";
+
     return Toreturn;
+
+
 }
 
 QVector<QVector2D> CircularStitching(QVector<QVector2D>Line1,QVector<QVector2D>Line2){
@@ -2575,6 +2647,7 @@ bool AngelCompare(QVector<double>Asl,int spot,QVector<double> BSlope,double tole
         tolerance 是允许的角度公差
    */
     qDebug()<<"enter the function AngelComapare origin one!";
+
     qDebug()<<"spot      "<<spot;
     qDebug()<<"BSlope:       "<<BSlope;
     double *Preslo=new  double [3];
@@ -2601,6 +2674,7 @@ bool AngelCompare(QVector<double>Asl,int spot,QVector<double> BSlope,double tole
     qDebug()<<"**************************************************";
 
     int ans= AngelCompare(WeightedAverage_Pre,WeightedAverage_Be,tolerance);
+
     qDebug()<<"ans   "<<ans<<"      "<<"tolerance:   "<<tolerance;
     if(ans==2){
         qDebug()<<"choosed point is: "<<spot;
@@ -2698,41 +2772,41 @@ QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos)
      */
     qDebug()<<"enter the VectorTranposition    [VectorTransposition]";
     QVector<QVector2D>Toreturn;
-   if(Transpos==0)
-   {
+    if(Transpos==0)
+    {
         qDebug()<<"OUT the VectorTranposition    [VectorTransposition]";
 
-       return point_2D;
-   }
+        return point_2D;
+    }
     else if(Transpos<0)
-   {
+    {
 
-       for(int i=point_2D.length()+Transpos;i<point_2D.length();i++)
-       {
-           Toreturn.push_back(point_2D[i]);
-       }
-       for(int q=0;q<point_2D.length()+Transpos;q++)
-       {
-           Toreturn.push_back(point_2D[q]);
-       }
-       qDebug()<<"OUT the VectorTranposition    [VectorTransposition]";
-       return Toreturn;
+        for(int i=point_2D.length()+Transpos;i<point_2D.length();i++)
+        {
+            Toreturn.push_back(point_2D[i]);
+        }
+        for(int q=0;q<point_2D.length()+Transpos;q++)
+        {
+            Toreturn.push_back(point_2D[q]);
+        }
+        qDebug()<<"OUT the VectorTranposition    [VectorTransposition]";
+        return Toreturn;
 
-   }
-   else
-   {
+    }
+    else
+    {
 
-       for(int q=Transpos;q<point_2D.length();q++)
-       {
-           Toreturn.push_back(point_2D[q]);
-       }
-       for(int i=0;i<Transpos;i++)
-       {
-           Toreturn.push_back(point_2D[i]);
-       }
-       qDebug()<<"OUT the VectorTranposition    [VectorTransposition]";
-       return Toreturn;
-   }
+        for(int q=Transpos;q<point_2D.length();q++)
+        {
+            Toreturn.push_back(point_2D[q]);
+        }
+        for(int i=0;i<Transpos;i++)
+        {
+            Toreturn.push_back(point_2D[i]);
+        }
+        qDebug()<<"OUT the VectorTranposition    [VectorTransposition]";
+        return Toreturn;
+    }
 
 
 }

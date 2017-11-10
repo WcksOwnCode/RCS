@@ -11,6 +11,8 @@ double DisCalFuc(int x1,int y1,int x2,int y2);
 
 QVector<int> ReorderArray(QVector<int> Array, int n);
 
+int FindMinorMax(QVector<int>input,int M=0);
+
 void ReorderArray(double *p,int n);
 
 void SwapT(double &a,double &b);
