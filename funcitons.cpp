@@ -708,8 +708,7 @@ QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
     }
     return toreturn;
 }
-QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
-                              QVector<QVector2D> OOL, QVector<int>BreakP,int MinL)
+QVector<int> CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<int>BreakP,int MinL)
 {
     //此函数用在进行了斜率简化后的对长线段之间的点进行筛查用的
     //主要检测两个长线段之间的点是否有必要保留
@@ -721,8 +720,11 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
     //BreakP 是轮廓点全部的转折点
     //MinL 是 最小离散长度
     //返回 Toreturn 是离散好的关键点序号
-
-
+  qDebug()<<"enter the function check point in line!";
+  qDebug()<<BP;
+  if(BP.length()<5){
+  exit(0);
+}
     QVector<int> Toreturn;
     QVector<QVector2D>CurvePoints;
     QVector<int>Break_int;
@@ -745,6 +747,8 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         {
             Contained=true;//认为曲线点过了原点
             qDebug()<<"the curve through the origin points;";
+            qDebug()<<"BP:     "<<BP;
+            qDebug()<<"OOL length:  "<<OOL.length();
             QVector< QVector2D> OriCurve=TransSequenceTo2D(OOL,BP);
             Output2File(OriCurve,"F:/output/OriCurve.txt");
             qDebug()<<"orispot:    "<<orispot;
@@ -755,7 +759,8 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
     qsrand(QTime::currentTime().msec());
 
-    if(Contained){
+    if(Contained)
+    {
         qDebug()<<"BP IS       "<<BP;
         qDebug()<<"BreakP is   "<<BreakP;
         qDebug()<<OOL.length()<<"length of OOL";
@@ -796,7 +801,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
 
     Break_int.push_back(BP[0]);
 
-
+    qDebug()<<"Piece 1    [check point in line]";
     //取出曲线中的转折点
     for(int i=0;i<BP.length();i++)
     {
@@ -997,7 +1002,7 @@ QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
         Toreturn.clear();
         Toreturn=newtoreturn;
     }
-
+qDebug()<<"OUT the function check point in line!";
     return Toreturn;//temp return
 }
 
@@ -1441,7 +1446,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                 {
                     int qqk= FindMinorMax(rema);
 
-                    QMessageBox::information(NULL,"warning","ad is too big");
+                   // QMessageBox::information(NULL,"warning","ad is too big");
                     //exit(0);
                     remainder=rema[qqk];
                     ad=tempad[qqk];
@@ -1580,7 +1585,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
     qDebug()<<"the insertcalculation is     "<<toreturn;
     qDebug()<<"the lengthis        "<<maxor;
 
-    QMessageBox::information(NULL,"InsertCalculation Called","This Function is called and check the output window!");
+   // QMessageBox::information(NULL,"InsertCalculation Called","This Function is called and check the output window!");
 
     return toreturn;
 }
@@ -1835,7 +1840,7 @@ void Output2File(QVector<int>InputArray,QString Outputadd,int newline)
 {
     //newline means that every line can only contain 1 word
     if(Outputadd.isEmpty()){
-        QMessageBox::information(NULL,"warning","no out put file address!");
+       // QMessageBox::information(NULL,"warning","no out put file address!");
         Outputadd="F:/output/outputfiles"+QString::number(qrand())+".txt";
     }
     int length=InputArray.length();
@@ -1880,13 +1885,13 @@ QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templa
     QVector<QVector2D>Toreturn;
 
     if(inputLength==0){
-        QMessageBox::information(NULL,
-                                 "length","the length of the input is zero!");
+      //  QMessageBox::information(NULL,
+                                // "length","the length of the input is zero!");
         exit(0);
     }
     if(templength==0){
-        QMessageBox::information(NULL,
-                                 "length","the length of the template array is zero!");
+      //  QMessageBox::information(NULL,
+                             //    "length","the length of the template array is zero!");
         exit(0);
     }
 
@@ -1922,13 +1927,13 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
     QVector<int>Toreturn;
 
     if(inputLength==0){
-        QMessageBox::information(NULL,
-                                 "length","the length of the input is zero!");
+       // QMessageBox::information(NULL,
+                               //  "length","the length of the input is zero!");
         exit(0);
     }
     if(templength==0){
-        QMessageBox::information(NULL,
-                                 "length","the length of the template array is zero!");
+     //   QMessageBox::information(NULL,
+                                // "length","the length of the template array is zero!");
         exit(0);
     }
 
@@ -1976,7 +1981,7 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
     qDebug()<<"befor reorder function: "<<endl<<Toreturn;
 
     if(Toreturn.length()%2!=0){
-        QMessageBox::warning(NULL,"warning","the length of the is not odd");
+       // QMessageBox::warning(NULL,"warning","the length of the is not odd");
         exit(0);
     }
 
@@ -2226,7 +2231,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
 
             else{
-                QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
+               // QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
                 exit(0);
             }
             qDebug()<<"out from 1 gap!";
@@ -2255,7 +2260,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
             else
             {
-                QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
+               // QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
                 exit(0);
             }
             qDebug()<<"out from small gap!";
@@ -2267,13 +2272,11 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             //长度过长的直接送入CheckPointsinline函数
             //预处理：
             //Gap_Point二维存放曲线起止点位置序号，也就是两段直线，前直线的尾点，和后直线的起点
-            //
-            //
-            //
 
             qDebug()<<"need curve check!";
             qDebug()<<"length is"<<length;
             qDebug()<<"and now ths i is "<<i;
+            qDebug()<<"check for the input int   "<<input_int;
 
 
             QVector<int> Gap_Point;//Curve point's order in OrderdOutLine
@@ -2294,13 +2297,13 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
             if(Gap_Point.length()<minL){
 
-                QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
+               // QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
             }
-
+            else{
             qDebug()<<"case one send to check point inline:";
-            fortemp= CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
+            fortemp= CheckPointInline(Gap_Point,allp,BreakP,10);
             qDebug()<<"out from large gap!";
-
+           }
 
             foreach (int k, fortemp) {
                 CharacterPoints_int.push_back(k);
@@ -2339,11 +2342,11 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
             TwoSlope.push_back(lineslope[lineslope.length()-2]);
             if(Gap_Point.length()<minL){
-                QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
+              //  QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
                 qDebug()<<input_int[0]<<"   "<<input_int[length-1];
             }
             qDebug()<<"case 2 send to checkpoint in line";
-            fortemp= CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
+            fortemp= CheckPointInline(Gap_Point,allp,BreakP,10);
 
             foreach (int k, fortemp) {
                 CharacterPoints_int.push_back(k);
@@ -2358,7 +2361,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
         QVector<int> Gap_Point;//Curve point's order in OrderdOutLine
 
-        for(int qq=input_int[input_int.length()-1];qq<=allp.length();qq++)
+        for(int qq=input_int[input_int.length()-1];qq<=allp.length()-1;qq++)
         {
             Gap_Point.push_back(qq);
         }
@@ -2378,7 +2381,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
             TwoSlope.push_back(lineslope[lineslope.length()-2]);
             qDebug()<<"case 3 send to checkpoint in line";
-            fortemp=CheckPointInline(Gap_Point,Gap_Point.length(),TwoSlope,allp,BreakP,10);
+            fortemp=CheckPointInline(Gap_Point,allp,BreakP,10);
 
             foreach (int k, fortemp) {
                 CharacterPoints_int.push_back(k);
@@ -2386,12 +2389,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             fortemp.clear();
         }
     }
-
-
-
-
     //去除 忽略点
-
 
     if(RemoveP_int.length()==0)//没有忽略点
     {
@@ -2605,7 +2603,7 @@ int AngelCompare(double slope1,double slope2,double tolerance)
 void Output2File(QVector<double>InputArray,QString Outputadd,int newline){
     //newline means that every line can only contain 1 word
     if(Outputadd.isEmpty()){
-        QMessageBox::information(NULL,"warning","no out put file address!");
+     //   QMessageBox::information(NULL,"warning","no out put file address!");
         Outputadd="F:/output/outputfiles"+QString::number(qrand())+".txt";
     }
     int length=InputArray.length();

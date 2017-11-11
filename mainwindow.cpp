@@ -1241,7 +1241,7 @@ void MainWindow::SmoothOutline()
 
 
 
-   //  CharacteristicCalculate(BreakPointDistance);
+    //  CharacteristicCalculate(BreakPointDistance);
 
     //得到转折点
 
@@ -1445,15 +1445,18 @@ void MainWindow::ReadPngButton()
 
 
 
-    QVector<QVector2D>HoughPoints;
+    QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
 
     HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
+     int All_Points_cout=OrderdOutLine.length();//获取总点数
 
-    if(HoughPoints.length()>=4){
+    if(HoughPoints.length()>=2){
+        qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
         QVector<QVector2D>OrderedSline;
 
         QVector<int>testorder;
+
         QVector<QVector2D>test2D;
 
         testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
@@ -1467,64 +1470,95 @@ void MainWindow::ReadPngButton()
 
         QVector<int>m_Int_Line;
 
-        /*****************************************************************/
-        /*                                                               */
-        /*                                                               */
-        /*                                                               */
+
         m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,10);
-        /*                                                               */
-        /*                                                               */
-        /*                                                               */
-        /*                                                               */
-        /*****************************************************************/
-        //qDebug()<<m_Int_Line<<"    m_Int_Line is this!";
-        //  qDebug()<<testorder<<"    testorder is this!";
 
-        QVector<QVector2D>testMerge;
+        CharacteristicPoint.clear();
 
-        for(int j=0;j<testorder.length();j++)
-        {
 
-            test2D.push_back(OrderdOutLine[testorder[j]]);
-
-        }
-
-        for(int j=0;j<m_Int_Line.length();j++)
-        {
-
-            testMerge.push_back(OrderdOutLine[m_Int_Line[j]]);
-
-        }
-
-        Output2File(test2D,"F:/output/test2D.txt");
-
-        Output2File(testMerge,"F:/output/testMerge.txt");
+        CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
 
 
         //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
 
     }
+    else if(HoughPoints.length()==1)
+
+    {//一条直线的情况
+        //直线数量不足，说明全部是曲线，直接进行曲线检测
+        qDebug()<<"+++***   Only one strait line is here    ***+++";
+
+
+        int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
+        int Checklength=HoughPoints[0].x()+ All_Points_cout-HoughPoints[0].y();
+
+        if(Checkflag<Checklength)
+        {//this situation is that  origin point is not in this line；
+            // so curve contain origin points
+            qDebug()<<"Only one line and *******curve****** contain the origin point";
+            QVector<int> CurvePoints_int;
+
+            for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
+            {
+                CurvePoints_int.push_back(n);
+            }
+            for(int n=0;n<=HoughPoints[0].x();n++)
+            {
+                CurvePoints_int.push_back(n);
+            }
+
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            CharacteristicPoint.clear();
+            CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+            CharacteristicPoint.push_back(CharacteristicPoint[0]);
+        }
+        else
+        {//直线包含原点
+            qDebug()<<"Only one line and **********Line******* contain the origin point";
+            QVector<int> CurvePoints_int;
+
+            for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
+            {
+                CurvePoints_int.push_back(n);
+            }
+
+
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            CharacteristicPoint.clear();
+            CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+            CharacteristicPoint.push_back(CharacteristicPoint[0]);
+        }
+
+    }
+
+
     else
     {
+        qDebug()<<"+++***               there is no strait line                    ***+++";
 
-        //直线数量不足，说明全部是曲线，直接进行曲线检测
 
+        QVector<int> CurvePoints_int;
 
+        for(int n=0;n<=All_Points_cout;n++)
+        {
+            CurvePoints_int.push_back(n);
+        }
+        QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+        CharacteristicPoint.clear();
+        CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+        CharacteristicPoint.push_back(CharacteristicPoint[0]);
     }
+
+
+
+
+
+
     int elapsed=WhoseTime.elapsed()-readstart;
 
-    QVector<QVector2D>Toshow;
-    for(int q=0;q<BreakPoints.length();q++)
-    {
-        Toshow.push_back(OrderdOutLine[BreakPoints[q]]);
-    }
 
-    Output2File(Toshow);
-
-
-
-
-
+    Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
+    exit(0);
     m_bReadState=true;
     ui->time_label->setText(QString::number(elapsed)+" ms");
 

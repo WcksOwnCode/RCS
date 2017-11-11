@@ -34,7 +34,7 @@ QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inp
 QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP);
 QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
 
-QVector<int> CheckPointInline(QVector<int>BP, int Pcount, QVector<double>TSlope,
+QVector<int> CheckPointInline(QVector<int>BP,
                               QVector<QVector2D> OOL, QVector<int> BreakP, int MinL=10);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
 
