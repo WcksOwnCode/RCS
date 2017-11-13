@@ -12,12 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     WhoseTime.start();
-
-
-
-    /******************************************************/
-    /*                    From API                        */
-    /********************************************************/
     ui->setupUi(this);
     ui->BaudRate->setCurrentIndex(0);
     //关闭发送按钮的使能
@@ -31,8 +25,6 @@ MainWindow::MainWindow(QWidget *parent) :
     imag    = new QImage();
     WTimer  = new QTimer(this);
     GetpicTimer= new QTimer(this);
-    // // origin_image.load(SpaceimageADD);
-    //  origin_image.scaled(width,height);
 
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
     QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(TakingPhoto()));
@@ -49,8 +41,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     }
 
-
-
     QObject::connect(ui->SendMesg_Button,SIGNAL(clicked()),this,SLOT(SendMessgOut()));
     QObject::connect(ui->Read_txt_Button,SIGNAL(clicked()),this,SLOT(ReadtxtButton()));
     QObject::connect(ui->Creat_code,SIGNAL(clicked()),this,SLOT(CreatGcodefile()));
@@ -61,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
     QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(TakingPhoto()));
     QObject::connect(ui->CameraView_Button, SIGNAL(clicked()), this, SLOT(CameraPreView()));
+
     rows=0;
     columns=1;
     CoorCount=0;
@@ -78,15 +69,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_dCurrentY=0;
     m_dCurrentZ=0;
     m_bFirstsend=false;
+
+    ImageInitialize();
     qDebug()<<tr("Initialize Success!");
-    /***************************************************************/
-    /***************************************************************/
-    /******************** read a picture **************************/
-    //cread grid points
+
     int initial=WhoseTime.elapsed();
 
     qDebug()<<"program initialize time used: "<<initial;
-
 }
 MainWindow::~MainWindow()
 {
@@ -381,6 +370,7 @@ void MainWindow::SetCoordinate(double x, double y, double z)
 }
 void MainWindow::CreadOrders()
 {
+
     int SpeedValue=ui->Speed_Percentage->text().toInt();
     FullOrder.append("G94 F=");
     FullOrder.append(QString::number(SpeedValue));
@@ -413,7 +403,7 @@ void MainWindow::CreadOrders()
 }
 void MainWindow::CreatGcodefile()
 {
-    qDebug()<<Array;
+   // qDebug()<<Array;
     QString filename=QFileDialog::getSaveFileName(this,"savefile",QDir::currentPath());
     // qDebug()<<filename;
     if(filename.isEmpty())
@@ -540,6 +530,7 @@ void MainWindow::AutoSendClicked()
     ui->progressBar->setRange(0,Array.length());
     ui->progressBar->setValue(0);
     m_iSendRepeatedlyCount=0;
+
     for(int i=0;i<CoorCount+1;i++)
     {
         QString sendstr;
@@ -590,6 +581,130 @@ void MainWindow::BoltSpeedCheckBox_checked()
 /*||||||||||API||||||||||||||API|||||||||||||||END||||||||||||||||||*/
 /*==============================================================*/
 /*=======================================================*/
+void MainWindow::ImageInitialize()
+{
+    qDebug()<<"Image Initializing...";
+    spaceImage=QImage(width,height,QImage::Format_ARGB32);
+    for(int x=0;x<width;x++)
+    {
+        for(int y=0;y<height;y++)
+        {
+            spaceImage.setPixel(x,y,qRgb(255,255,255));
+        }
+    }
+    /* QImage tste;
+    tste.load("E:/xx.png");
+
+    switch(tste.format())
+    {
+    case QImage::Format_ARGB32:
+         qDebug()<<"1";
+        break;
+    case QImage::Format_RGB32:
+        qDebug()<<"2";
+       break;
+    case QImage::Format_ARGB32_Premultiplied:
+        qDebug()<<"3";
+        break;
+    case QImage::Format_RGB888:
+        qDebug()<<"4";
+       break;
+    case QImage::Format_Indexed8:
+        qDebug()<<"5";
+       break;
+    default:
+        QMessageBox::warning(NULL,"warning","format is not right");
+        exit(0);
+    }
+    exit(0);*/
+    origin_image=spaceImage;//原图
+
+    Timage=spaceImage;//二色图
+
+    grayImage=spaceImage;//灰度图
+
+
+
+    OulineImage=spaceImage;
+
+    SmoothOulineImage=spaceImage;
+
+    GridImage=spaceImage;
+
+    xx=spaceImage;
+
+
+
+    qDebug()<<"Image Initialize done!";
+
+}
+QImage MainWindow::ImageDrawer(QImage Img, QVector<QVector2D> Array, QColor col, int Broad)
+{
+    int Imgwidth=Img.width();
+    int Imgheight=Img.height();
+
+    QImage toreturn=Img.copy();
+
+    foreach (QVector2D kk,Array)
+    {
+
+        if(kk.x()-Broad>=0&&kk.y()-Broad>=0&&kk.x()+Broad<Imgwidth&&kk.y()+Broad<Imgheight)
+        {
+            int i=kk.x();
+            int j=kk.y();
+
+            for(int x=i-Broad;x<i+Broad;x++)
+            {
+                for(int y=j-Broad;y<j+Broad;y++)
+                {
+                       toreturn.setPixel(x,y,qRgb(col.red(),col.green(),col.blue()));
+                }
+
+            }
+
+        }
+
+
+    }
+    return toreturn;
+
+
+
+}
+QImage MainWindow::ImageDrawer(QImage Img, int Broad)
+{
+    int Imgwidth=Img.width();
+    int Imgheight=Img.height();
+    QImage toreturn=Img;
+    QColor color;
+    QColor back=Img.pixel(0,0);
+
+
+    for(int i=0;i<Imgwidth;i++)
+    {
+        for(int j=0;j<Imgheight;j++)
+        {
+          color=Img.pixel(i,j);
+
+          if(color!=back)
+          {
+              qDebug()<<"Img pixel  :"<<color<<"     back  "<<back;
+              for(int x=i-Broad;x<i+Broad;x++)
+              {
+                  for(int y=j-Broad;y<j+Broad;y++)
+                  {
+                      if(i-Broad>=0&&j-Broad>=0&&i+Broad<Imgwidth&&j+Broad<Imgheight)
+                      toreturn.setPixel(x,y,qRgb(color.red(),color.green(),color.blue()));
+                  }
+
+              }
+          }
+
+        }
+    }
+    return toreturn;
+}
+
 QImage MainWindow::GaussianBlur(QImage GB)
 {
     //高斯模糊函数，
@@ -1022,6 +1137,14 @@ QImage MainWindow::GetOutLine(QImage II)
     QColor checkcolor4;
     QImage Ix=spaceImage;//要将检测和操作的图分开，不然自相操作会导致检测干扰;
     QImage rx=spaceImage;
+
+    /*  qDebug()<<Ix.width();
+    qDebug()<<Ix.height();
+    qDebug()<<rx.width();
+    qDebug()<<rx.height();
+    exit(0);*/
+
+
     int width3=Ix.width();
     int height3=Ix.height();
     int SumX=0;
@@ -1055,29 +1178,6 @@ QImage MainWindow::GetOutLine(QImage II)
                     tempV2.setX(x);
                     tempV2.setY(y);
                     OutLine.push_back(tempV2);
-                    //不加粗边界线，会是下面查找最外边界速度飞升
-                    /*if( checkcolor1.red()==0||checkcolor2.red()==0)
-                    {
-                        Ix.setPixel(x,y+1,qRgb(1,254,1));
-                        Ix.setPixel(x,y-1,qRgb(1,254,1));
-                        tempV2.setX(x);
-                        tempV2.setY(y+1);
-                        OutLine.push_back(tempV2);
-                        tempV2.setX(x);
-                        tempV2.setY(y-1);
-                        OutLine.push_back(tempV2);
-                    }
-                    if(checkcolor3.red()==0||checkcolor4.red()==0)
-                    {
-                        Ix.setPixel(x+1,y,qRgb(1,254,1));
-                        Ix.setPixel(x-1,y,qRgb(1,254,1));
-                        tempV2.setX(x+1);
-                        tempV2.setY(y);
-                        OutLine.push_back(tempV2);
-                        tempV2.setX(x-1);
-                        tempV2.setY(y);
-                        OutLine.push_back(tempV2);
-                    }*/
                 }
             }
 
@@ -1107,10 +1207,7 @@ QImage MainWindow::GetOutLine(QImage II)
             for(int y = 1; y<height3-1; y++)
             {
                 oldColor3 = QColor(Ix.pixel(x,y));
-                //checkcolor1=QColor(Ix.pixel(x+1,y));
-                //checkcolor2=QColor(Ix.pixel(x-1,y));
-                //checkcolor3=QColor(Ix.pixel(x,y+1));
-                //checkcolor4=QColor(Ix.pixel(x,y-1));
+
                 if(oldColor3.red()==1&&oldColor3.green()==254)
                 {
                     stx=x;
@@ -1195,14 +1292,17 @@ QImage MainWindow::GetOutLine(QImage II)
 
         if(m_bOnlyOutline)
         {
-            // qDebug()<<"draw new color!";
-            for(int i=0;i<OnlyOutLine.length();i++)
-            {
-                rx.setPixel(OnlyOutLine[i].x(),OnlyOutLine[i].y(),qRgb(253,0,0));
+            qDebug()<<"draw new color!";
+            if(OnlyOutLine.length()!=0){
+                for(int i=0;i<OnlyOutLine.length();i++)
+                {
+                    rx.setPixel(OnlyOutLine[i].x(),OnlyOutLine[i].y(),qRgb(253,0,0));
+                }
             }
         }
+        qDebug()<<"go to here";
 
-        Ix.setPixel(SumX/pixcount,SumY/pixcount,qRgb(255,0,0));
+        //  Ix.setPixel(SumX/pixcount,SumY/pixcount,qRgb(255,0,0));
 
         int alltime=GOLtimer.elapsed();
 
@@ -1220,6 +1320,7 @@ QImage MainWindow::GetOutLine(QImage II)
 void MainWindow::SmoothOutline()
 {
     QTime SOtimer;
+
     SOtimer.start();
 
 
@@ -1292,22 +1393,45 @@ void MainWindow::SmoothOutline()
 
 }*/
 /**new new new new new**/
+QImage MainWindow::DeleteOutRectangel(QImage input)
+{
+    QImage toreturn=input;
+    int Imwidth=input.width();
+    int Imheight=input.height();
+
+    const int DelBoard=2;
+
+   for(int i=0;i<Imwidth;i++)
+   {
+       for(int j=0;j<Imheight;j++)
+       {
+           if(i<DelBoard||j<DelBoard||i>Imwidth-DelBoard||j>Imheight-DelBoard)
+           {
+               toreturn.setPixel(i,j,qRgb(255,255,255));
+           }
+       }
+   }
+
+
+    return toreturn;
+
+
+}
+
 void MainWindow::ReadPngButton()
 {
     ui->CameraView_Button->setEnabled(false);
 
     ui->openCamera->setEnabled(false);
-    // ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
 
     ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
 
-    //ui->final_label->setPixmap(QPixmap::fromImage(spaceImage));
-
     ImageDisplayFunciton(ui->final_label,spaceImage,400,300);
 
-
     ClearVector();
+
     readfileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.png");
+
     if(readfileadd.isEmpty())
     {
         QMessageBox::information(this,"notice","not opened");
@@ -1318,18 +1442,18 @@ void MainWindow::ReadPngButton()
     int readstart=WhoseTime.elapsed();
 
     origin_image.load(readfileadd);
+
+
     origin_image = origin_image.scaled(width, height);
-    spaceImage=origin_image;
-    for(int i=0;i<width;i++){//creat a all white but the same size as origin
-        for(int j=0;j<height;j++)
-        {
-            spaceImage.setPixel(i,j,qRgb(255,255,255));
-        }
-    }
+
+    origin_image=DeleteOutRectangel(origin_image);
+
+    // spaceImage=origin_image;
+
+
     Timage=origin_image;//二色图
+
     grayImage=origin_image;//灰度图
-    //pp=pp.fromImage(origin_image);
-    //ui->Origin_Label->setPixmap(pp);
 
     ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
 
@@ -1373,13 +1497,7 @@ void MainWindow::ReadPngButton()
     //画出最大连通域的外轮廓
     /************************************************************/
     OulineImage=spaceImage;
-    /*for(int i=0;i<width;i++)
-     {
-         for(int j=0;j<height;j++)
-         {
-             OulineImage.setPixel(i,j,qRgb(255,255,255));
-         }
-     }*/
+
     for(int i=0;i<V4Domain_max.length();i++)
     {
 
@@ -1396,7 +1514,6 @@ void MainWindow::ReadPngButton()
 
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
 
-
     SmoothOutline();
 
     SmoothOulineImage=spaceImage;
@@ -1405,50 +1522,21 @@ void MainWindow::ReadPngButton()
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
 
-    //qDebug()<<"CharacteristicPoint"<<CharacteristicPoint;
-    for(int i=0;i<CharacteristicPoint.length();i++)
-    {
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-1,CharacteristicPoint[i].y()-1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+1,CharacteristicPoint[i].y()+1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-1,CharacteristicPoint[i].y()+1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+1,CharacteristicPoint[i].y()-1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()-1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()+1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-1,CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+1,CharacteristicPoint[i].y(),qRgb(0,255,255));
 
+   OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
 
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()+2,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()-2,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-2,CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+2,CharacteristicPoint[i].y(),qRgb(0,255,255));
-
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()+3,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()-3,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-3,CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+3,CharacteristicPoint[i].y(),qRgb(0,255,255));
-    }
-
-
-    /* pp=pp.fromImage(SmoothOulineImage);
-
-    ui->final_label->setPixmap(pp);*/
-
-    ImageDisplayFunciton(ui->final_label,SmoothOulineImage,400,300);
 
     ui->CameraView_Button->setEnabled(true);
 
     ui->openCamera->setEnabled(true);
 
-    //DynamicEncoding(CharacteristicPoint);
-
-
-
     QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
 
     HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
-     int All_Points_cout=OrderdOutLine.length();//获取总点数
+
+    Output2File(HoughPoints,"F:/output/HoughPoints.txt");
+
+    int All_Points_cout=OrderdOutLine.length();//获取总点数
 
     if(HoughPoints.length()>=2){
         qDebug()<<"+++***   There are more than 2 strait line   ***+++";
@@ -1467,17 +1555,15 @@ void MainWindow::ReadPngButton()
 
         Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
-
         QVector<int>m_Int_Line;
 
+        int minL=width/100;
 
-        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,10);
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,minL);
 
         CharacteristicPoint.clear();
 
-
         CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
-
 
         //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
 
@@ -1490,6 +1576,7 @@ void MainWindow::ReadPngButton()
 
 
         int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
+
         int Checklength=HoughPoints[0].x()+ All_Points_cout-HoughPoints[0].y();
 
         if(Checkflag<Checklength)
@@ -1549,17 +1636,32 @@ void MainWindow::ReadPngButton()
         CharacteristicPoint.push_back(CharacteristicPoint[0]);
     }
 
+    Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
 
 
+  OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
 
+
+    ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
+
+    //创建关键点坐标代码
+
+    for(int i=0;i<CharacteristicPoint.length();i++)
+     {
+         SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
+     }
+
+
+     CreadOrders();
+
+
+    m_bReadState=true;
+
+
+    //CreadOrders();
 
 
     int elapsed=WhoseTime.elapsed()-readstart;
-
-
-    Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
-    exit(0);
-    m_bReadState=true;
     ui->time_label->setText(QString::number(elapsed)+" ms");
 
 }
@@ -1630,21 +1732,12 @@ void MainWindow::TakingPhoto()
 void MainWindow::AutoRun()
 {
     AutoRunTimer.restart();
-    origin_image = origin_image.scaled(width, height);
-    Timage=origin_image;//二色图
-    grayImage=origin_image;//灰度图
-    // pp=pp.fromImage(origin_image);
-    // ui->Origin_Label->setPixmap(pp);
+
+    ClearVector();
+
+
     ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
 
-
-    spaceImage=origin_image;
-    for(int i=0;i<width;i++){//creat a all white but the same size as origin
-        for(int j=0;j<height;j++)
-        {
-            spaceImage.setPixel(i,j,qRgb(255,255,255));
-        }
-    }
     /*********************************************************/
     ToGray();
     /***************** to two color picture *********************/
@@ -1749,7 +1842,7 @@ void MainWindow::AutoRun()
     // pp=pp.fromImage(SmoothOulineImage);
     // ui->final_label->setPixmap(pp);
 
-    ImageDisplayFunciton(ui->final_label,SmoothOulineImage,400,300);
+    ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
     ui->CameraView_Button->setEnabled(true);
     ui->openCamera->setEnabled(true);
@@ -1930,7 +2023,7 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(int index)
     {
         // pp=pp.fromImage(SmoothOulineImage);
         //ui->final_label->setPixmap(pp);
-        ImageDisplayFunciton(ui->final_label,SmoothOulineImage,400,300);
+        ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
 
     }
@@ -1952,7 +2045,7 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(int index)
     {
         ///pp=pp.fromImage(OulineImage);
         //ui->final_label->setPixmap(pp);
-        ImageDisplayFunciton(ui->final_label,OulineImage,400,300);
+        ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
     }
 }
 void MainWindow::DeleteOutlineNoise()
@@ -2150,6 +2243,8 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
     //替代Excursion函数和Slopecheck函数
     //此函数筛查这些转折点然后找出关键的特征点
 
+
+    //here problem
     int length=CC.length();
 
     if(length==0)
@@ -2261,19 +2356,12 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
         CharacteristicPoint=OrderdOutLine;
     }
 
-    for(int i=0;i<CharacteristicPoint.length();i++)
-    {
-        SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
-    }
 
-
-    CreadOrders();
 
 }
-void MainWindow::DrawImage(QImage im,QVector<QVector2D> P,QColor Color)
-{
 
-}
+
+
 
 void MainWindow::on_DisperseSlider_valueChanged(int value)
 {
@@ -2515,8 +2603,8 @@ void MainWindow::on_Outline_Button_clicked()
     QMessageBox::information(NULL,"Read template","模板导入完毕");
 
 }
-void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int width,
-                                      int height)
+void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int Iwidth,
+                                      int Iheight)
 {
     /*QLabel *outputlabel 需要显示的目标标签框
     QImage inputImg  输入的Image
@@ -2529,9 +2617,42 @@ void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int 
 
     QPixmap TP;
 
-    Todis=inputImg.scaled(width,height);
+
+
+
+    Todis=inputImg.scaled(Iwidth,Iheight);
+
     TP=TP.fromImage(Todis);
+
     outputlabel->setPixmap(TP);
+}
+QVector<QVector2D>CurveOffset(QVector<QVector2D>input,int Offset=-5)
+{
+    //input 是输入的排序好的外轮廓，xy形势
+    //Offset是偏移距离，负数表示向内偏移，正数表示向外偏移
+
+    int In_Length=input.length();
+
+    const int GroupP_count=5;//多少个点为一组进行考察
+
+    int Dynamic_count=0;
+
+    QVector<QVector2D>Toreturn;
+
+    return Toreturn;
+
+
+
+
+
+
+
+}
+
+
+void MainWindow::on_ChangeTheimage__currentIndexChanged(const QString &arg1)
+{
+
 }
 
 

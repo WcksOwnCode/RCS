@@ -76,23 +76,28 @@ public:
     void SmoothOutline();
     void ClearVector();
     void ImageCoor2RealCoor();
-    void EmptyFunction();  
+    void EmptyFunction();
 
     void ResetWorldTimer();
     void TransferToWorldCoordinate();
     void DynamicEncoding(QVector <QVector2D> DE);
-    void CharacteristicCalculate(QVector<int> CC); 
+    void CharacteristicCalculate(QVector<int> CC);
     void DeleteOutlineNoise();
     void ReOrderOutline(QVector <QVector2D> RO);
     void ErrorFunction();
 
-    void ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int width=400,
-                              int height=300);
+    void ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int Iwidth=400,
+                              int Iheight=300);
 
 
-void CurveFit(QVector <QVector2D> Curve);
-    void DrawImage(QImage im, QVector<QVector2D> P, QColor Color);
-   // QString teststring="G97 X=52.36,Y=69.25,Z=63.25,A=3.14,B=0,C=0";
+    void CurveFit(QVector <QVector2D> Curve);
+
+    QImage ImageDrawer(QImage Img, int Broad=1);
+    QImage ImageDrawer(QImage Img, QVector<QVector2D> Array, QColor col, int Broad=1);
+    QVector<QVector2D>CurveOffset(QVector<QVector2D>input,int Offset);
+
+
+    // QString teststring="G97 X=52.36,Y=69.25,Z=63.25,A=3.14,B=0,C=0";
     QImage GaussianBlur(QImage GB);
 
 
@@ -101,7 +106,7 @@ void CurveFit(QVector <QVector2D> Curve);
 
     QImage NoiseFilter(QImage x);
 
-
+    void ImageInitialize();
     /****************************************/
 private:
     Ui::MainWindow *ui;
@@ -187,9 +192,9 @@ private:
 
     int all;
 
-    const int minmumLine=10;
+    const int minmumLine=15;
 
-   // int DomainOrder[100];
+    // int DomainOrder[100];
     const int m_iTotwoValue=156;//转二值图的时候的阈值
 
     const int width=800;//设定图片长宽
@@ -268,6 +273,8 @@ private:
 
     QImage OulineImage;
 
+    QImage OulineImage_b;
+
     QImage SmoothOulineImage;
 
     QImage GridImage;
@@ -307,7 +314,7 @@ private:
 
     const int currentK=3;
 
-     int currentNode;
+    int currentNode;
 
     const double FitStep=0.1;
 
@@ -375,6 +382,12 @@ private slots:
     void on_ImageWatch_pushButton_clicked();
 
     void on_Outline_Button_clicked();
+
+
+    void on_ChangeTheimage__currentIndexChanged(const QString &arg1);
+
+    QImage DeleteOutRectangel(QImage input);
+
 
 
 signals:

@@ -720,11 +720,12 @@ QVector<int> CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<i
     //BreakP 是轮廓点全部的转折点
     //MinL 是 最小离散长度
     //返回 Toreturn 是离散好的关键点序号
-  qDebug()<<"enter the function check point in line!";
-  qDebug()<<BP;
-  if(BP.length()<5){
-  exit(0);
-}
+    qDebug()<<"enter the function check point in line!";
+    qDebug()<<BP;
+    if(BP.length()<5){
+        qDebug()<<"BP is null";
+        exit(0);
+    }
     QVector<int> Toreturn;
     QVector<QVector2D>CurvePoints;
     QVector<int>Break_int;
@@ -937,7 +938,7 @@ QVector<int> CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<i
             qDebug()<<"break_2D    "<<Break_2D;
             qDebug()<<"Break int     "<<Break_int;
             qDebug()<<"Curvepoints:     "<<CurvePoints;
-            exit(0);
+            // exit(0);
         }
 
         APslope.clear();
@@ -1002,7 +1003,7 @@ QVector<int> CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<i
         Toreturn.clear();
         Toreturn=newtoreturn;
     }
-qDebug()<<"OUT the function check point in line!";
+    qDebug()<<"OUT the function check point in line!";
     return Toreturn;//temp return
 }
 
@@ -1304,7 +1305,9 @@ QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>inp
 
         if(k<0||k>Alloutline.length())
         {
-            QMessageBox::information(NULL,"Warning!","out of the range!");
+            qDebug()<<" OUT OF THE RANGE! please check the points!!";
+            qDebug()<<k;
+            qDebug()<<Alloutline.length();
 
         }else{
             Toreturn.push_back(Alloutline[k]);
@@ -1414,7 +1417,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                 if(spot<endP||spot>startP||spot>maxor)
                 {
                     qDebug()<<"spot "<<spot<<"   maxor "<<maxor<<" endp "<<endP<<" startp "<<startP;
-                    QMessageBox::information(NULL,"Notice","out of range [inset calculate]");
+                    //  QMessageBox::information(NULL,"Notice","out of range [inset calculate]");
                 }
             }
             toreturn.push_back(endP);
@@ -1446,7 +1449,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                 {
                     int qqk= FindMinorMax(rema);
 
-                   // QMessageBox::information(NULL,"warning","ad is too big");
+                    // QMessageBox::information(NULL,"warning","ad is too big");
                     //exit(0);
                     remainder=rema[qqk];
                     ad=tempad[qqk];
@@ -1479,7 +1482,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                 if(spot<endP||spot>startP||spot>maxor)
                 {
                     qDebug()<<"spot "<<spot<<"   maxor "<<maxor<<" endp "<<endP<<" startp "<<startP;
-                    QMessageBox::information(NULL,"Notice","out of range [inset calculate]");
+                    // QMessageBox::information(NULL,"Notice","out of range [inset calculate]");
                 }
             }
         }
@@ -1547,7 +1550,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                 {
                     int qqk= FindMinorMax(rema);
 
-                    QMessageBox::information(NULL,"warning","ad is too big");
+                    // QMessageBox::information(NULL,"warning","ad is too big");
                     //exit(0);
                     remainder=rema[qqk];
                     ad=tempad[qqk];
@@ -1569,7 +1572,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
                     {
                         QMessageBox::information(NULL,"out","OUT OF THE RANGE");
 
-                       continue;
+                        continue;
                     }
                     toreturn.push_back( spot);
                 }
@@ -1585,7 +1588,7 @@ QVector<int> InsertCalculate(int startP, int endP, int maxor,int MinL)
     qDebug()<<"the insertcalculation is     "<<toreturn;
     qDebug()<<"the lengthis        "<<maxor;
 
-   // QMessageBox::information(NULL,"InsertCalculation Called","This Function is called and check the output window!");
+    // QMessageBox::information(NULL,"InsertCalculation Called","This Function is called and check the output window!");
 
     return toreturn;
 }
@@ -1643,13 +1646,13 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage, int PointCount, int minmu
     mat=QImage2cvMat(newtocv);
 
     cvtColor(mat,graymat, CV_RGBA2GRAY);// change to one channels gray image
-    imshow("mat",graymat);
+    // imshow("mat",graymat);
 
 
     drawmat=graymat.clone();
     std::vector<cv::Vec4i> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
 
-    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*2,30); //(in,out,rho,theta,threshold,minlength,maxgap)
+    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*1.5,50); //(in,out,rho,theta,threshold,minlength,maxgap)
 
 
 
@@ -1688,7 +1691,7 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage, int PointCount, int minmu
 
     }
 
-    imshow("lines",drawmat);
+  //   imshow("lines",drawmat);
 
 
     return Sline2D;
@@ -1840,7 +1843,7 @@ void Output2File(QVector<int>InputArray,QString Outputadd,int newline)
 {
     //newline means that every line can only contain 1 word
     if(Outputadd.isEmpty()){
-       // QMessageBox::information(NULL,"warning","no out put file address!");
+        // QMessageBox::information(NULL,"warning","no out put file address!");
         Outputadd="F:/output/outputfiles"+QString::number(qrand())+".txt";
     }
     int length=InputArray.length();
@@ -1885,13 +1888,13 @@ QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templa
     QVector<QVector2D>Toreturn;
 
     if(inputLength==0){
-      //  QMessageBox::information(NULL,
-                                // "length","the length of the input is zero!");
+        //  QMessageBox::information(NULL,
+        // "length","the length of the input is zero!");
         exit(0);
     }
     if(templength==0){
-      //  QMessageBox::information(NULL,
-                             //    "length","the length of the template array is zero!");
+        //  QMessageBox::information(NULL,
+        //    "length","the length of the template array is zero!");
         exit(0);
     }
 
@@ -1922,18 +1925,19 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
 
     int templength=templateArray.length();
 
+
     int inputLength=input.length();
 
     QVector<int>Toreturn;
 
     if(inputLength==0){
-       // QMessageBox::information(NULL,
-                               //  "length","the length of the input is zero!");
+        // QMessageBox::information(NULL,
+        //  "length","the length of the input is zero!");
         exit(0);
     }
     if(templength==0){
-     //   QMessageBox::information(NULL,
-                                // "length","the length of the template array is zero!");
+        //   QMessageBox::information(NULL,
+        // "length","the length of the template array is zero!");
         exit(0);
     }
 
@@ -1980,8 +1984,14 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
 
     qDebug()<<"befor reorder function: "<<endl<<Toreturn;
 
+
+    QVector<QVector2D>tets=TransSequenceTo2D(templateArray,Toreturn);
+    Output2File(tets,"F:/output/sss1.txt");
+
+
+
     if(Toreturn.length()%2!=0){
-       // QMessageBox::warning(NULL,"warning","the length of the is not odd");
+        // QMessageBox::warning(NULL,"warning","the length of the is not odd");
         exit(0);
     }
 
@@ -2015,53 +2025,103 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
 
     //可能有直线嵌套
     //先处理完全嵌套
+
+    //嵌套处理有问题
+    qDebug()<<"new"<<newtoreturn;
+    qDebug()<<TransSequenceTo2D(templateArray,newtoreturn);
+
+
     QVector<int>toshow=newtoreturn;
     QVector<int> deletp;
+    QVector<QVector2D>LineIn2D;
+    QVector<double>Line2Dslope;
+
+ //   LineIn2D=TransSequenceTo2D(templateArray,newtoreturn);
+  //  Line2Dslope=Slope(LineIn2D,1,true);
+
     bool inside=true;
+    bool Isok=false;
+   // qDebug()<<Line2Dslope<<"lieslope";//偶数项是直线斜率
+  //  qDebug()<<LineIn2D.length()<<"2d";//此时上面slope个数和这个相同
+
+
     int out1=0;
+
+    qDebug()<<"before inside :"<<newtoreturn;
     while(inside)
     {
+
+          int insidewhere=-5;
+          LineIn2D=TransSequenceTo2D(templateArray,newtoreturn);
+          Line2Dslope=Slope(LineIn2D,1,true);
+
+
         for(int i=3;i<newtoreturn.length()-1;i+=2)
         {
             inside=false;
             if(newtoreturn[i]>newtoreturn[i+1])
             {
+                insidewhere=i;
                 inside=true;
+                break;
             }
 
         }
 
+
+        qDebug()<<Line2Dslope<<"lieslope";//偶数项是直线斜率
+        qDebug()<<LineIn2D.length()<<"2d";//此时上面slope个数和这个相同
+        qDebug()<<"inside :"<<newtoreturn;
+        qDebug()<<"inside where:"<<insidewhere;
+
+
         if(inside)
         {
             QVector<int>tempus;
-            for(int i=3;i<newtoreturn.length()-1;i+=2)
+             QVector<int>IngnoreP;
+
+            if(newtoreturn[insidewhere]>newtoreturn[insidewhere+2])
             {
-                if(newtoreturn[i]>newtoreturn[i+1])
+                //后一段完全嵌套在里面
+                //检查两者斜率，如果很近，直接抹去嵌入段
+                if(AngelCompare(Line2Dslope[insidewhere-1],Line2Dslope[insidewhere+1],0.15)==1)
                 {
-
-
-                    if(newtoreturn[i-1]<newtoreturn[i+2])
-                    {
-                        deletp.push_back(i+1);
-                        deletp.push_back(i+2);
-                        break;
-                    }
-                    else
-                    {
-                        deletp.push_back(i+1);
-                        deletp.push_back(i);
-                        break;
-                    }
-
+                    //两者斜率很相近，直接抹去
+                    IngnoreP.push_back(insidewhere+2);
+                    IngnoreP.push_back(insidewhere+1);
+                }
+                else{
+                    //应该不可能有这种情况
+                  qDebug()<<"special case 1"<<  newtoreturn[insidewhere+1]<<"    "<<newtoreturn[insidewhere];
+                    newtoreturn[insidewhere+1]=newtoreturn[insidewhere];
 
                 }
+
             }
+            else if(newtoreturn[insidewhere]<newtoreturn[insidewhere+2])
+            {
+                //此为非完全嵌套
+
+                if(AngelCompare(Line2Dslope[insidewhere-1],Line2Dslope[insidewhere+1],0.15)==1)
+                {
+                    //两者斜率很相近，直接抹去
+                    IngnoreP.push_back(insidewhere);
+                    IngnoreP.push_back(insidewhere+1);
+                }
+                else{
+                    //应该不可能有这种情况
+                    qDebug()<<"special case  2 "<<  newtoreturn[insidewhere+1]<<"    "<<newtoreturn[insidewhere];
+                   newtoreturn[insidewhere+1]=newtoreturn[insidewhere];
+                }
+            }
+
+
             for(int j=0;j<newtoreturn.length();j++)
             {
                 bool ok=true;
-                for(int k=0;k<deletp.length();k++)
+                for(int k=0;k<IngnoreP.length();k++)
                 {
-                    if(j==deletp[k]){
+                    if(j==IngnoreP[k]){
                         ok=false;
                     }
                 }
@@ -2074,17 +2134,19 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
             newtoreturn.clear();
             newtoreturn=tempus;
             tempus.clear();
-            qDebug()<<toshow<<"to check is opreated!!";
-            qDebug()<<newtoreturn<<"new to return!!";
+           // qDebug()<<toshow<<"to check is opreated!!";
+           // qDebug()<<newtoreturn<<"new to return!!";
 
             out1++;
             qDebug()<<"out1:    "<<out1;
             if(out1>15)
             {
+                 qDebug()<<"too much iterater!";
                 exit(0);
                 break;
 
             }
+
         }
 
     }
@@ -2106,6 +2168,8 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
         Toreturn=newtoreturn;
     }
 
+    QVector<QVector2D>tete=TransSequenceTo2D(templateArray,newtoreturn);
+    Output2File(tete,"F:/output/sss.txt");
 
 
     qDebug()<<"After the reorder:    "<<endl<<Toreturn;
@@ -2206,7 +2270,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
         {
             qDebug()<<"the gap is very small and merge!";
             //qDebug()<<"length is"<<length;
-          //  qDebug()<<"and now ths i is "<<i;
+            //  qDebug()<<"and now ths i is "<<i;
 
 
             if(i+1<=slopelength)
@@ -2231,7 +2295,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
 
             else{
-               // QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
+                // QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
                 exit(0);
             }
             qDebug()<<"out from 1 gap!";
@@ -2260,7 +2324,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
             else
             {
-               // QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
+                // QMessageBox::information(NULL,"notice","Out of range ,slope check is here!");
                 exit(0);
             }
             qDebug()<<"out from small gap!";
@@ -2297,13 +2361,13 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
             if(Gap_Point.length()<minL){
 
-               // QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
+                // QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
             }
             else{
-            qDebug()<<"case one send to check point inline:";
-            fortemp= CheckPointInline(Gap_Point,allp,BreakP,10);
-            qDebug()<<"out from large gap!";
-           }
+                qDebug()<<"case one send to check point inline:";
+                fortemp= CheckPointInline(Gap_Point,allp,BreakP,10);
+                qDebug()<<"out from large gap!";
+            }
 
             foreach (int k, fortemp) {
                 CharacterPoints_int.push_back(k);
@@ -2342,14 +2406,16 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
             TwoSlope.push_back(lineslope[lineslope.length()-2]);
             if(Gap_Point.length()<minL){
-              //  QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
+                //  QMessageBox::information(NULL,"WRONG","Gappoint length is not enough!");
                 qDebug()<<input_int[0]<<"   "<<input_int[length-1];
             }
             qDebug()<<"case 2 send to checkpoint in line";
-            fortemp= CheckPointInline(Gap_Point,allp,BreakP,10);
+            if(Gap_Point.length()>1){
+                fortemp= CheckPointInline(Gap_Point,allp,BreakP,10);
 
-            foreach (int k, fortemp) {
-                CharacterPoints_int.push_back(k);
+                foreach (int k, fortemp) {
+                    CharacterPoints_int.push_back(k);
+                }
             }
             fortemp.clear();
         }
@@ -2558,41 +2624,57 @@ int AngelCompare(double slope1,double slope2,double tolerance)
     //              1 方向同向，在公差内
     //              2 方向同向，超过公差
     //             -2 反向相差180°，如果正向则在公差内
-    //qDebug()<<"enter the Campare";
+    qDebug()<<"enter the Campare";
+    qDebug()<<"slope1 is  "<<slope1<<"slope2 is  "<<slope2;
+
     if(slope1>1.5*CV_PI&&slope2<0.5*CV_PI)
     {
         //一、四象限做比较
-        double dvalue=slope2-(2*CV_PI-slope1);
+        qDebug()<<"case one";
+        double dvalue=slope2+(2*CV_PI-slope1);
+        qDebug()<<dvalue<<"  dvalue ";
         if(dvalue<tolerance){
 
 
             qDebug()<<"out the Campare";
+            qDebug()<<"return is "<<1;
             return 1;
         }else{
             qDebug()<<"out the Campare";
             return 2;
+            qDebug()<<"return is "<<2;
         }
     }
     else if(slope2>1.5*CV_PI&&slope1<0.5*CV_PI)
     {
         //同上
-        double dvalue=slope1-(2*CV_PI-slope2);
+        qDebug()<<"case two";
+
+        double dvalue=slope1+(2*CV_PI-slope2);
+        qDebug()<<dvalue<<"  dvalue ";
         if(dvalue<tolerance){
             qDebug()<<"out the Campare";
+            qDebug()<<"return is "<<1;
             return 1;
         }else{
             qDebug()<<"out the Campare";
+            qDebug()<<"return is "<<2;
             return 2;
         }
     }
     else
     {
+        qDebug()<<"case three";
         double dvalue=abs(slope1-slope2);
+        qDebug()<<dvalue<<"  dvalue ";
         if(dvalue<tolerance){
-            //qDebug()<<"out the Campare";
+
+            qDebug()<<"out the Campare";
+            qDebug()<<"return is "<<1;
             return 1;
         }else{
-            //qDebug()<<"out the Campare";
+            qDebug()<<"out the Campare";
+            qDebug()<<"return is "<<2;
             return 2;
         }
     }
@@ -2603,7 +2685,7 @@ int AngelCompare(double slope1,double slope2,double tolerance)
 void Output2File(QVector<double>InputArray,QString Outputadd,int newline){
     //newline means that every line can only contain 1 word
     if(Outputadd.isEmpty()){
-     //   QMessageBox::information(NULL,"warning","no out put file address!");
+        //   QMessageBox::information(NULL,"warning","no out put file address!");
         Outputadd="F:/output/outputfiles"+QString::number(qrand())+".txt";
     }
     int length=InputArray.length();
