@@ -107,6 +107,9 @@ public:
     QImage NoiseFilter(QImage x);
 
     void ImageInitialize();
+
+    QVector<QVector2D>OutlineErosion(QImage inputImg,QVector<QVector2D> OutlinePoints,QVector <QVector4D> V4area,int distances);
+
     /****************************************/
 private:
     Ui::MainWindow *ui;

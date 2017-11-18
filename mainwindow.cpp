@@ -403,7 +403,7 @@ void MainWindow::CreadOrders()
 }
 void MainWindow::CreatGcodefile()
 {
-   // qDebug()<<Array;
+    // qDebug()<<Array;
     QString filename=QFileDialog::getSaveFileName(this,"savefile",QDir::currentPath());
     // qDebug()<<filename;
     if(filename.isEmpty())
@@ -657,7 +657,7 @@ QImage MainWindow::ImageDrawer(QImage Img, QVector<QVector2D> Array, QColor col,
             {
                 for(int y=j-Broad;y<j+Broad;y++)
                 {
-                       toreturn.setPixel(x,y,qRgb(col.red(),col.green(),col.blue()));
+                    toreturn.setPixel(x,y,qRgb(col.red(),col.green(),col.blue()));
                 }
 
             }
@@ -684,21 +684,21 @@ QImage MainWindow::ImageDrawer(QImage Img, int Broad)
     {
         for(int j=0;j<Imgheight;j++)
         {
-          color=Img.pixel(i,j);
+            color=Img.pixel(i,j);
 
-          if(color!=back)
-          {
-              qDebug()<<"Img pixel  :"<<color<<"     back  "<<back;
-              for(int x=i-Broad;x<i+Broad;x++)
-              {
-                  for(int y=j-Broad;y<j+Broad;y++)
-                  {
-                      if(i-Broad>=0&&j-Broad>=0&&i+Broad<Imgwidth&&j+Broad<Imgheight)
-                      toreturn.setPixel(x,y,qRgb(color.red(),color.green(),color.blue()));
-                  }
+            if(color!=back)
+            {
+                qDebug()<<"Img pixel  :"<<color<<"     back  "<<back;
+                for(int x=i-Broad;x<i+Broad;x++)
+                {
+                    for(int y=j-Broad;y<j+Broad;y++)
+                    {
+                        if(i-Broad>=0&&j-Broad>=0&&i+Broad<Imgwidth&&j+Broad<Imgheight)
+                            toreturn.setPixel(x,y,qRgb(color.red(),color.green(),color.blue()));
+                    }
 
-              }
-          }
+                }
+            }
 
         }
     }
@@ -1401,16 +1401,16 @@ QImage MainWindow::DeleteOutRectangel(QImage input)
 
     const int DelBoard=2;
 
-   for(int i=0;i<Imwidth;i++)
-   {
-       for(int j=0;j<Imheight;j++)
-       {
-           if(i<DelBoard||j<DelBoard||i>Imwidth-DelBoard||j>Imheight-DelBoard)
-           {
-               toreturn.setPixel(i,j,qRgb(255,255,255));
-           }
-       }
-   }
+    for(int i=0;i<Imwidth;i++)
+    {
+        for(int j=0;j<Imheight;j++)
+        {
+            if(i<DelBoard||j<DelBoard||i>Imwidth-DelBoard||j>Imheight-DelBoard)
+            {
+                toreturn.setPixel(i,j,qRgb(255,255,255));
+            }
+        }
+    }
 
 
     return toreturn;
@@ -1523,7 +1523,7 @@ void MainWindow::ReadPngButton()
     }
 
 
-   OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
+    OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
 
 
     ui->CameraView_Button->setEnabled(true);
@@ -1639,7 +1639,7 @@ void MainWindow::ReadPngButton()
     Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
 
 
-  OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
+    OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
 
 
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
@@ -1647,12 +1647,12 @@ void MainWindow::ReadPngButton()
     //创建关键点坐标代码
 
     for(int i=0;i<CharacteristicPoint.length();i++)
-     {
-         SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
-     }
+    {
+        SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
+    }
 
 
-     CreadOrders();
+    CreadOrders();
 
 
     m_bReadState=true;
@@ -2186,6 +2186,90 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
     tempx=NULL;
     tempy=NULL;
 }
+QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D> OutlinePoints,
+                                               QVector <QVector4D> V4area,int distances)
+{
+    /*
+     * inputImg is the input image which the max domain on it
+     * OutlinePoints is the outline of the domain and it already sorted
+     * V4area is the all points of the domain
+     *distances is the value about how far the distance is to be move for the outline,minis means move into inside
+     * return the new ordered outline in 2D type
+ */
+
+
+    QVector<QVector2D>Toreturn;
+    QVector<QVector2D> area;
+    QVector2D temp2D;
+    //to get all  the area points to 2D type
+    for(int i=0;i<V4area.length();i++)
+    {
+
+        for(int j=V4area[i].z();j<V4area[i].w();j++)
+        {
+            temp2D.setX(V4area[i].x());
+            temp2D.setY(j);
+            area.push_back(temp2D);
+
+        }
+    }
+    QVector<int>newhere;
+    if(distances<0){
+        for(int i=0;i<area.length();i++)
+        {
+            int x=area[i].x();
+            int y=area[i].y();
+
+            //first to check four neiborhood
+            foreach (QVector2D kk, OutlinePoints)
+            {
+                if((kk.x()==x+1&&kk.y()==y)||(kk.x()==x-1&&kk.y()==y)||(kk.x()==x&&kk.y()==y+1)|(kk.x()==x+1&&kk.y()==y-1))
+                {
+                    newhere.push_back(i);
+                }
+
+            }
+
+
+
+        }
+    }else if(distances>0)
+    {
+
+    }else
+    {
+        return OutlinePoints;
+    }
+
+   newhere= Unique_Int(newhere);
+
+   TransSequenceTo2D(area,newwhere);
+
+   /////here here here
+
+
+
+
+
+    return Toreturn;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
 void MainWindow::ErrorFunction()
 {
     QMessageBox::information(this,"notice","Some error happend ,and application will exit right now");
