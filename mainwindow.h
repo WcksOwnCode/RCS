@@ -198,7 +198,7 @@ private:
     const int minmumLine=15;
 
     // int DomainOrder[100];
-    const int m_iTotwoValue=156;//转二值图的时候的阈值
+    const int m_iTotwoValue=120;//转二值图的时候的阈值
 
     const int width=800;//设定图片长宽
 
@@ -232,6 +232,7 @@ private:
 
 
     QVector<QVector3D> LineDomain;//记录每行连通域的编号的起编号和止编号
+
     QVector<QVector3D> WhiteLineDomain;//记录白色每行连通域的编号的起编号和止编号
 
     QVector <QVector2D> OutLine;

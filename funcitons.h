@@ -83,7 +83,7 @@ bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double t
 QVector<double> DistanceEvaluate(QVector<double>dis);
 QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>input);
 QVector<int>Unique_Int(QVector<int>Input);
-
+QVector<QVector2D>Unique_2D(QVector<QVector2D>Input);
 QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
 
 #endif // FUNCITONS_H
