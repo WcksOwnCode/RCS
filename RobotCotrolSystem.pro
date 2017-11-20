@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     matrix_4.cpp \
     codewindow.cpp \
     imagewatch.cpp \
-    worldvalues.cpp
+    worldvalues.cpp \
+    capturethread.cpp
 
 HEADERS  += mainwindow.h \
     curvefit.h \
@@ -77,3 +78,5 @@ LIBS += -LD:\opencv\opencv\build\x86\vc12\lib\
 -lopencv_legacy2413 \
 -lopencv_flann2413
 }
+LIBS += E:\softwaresFiles\QT\RobotCotrolSystem\RCS\MVCAMSDK.lib
+

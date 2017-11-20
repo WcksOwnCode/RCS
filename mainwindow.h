@@ -5,6 +5,8 @@
 
 /*************************************/
 //From APOtoCommunicate
+//#include "CameraApi.h"
+//#include "capturethread.h"
 #include <QFile>
 #include <fstream>
 #include <vector>
@@ -84,6 +86,7 @@ public:
     void CharacteristicCalculate(QVector<int> CC);
     void DeleteOutlineNoise();
     void ReOrderOutline(QVector <QVector2D> RO);
+    QVector<QVector2D> ReOrderOutline_8Neighboor(QVector <QVector2D> inputarray,QImage inputIMG);
     void ErrorFunction();
 
     void ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int Iwidth=400,
@@ -276,6 +279,8 @@ private:
     QImage spaceImage;//空白图
 
     QImage OulineImage;
+
+    QImage ErosionImage;
 
     QImage OulineImage_b;
 

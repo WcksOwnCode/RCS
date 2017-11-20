@@ -873,7 +873,7 @@ QVector<int> CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<i
     for(int i=1;i<Break_int.length()-1;i++)//首尾点是曲线端点，不予考虑break_int包含了曲线端点
     {
       qDebug()<<i<<"i is this ";
-      qDebug()<<Break_int[i]<<"reak_int i";
+      qDebug()<<Break_int[i]<<"break_int i";
         if(Break_int[i]-12>=0&&Break_int[i]+12<OOL.length())
         {
             PreThree.push_back(OOL[Break_int[i]-12]);
@@ -906,17 +906,17 @@ QVector<int> CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<i
                 AfterThree.push_back(OOL[Break_int[i]+leng]);
             }
         }
-
+    qDebug()<<"got the pre and after!";
         for(int j=0;j<3;j++)
         {
             double mi;
-            mi=SingelSlopeCalculate(Break_2D[i],PreThree[j]);
+            mi=SingelSlopeCalculate(OOL[Break_int[i]],PreThree[j]);
             APslope.push_back(mi);
         }
         for(int j=0;j<3;j++)
         {
             double mi;
-            mi=SingelSlopeCalculate(AfterThree[j],Break_2D[i]);
+            mi=SingelSlopeCalculate(AfterThree[j],OOL[Break_int[i]]);
             APslope.push_back(mi);
         }
         qDebug()<<APslope<<"APslope at time:"<<QTime::currentTime().msecsSinceStartOfDay();
@@ -1995,8 +1995,6 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
     QVector<QVector2D>tets=TransSequenceTo2D(templateArray,Toreturn);
     Output2File(tets,"F:/output/sss1.txt");
 
-
-
     if(Toreturn.length()%2!=0){
         // QMessageBox::warning(NULL,"warning","the length of the is not odd");
         exit(0);
@@ -2034,12 +2032,11 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
     //先处理完全嵌套
 
     //嵌套处理有问题
-    qDebug()<<"new"<<newtoreturn;
-    qDebug()<<TransSequenceTo2D(templateArray,newtoreturn);
+  //  qDebug()<<"new"<<newtoreturn;
+  //  qDebug()<<TransSequenceTo2D(templateArray,newtoreturn);
+//
 
 
-    QVector<int>toshow=newtoreturn;
-    QVector<int> deletp;
     QVector<QVector2D>LineIn2D;
     QVector<double>Line2Dslope;
 
@@ -2047,7 +2044,7 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
   //  Line2Dslope=Slope(LineIn2D,1,true);
 
     bool inside=true;
-    bool Isok=false;
+
    // qDebug()<<Line2Dslope<<"lieslope";//偶数项是直线斜率
   //  qDebug()<<LineIn2D.length()<<"2d";//此时上面slope个数和这个相同
 
@@ -2055,14 +2052,13 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
     int out1=0;
 
     qDebug()<<"before inside :"<<newtoreturn;
+
     while(inside)
     {
-
           int insidewhere=-5;
 
           LineIn2D=TransSequenceTo2D(templateArray,newtoreturn);
           Line2Dslope=Slope(LineIn2D,1,true);
-
 
         for(int i=3;i<newtoreturn.length()-1;i+=2)
         {
@@ -2076,7 +2072,12 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
 
         }
 
+        if(!inside){
 
+            qDebug()<<"inside is false";
+            break;
+
+        }
         qDebug()<<Line2Dslope<<"lieslope";//偶数项是直线斜率
         qDebug()<<LineIn2D.length()<<"2d";//此时上面slope个数和这个相同
         qDebug()<<"inside :"<<newtoreturn;

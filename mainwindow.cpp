@@ -6,7 +6,32 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include"codewindow.h"
 #include"worldvalues.h"
+#include<windows.h>
 
+#include "capturethread.h"
+#pragma comment(lib,"MVCAMSDK.lib")
+
+
+
+using namespace std;
+using namespace cv;
+//SDK
+/*int                     g_hCamera = -1;     //设备句柄
+unsigned char           * g_pRawBuffer=NULL;     //raw数据
+unsigned char           * g_pRgbBuffer=NULL;     //处理后数据缓存区
+tSdkFrameHead           g_tFrameHead;       //图像帧头信息
+tSdkCameraCapbility     g_tCapability;      //设备描述信息
+
+int                     g_SaveParameter_num=0;    //保存参数组
+int                     g_SaveImage_type=0;         //保存图像格式
+
+Width_Height            g_W_H_INFO;         //显示画板到大小和图像大小
+BYTE                    *g_readBuf=NULL;    //画板显示数据区
+int                     g_read_fps=0;       //统计读取帧率
+int                     g_disply_fps=0;     //统计显示帧率
+
+
+*/
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -1137,7 +1162,8 @@ QImage MainWindow::GetOutLine(QImage II)
     QColor checkcolor4;
     QImage Ix=spaceImage;//要将检测和操作的图分开，不然自相操作会导致检测干扰;
     QImage rx=spaceImage;
-
+   OnlyOutLine.clear();
+    OnlyOutLine_count.clear();
     /*  qDebug()<<Ix.width();
     qDebug()<<Ix.height();
     qDebug()<<rx.width();
@@ -1432,6 +1458,7 @@ void MainWindow::ReadPngButton()
         ui->openCamera->setEnabled(true);
         return;
     }
+
     int readstart=WhoseTime.elapsed();
 
     origin_image.load(readfileadd);
@@ -1471,7 +1498,7 @@ void MainWindow::ReadPngButton()
     }*/
 
     /**************************************************************/
-    //过滤沙眼
+    //过滤
     QImage mainim=spaceImage;
 
     for(int i=0;i<V4Domain_main.length();i++)
@@ -1484,6 +1511,7 @@ void MainWindow::ReadPngButton()
             mainim.setPixel(x,y,qRgb(0,0,0));
         }
     }
+
 
     /******************************************************/
     //画出最大连通域的外轮廓
@@ -1502,9 +1530,21 @@ void MainWindow::ReadPngButton()
 
         }
     }
+
     QImage maxDomain=OulineImage;
 
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
+
+    if(ui->isOutlineoffset->isChecked())
+    {
+        //表示需要偏移
+        int offsetValue=ui->OffsetValueInput->text().toInt();
+
+        QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
+
+         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
+    }
+
 
     SmoothOutline();
 
@@ -1517,7 +1557,12 @@ void MainWindow::ReadPngButton()
 
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
 
-    QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OrderdOutLine,V4Domain_max,35);
+
+
+
+
+
+
 
     ui->CameraView_Button->setEnabled(true);
 
@@ -1666,9 +1711,15 @@ void MainWindow::on_openCamera_clicked()
 
         ui->ReadPicture->setEnabled(false);
         ui->openCamera->setText("关闭相机");
+
         cam = cvCreateCameraCapture(0);
-        timer->start(50);
+
+
+
+        timer->start(80);
+
         GetpicTimer->start(8000);
+
         qDebug()<<"opened";
 
     }
@@ -1690,6 +1741,12 @@ void MainWindow::readFarme()
     frame = cvQueryFrame(cam);//Grabs each frame from the camera and return
     //qDebug()<<frame->height;
     // catch the frame and transform to QImage,QImage::Format_RGB888different camera should use a different form。
+
+    if(!frame)
+    {
+        qDebug()<<"error frame";
+        exit(0);
+    }
     QImage image = QImage((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888).rgbSwapped();
     image=image.scaled(width,height);
     if(m_bFrompreView){
@@ -1697,7 +1754,7 @@ void MainWindow::readFarme()
         {
             for(int j=0;j<height;j++)
             {
-                if(i==0||i==1||i==199||i==200||i==398||i==399||j==0||j==1||j==150||j==149||j==151||j==299||j==298)
+                if(i<5||i>width-5||(i<width/2+3)&&(i>width/2-3)||j<5||j>height-5||(j<height/2+3)&&(j>height/2-3))
                     image.setPixel(i,j,qRgb(255,255,0));
             }
 
@@ -1720,25 +1777,45 @@ void MainWindow::TakingPhoto()
     QImage image2 = QImage((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888).rgbSwapped();
     //QImage image2((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888);
 
-    origin_image=image2;
+    origin_image=image2.scaled(width,height);
     AutoRun();
 }
 void MainWindow::AutoRun()
 {
+    qDebug()<<"Auto run ";
     AutoRunTimer.restart();
 
     ClearVector();
 
 
+    ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
+
+    ImageDisplayFunciton(ui->final_label,spaceImage,400,300);
+
+
+
+
+    origin_image=DeleteOutRectangel(origin_image);
+
+    // spaceImage=origin_image;
+
+
+    Timage=origin_image;//二色图
+
+    grayImage=origin_image;//灰度图
+
     ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
 
-    /*********************************************************/
     ToGray();
-    /***************** to two color picture *********************/
+
     ToTwoColor();
+
     //jisuan liantongyu
+
     DomainCalcu(Timage);//then we get V4Domain
-    QImage DomainTest=spaceImage;
+
+    /* QImage DomainTest=spaceImage;
+
     for(int i=0;i<V4Domain.length();i++)
     {
 
@@ -1748,13 +1825,15 @@ void MainWindow::AutoRun()
             int y=j;
             DomainTest.setPixel(x,y,qRgb(0,0,0));
         }
-    }
+    }*/
 
     /**************************************************************/
-    //过滤沙眼
+    //过滤
     QImage mainim=spaceImage;
+
     for(int i=0;i<V4Domain_main.length();i++)
     {
+
         for(int j=V4Domain_main[i].z();j<V4Domain_main[i].w();j++)
         {
             int x=V4Domain_main[i].x();
@@ -1762,17 +1841,13 @@ void MainWindow::AutoRun()
             mainim.setPixel(x,y,qRgb(0,0,0));
         }
     }
+
+
     /******************************************************/
     //画出最大连通域的外轮廓
     /************************************************************/
     OulineImage=spaceImage;
-    /*for(int i=0;i<width;i++)
-     {
-         for(int j=0;j<height;j++)
-         {
-             OulineImage.setPixel(i,j,qRgb(255,255,255));
-         }
-     }*/
+
     for(int i=0;i<V4Domain_max.length();i++)
     {
 
@@ -1782,11 +1857,24 @@ void MainWindow::AutoRun()
             int y=j;
 
             OulineImage.setPixel(x,y,qRgb(0,0,0));
+
         }
     }
+
+    QImage maxDomain=OulineImage;
+
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
-    // pp=pp.fromImage(OulineImage);
-    // ui->final_label->setPixmap(pp);
+
+    if(ui->isOutlineoffset->isChecked())
+    {
+        //表示需要偏移
+        int offsetValue=ui->OffsetValueInput->text().toInt();
+
+        QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
+
+         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
+    }
+
 
     SmoothOutline();
 
@@ -1796,51 +1884,148 @@ void MainWindow::AutoRun()
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
 
-    //qDebug()<<"CharacteristicPoint"<<CharacteristicPoint;
-    for(int i=0;i<CharacteristicPoint.length();i++)
-    {
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-1,CharacteristicPoint[i].y()-1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+1,CharacteristicPoint[i].y()+1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-1,CharacteristicPoint[i].y()+1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+1,CharacteristicPoint[i].y()-1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()-1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()+1,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-1,CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+1,CharacteristicPoint[i].y(),qRgb(0,255,255));
+
+    OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
 
 
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()+2,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()-2,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-2,CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+2,CharacteristicPoint[i].y(),qRgb(0,255,255));
 
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()+3,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x(),CharacteristicPoint[i].y()-3,qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()-3,CharacteristicPoint[i].y(),qRgb(0,255,255));
-        SmoothOulineImage.setPixel(CharacteristicPoint[i].x()+3,CharacteristicPoint[i].y(),qRgb(0,255,255));
+
+
+
+
+
+    ui->CameraView_Button->setEnabled(true);
+
+    ui->openCamera->setEnabled(true);
+
+    QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
+
+    HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
+
+    Output2File(HoughPoints,"F:/output/HoughPoints.txt");
+
+    int All_Points_cout=OrderdOutLine.length();//获取总点数
+
+    if(HoughPoints.length()>=2){
+
+        qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+
+        QVector<QVector2D>OrderedSline;
+
+        QVector<int>testorder;
+
+        QVector<QVector2D>test2D;
+
+        testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
+
+        OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
+
+        Output2File(OrderedSline,"F:/output/OrderedSline.txt");
+
+        Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
+
+        QVector<int>m_Int_Line;
+
+        int minL=width/100;
+
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,minL);
+
+        CharacteristicPoint.clear();
+
+        CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
+
+        //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
+
+    }
+    else if(HoughPoints.length()==1)
+
+    {//一条直线的情况
+        //直线数量不足，说明全部是曲线，直接进行曲线检测
+        qDebug()<<"+++***   Only one strait line is here    ***+++";
+
+
+        int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
+
+        int Checklength=HoughPoints[0].x()+ All_Points_cout-HoughPoints[0].y();
+
+        if(Checkflag<Checklength)
+        {//this situation is that  origin point is not in this line；
+            // so curve contain origin points
+            qDebug()<<"Only one line and *******curve****** contain the origin point";
+            QVector<int> CurvePoints_int;
+
+            for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
+            {
+                CurvePoints_int.push_back(n);
+            }
+            for(int n=0;n<=HoughPoints[0].x();n++)
+            {
+                CurvePoints_int.push_back(n);
+            }
+
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            CharacteristicPoint.clear();
+            CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+            CharacteristicPoint.push_back(CharacteristicPoint[0]);
+        }
+        else
+        {//直线包含原点
+            qDebug()<<"Only one line and **********Line******* contain the origin point";
+            QVector<int> CurvePoints_int;
+
+            for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
+            {
+                CurvePoints_int.push_back(n);
+            }
+
+
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            CharacteristicPoint.clear();
+            CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+            CharacteristicPoint.push_back(CharacteristicPoint[0]);
+        }
+
     }
 
-    /* for(int i=0;i<BreakPoints.length();i++){
-        SmoothOulineImage.setPixel(BreakPoints[i].y(),BreakPoints[i].z(),qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()-2,BreakPoints[i].z()-2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z()+2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()-2,BreakPoints[i].z()+2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z()-2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y(),BreakPoints[i].z()-2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y(),BreakPoints[i].z()+2,qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()-2,BreakPoints[i].z(),qRgb(0,0,0));
-        SmoothOulineImage.setPixel(BreakPoints[i].y()+2,BreakPoints[i].z(),qRgb(0,0,0));
 
-    }*/
-    // pp=pp.fromImage(SmoothOulineImage);
-    // ui->final_label->setPixmap(pp);
+    else
+    {
+        qDebug()<<"+++***               there is no strait line                    ***+++";
+
+
+        QVector<int> CurvePoints_int;
+
+        for(int n=0;n<=All_Points_cout;n++)
+        {
+            CurvePoints_int.push_back(n);
+        }
+        QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+        CharacteristicPoint.clear();
+        CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+        CharacteristicPoint.push_back(CharacteristicPoint[0]);
+    }
+
+    Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
+
+
+    OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
+
 
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
-    ui->CameraView_Button->setEnabled(true);
-    ui->openCamera->setEnabled(true);
-    /// DynamicEncoding(CharacteristicPoint);
+    //创建关键点坐标代码
+
+    for(int i=0;i<CharacteristicPoint.length();i++)
+    {
+        SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
+    }
+
+
+    CreadOrders();
+
+
+
+
     int elapsed=AutoRunTimer.elapsed();
     ui->time_label->setText(QString::number(elapsed)+" ms");
     ClearVector();
@@ -1880,12 +2065,19 @@ void MainWindow::CameraPreView()
 {
     if(ui->CameraView_Button->text()=="相机预览")
     {
+        qDebug()<<"open camera!";
         m_bFrompreView=true;
         ui->openCamera->setEnabled(false);
         connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
+
         cam = cvCreateCameraCapture(0);
+
+
+
+
         timer->start(50);
         ui->CameraView_Button->setText("关闭相机");
+
     }else
     {
         m_bFrompreView=false;
@@ -2089,6 +2281,94 @@ void MainWindow::DeleteOutlineNoise()
     ss=NULL;
 
 }
+QVector<QVector2D>MainWindow:: ReOrderOutline_8Neighboor(QVector <QVector2D> inputarray,QImage inputIMG)
+{
+
+    QVector<QVector2D> Toreturn;
+
+
+
+    foreach (QVector2D P, inputarray) //边界上异色
+    {
+        inputIMG.setPixel(P.x(),P.y(),qRgb(125,200,235));
+    }
+
+    foreach (QVector2D P, inputarray)
+    {
+        if(inputIMG.pixel(P.x()-1,P.y()+1)==qRgb(125,200,235))
+        {
+            //左上角
+
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x()-1,P.y()+1,qRgb(0,0,0));
+            continue;
+
+        }
+        else if(inputIMG.pixel(P.x(),P.y()+1)==qRgb(125,200,235))
+        {
+            //正上方
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x(),P.y()+1,qRgb(0,0,0));
+            continue;
+        }
+        else if(inputIMG.pixel(P.x()+1,P.y()+1)==qRgb(125,200,235))
+        {
+            //右上角
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x()+1,P.y()+1,qRgb(0,0,0));
+            continue;
+        }
+        else if(inputIMG.pixel(P.x()+1,P.y())==qRgb(125,200,235))
+        {
+            //正右边
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x()+1,P.y(),qRgb(0,0,0));
+            continue;
+        }
+        else if(inputIMG.pixel(P.x()+1,P.y()-1)==qRgb(125,200,235))
+        {
+            //右下角
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x()+1,P.y()-1,qRgb(0,0,0));
+            continue;
+        }
+        else if(inputIMG.pixel(P.x(),P.y()-1)==qRgb(125,200,235))
+        {
+            //正下方
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x(),P.y()-1,qRgb(0,0,0));
+            continue;
+        }
+        else if(inputIMG.pixel(P.x()-1,P.y()-1)==qRgb(125,200,235))
+        {
+            //左下角
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x()-1,P.y()-1,qRgb(0,0,0));
+            continue;
+        }else
+        {
+            //正左边
+            Toreturn.push_back(P);
+            inputIMG.setPixel(P.x()-1,P.y(),qRgb(0,0,0));
+            continue;
+        }
+    }
+
+    qDebug()<<"length of the input:"<<inputarray.length();
+    qDebug()<<"length of the output:"<<Toreturn.length();
+
+
+
+    return Toreturn;
+
+
+
+
+
+
+
+}
+
 void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
 {
     qDebug()<<"reorder!";
@@ -2137,7 +2417,6 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
     }
     if(NewOrder.length()!=length)
     {
-
         QMessageBox::information(this,"notice!","NewOrder is not enough!");
         ErrorFunction();
     }
@@ -2406,7 +2685,7 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
 
                         }
 
-                       if(count>=2)
+                        if(count>=2)
                         {
                             if(type.x()==1&&type.w()==1)
                             {
@@ -2465,6 +2744,7 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
     qDebug()<<"returned from outline Erosion function;";
 
 
+    ErosionImage=inputImg;
 
     int Erotimerus=ErosionTimer.elapsed();
     qDebug()<<"EROSION FUNCTION TIME US ::"<<Erotimerus;
