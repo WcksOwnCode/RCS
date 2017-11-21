@@ -5,8 +5,7 @@
 
 /*************************************/
 //From APOtoCommunicate
-//#include "CameraApi.h"
-//#include "capturethread.h"
+
 #include <QFile>
 #include <fstream>
 #include <vector>
@@ -203,9 +202,9 @@ private:
     // int DomainOrder[100];
     const int m_iTotwoValue=120;//转二值图的时候的阈值
 
-    const int width=800;//设定图片长宽
+    const int width=600;//设定图片长宽
 
-    const int height=600;
+    const int height=450;
 
     int tempus=-1;
 
@@ -315,7 +314,7 @@ private:
 
     IplImage  *frame;//申请IplImage类型指针，就是申请内存空间来存放每一帧图像
 
-    QString SpaceimageADD="E://softwaresFiles//QT//RobotCotrolSystem//SpaceImage.png";
+    QString SpaceimageADD="E:/softwaresFiles/QT/RobotCotrolSystem/SpaceImage.png";
 
     QString readfileadd;
 

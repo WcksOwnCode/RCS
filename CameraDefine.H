@@ -287,7 +287,8 @@ typedef struct
     char acSensorType[32];      // sensor类型
     char acPortType[32];        // 接口类型
     char acSn[32];              // 产品唯一序列号
-    UINT uInstance;             // 该型号相机在该电脑上的实例索引号，用于区分同型号多相机
+   // UINT uInstance;             // 该型号相机在该电脑上的实例索引号，用于区分同型号多相机
+    int uInstance;             // 该型号相机在该电脑上的实例索引号，用于区分同型号多相机
 } tSdkCameraDevInfo;
 
 
@@ -333,14 +334,25 @@ typedef struct
 //相机的分辨率设定范围，用于构件UI
 typedef struct
 {
-  INT iHeightMax;             //图像最大高度
+  /*INT iHeightMax;             //图像最大高度
   INT iHeightMin;             //图像最小高度
   INT iWidthMax;              //图像最大宽度
   INT iWidthMin;              //图像最小宽度
   UINT uSkipModeMask;         //SKIP模式掩码，为0，表示不支持SKIP 。bit0为1,表示支持SKIP 2x2 ;bit1为1，表示支持SKIP 3x3....
   UINT uBinSumModeMask;       //BIN(求和)模式掩码，为0，表示不支持BIN 。bit0为1,表示支持BIN 2x2 ;bit1为1，表示支持BIN 3x3....
   UINT uBinAverageModeMask;   //BIN(求均值)模式掩码，为0，表示不支持BIN 。bit0为1,表示支持BIN 2x2 ;bit1为1，表示支持BIN 3x3....
-  UINT uResampleMask;         //硬件重采样的掩码
+  UINT uResampleMask;         //硬件重采样的掩码*/
+
+
+
+    int iHeightMax;             //图像最大高度
+    int HeightMin;             //图像最小高度
+    int iWidthMax;              //图像最大宽度
+    int iWidthMin;              //图像最小宽度
+    quint16 uSkipModeMask;         //SKIP模式掩码，为0，表示不支持SKIP 。bit0为1,表示支持SKIP 2x2 ;bit1为1，表示支持SKIP 3x3....
+    UINT uBinSumModeMask;       //BIN(求和)模式掩码，为0，表示不支持BIN 。bit0为1,表示支持BIN 2x2 ;bit1为1，表示支持BIN 3x3....
+    UINT uBinAverageModeMask;   //BIN(求均值)模式掩码，为0，表示不支持BIN 。bit0为1,表示支持BIN 2x2 ;bit1为1，表示支持BIN 3x3....
+    UINT uResampleMask;         //硬件重采样的掩码
 } tSdkResolutionRange;
 
 
