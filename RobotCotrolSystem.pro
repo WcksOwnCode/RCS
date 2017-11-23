@@ -33,8 +33,7 @@ SOURCES += main.cpp\
     matrix_4.cpp \
     codewindow.cpp \
     imagewatch.cpp \
-    worldvalues.cpp \
-    capturethread.cpp
+    worldvalues.cpp
 
 HEADERS  += mainwindow.h \
     curvefit.h \

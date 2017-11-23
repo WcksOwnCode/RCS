@@ -163,9 +163,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="Outline_Button">
+      <widget class="QPushButton" name="DistortionCalibration_button">
        <property name="text">
-        <string>轮廓模板</string>
+        <string>相机标定</string>
        </property>
       </widget>
      </item>
@@ -962,6 +962,19 @@
          </rect>
         </property>
        </widget>
+       <widget class="QCheckBox" name="Erosion_checkBox">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>110</y>
+          <width>91</width>
+          <height>19</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>腐蚀</string>
+        </property>
+       </widget>
        <zorder>EmergencyStop_Button</zorder>
        <zorder>ExitButton</zorder>
        <zorder>label_11</zorder>
@@ -993,6 +1006,7 @@
        <zorder>ImageWatch_pushButton</zorder>
        <zorder>isOutlineoffset</zorder>
        <zorder>OffsetValueInput</zorder>
+       <zorder>Erosion_checkBox</zorder>
       </widget>
      </item>
     </layout>

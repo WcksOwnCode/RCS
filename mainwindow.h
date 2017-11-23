@@ -96,7 +96,7 @@ public:
 
     QImage ImageDrawer(QImage Img, int Broad=1);
     QImage ImageDrawer(QImage Img, QVector<QVector2D> Array, QColor col, int Broad=1);
-    QVector<QVector2D>CurveOffset(QVector<QVector2D>input,int Offset);
+    QVector<QVector2D>CurveOffset(QVector<QVector2D>input,, QVector<QPointF> fitcurve,int Offset);
 
 
     // QString teststring="G97 X=52.36,Y=69.25,Z=63.25,A=3.14,B=0,C=0";
@@ -312,6 +312,8 @@ private:
 
     CvCapture *cam;// 视频获取结构， 用来作为视频获取函数的一个参数
 
+    cv::VideoCapture VCcam;
+
     IplImage  *frame;//申请IplImage类型指针，就是申请内存空间来存放每一帧图像
 
     QString SpaceimageADD="E:/softwaresFiles/QT/RobotCotrolSystem/SpaceImage.png";
@@ -389,7 +391,7 @@ private slots:
 
     void on_ImageWatch_pushButton_clicked();
 
-    void on_Outline_Button_clicked();
+
 
 
     void on_ChangeTheimage__currentIndexChanged(const QString &arg1);
@@ -398,10 +400,13 @@ private slots:
 
 
 
+    void on_DistortionCalibration_button_clicked();
+
 signals:
     /*************************************/
     //From APOtoCommunicate
     void Receveid();
+    void Finished();
     /*************************************/
 };
 

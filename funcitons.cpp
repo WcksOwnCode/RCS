@@ -168,8 +168,6 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
     bool outtotxt=false;
     QString outaddr="F:/output/Derections.txt";
     int length=DCF.length();
-
-
     if(length==0)
     {
         QMessageBox::information(NULL,"notice","length is zero!  (DRECTIONCalFunc)");
@@ -261,6 +259,9 @@ QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF)
 }
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec, QVector<QVector2D> Outline)
 {
+    QTime BPtime;
+    BPtime.start();
+    
     int length=Dec.length();
     if(length==0)
     {
@@ -313,6 +314,7 @@ QVector<int>GetBreakPoints(QVector<QVector2D>Dec, QVector<QVector2D> Outline)
     //去除相同的点，防止意外;
     QVector<int>::iterator end_unique=std::unique(toreturn.begin(),toreturn.end());
     toreturn.erase(end_unique,toreturn.end());
+    qDebug()<<"get break point time used: "<<QString::number(BPtime.elapsed());
     return toreturn;
 }
 double SingelSlopeCalculate(QVector2D P2,QVector2D zero)

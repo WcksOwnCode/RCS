@@ -7,7 +7,8 @@
 #include"codewindow.h"
 #include"worldvalues.h"
 #include<windows.h>
-
+#include<iostream>
+#include <fstream>
 #include "capturethread.h"
 #pragma comment(lib,"MVCAMSDK.lib")
 
@@ -75,11 +76,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_bFirstsend=false;
 
     ImageInitialize();
-   //qDebug()<<tr("Initialize Success!");
+    //qDebug()<<tr("Initialize Success!");
 
     int initial=WhoseTime.elapsed();
 
-   qDebug()<<"program initialize time used: "<<initial;
+    qDebug()<<"program initialize time used: "<<initial;
 }
 MainWindow::~MainWindow()
 {
@@ -91,17 +92,17 @@ MainWindow::~MainWindow()
 void MainWindow::readmycom() //读串口函数
 {
     ui->Message_Label->clear();
-   //qDebug()<<"Receive";
+    //qDebug()<<"Receive";
     QByteArray buf;
     if(m_bReadState){
         QString StrC;
         StrC.append(Array[m_iSendCount]);
         QString StrCheck=StrC.left(2);
-       //qDebug()<<"strCHECK::"<<StrCheck;
-       //qDebug()<<"STR "<<StrC;
+        //qDebug()<<"strCHECK::"<<StrCheck;
+        //qDebug()<<"STR "<<StrC;
         QString tocheck;
         tocheck.prepend(StrCheck);
-       //qDebug()<<"to check "<<tocheck;
+        //qDebug()<<"to check "<<tocheck;
         if(tocheck==StrCheck)
         {
             emit Receveid();
@@ -186,14 +187,14 @@ void MainWindow::readmycom() //读串口函数
     buf.clear();
 }
 void MainWindow::SendMessgOut(){
-   //qDebug()<<"send button clicked";
+    //qDebug()<<"send button clicked";
     QString senders=ui->textEdit->toPlainText();
-   //qDebug()<<senders;
+    //qDebug()<<senders;
     senders.append("\n");
-   //qDebug()<<senders;
+    //qDebug()<<senders;
     // serial->write(ui->SendEditor->toPlainText().toLatin1());
     serial->write(senders.toLatin1());
-   //qDebug()<<"over";
+    //qDebug()<<"over";
 
 }
 void MainWindow::ReadtxtButton()
@@ -541,7 +542,7 @@ void MainWindow::AutoSendClicked()
         sendstr.append(Array[i]);
         //sendstr.append("\n");
         serial->write(sendstr.toLatin1());
-       //qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
+        //qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
 
         while(!m_bStrCompare&&m_iSendRepeatedlyCount<10){
             QEventLoop eventloop;
@@ -549,7 +550,7 @@ void MainWindow::AutoSendClicked()
             eventloop.exec();
             m_iSendRepeatedlyCount++;
             serial->write(sendstr.toLatin1());
-           //qDebug()<<m_iSendRepeatedlyCount<<"   "<<sendstr<<"repeat send";
+            //qDebug()<<m_iSendRepeatedlyCount<<"   "<<sendstr<<"repeat send";
         }
         if(!m_bStrCompare){
             QMessageBox::warning(this,"warning","no reply!");
@@ -587,7 +588,7 @@ void MainWindow::BoltSpeedCheckBox_checked()
 /*=======================================================*/
 void MainWindow::ImageInitialize()
 {
-   qDebug()<<"Image Initializing...";
+    qDebug()<<"Image Initializing...";
     spaceImage=QImage(width,height,QImage::Format_ARGB32);
     for(int x=0;x<width;x++)
     {
@@ -615,7 +616,7 @@ void MainWindow::ImageInitialize()
 
 
 
-   qDebug()<<"Image Initialize done!";
+    qDebug()<<"Image Initialize done!";
 
 }
 QImage MainWindow::ImageDrawer(QImage Img, QVector<QVector2D> Array, QColor col, int Broad)
@@ -738,7 +739,7 @@ QImage MainWindow::GaussianBlur(QImage GB)
     }
 
     int GBela=GBtimer.elapsed();
-   //qDebug()<<"GaussianBlur Function time using: "<<GBela;
+    //qDebug()<<"GaussianBlur Function time using: "<<GBela;
     return GB;
 }
 /*================================================================*/
@@ -822,7 +823,7 @@ void MainWindow::DomainCalcu(QImage x)
     ConnectDomains();
 
     int elapsed=DCtimer.elapsed();
-   //qDebug()<<"DomainFunction used time:"<<elapsed;
+    //qDebug()<<"DomainFunction used time:"<<elapsed;
 }
 /*================================================================*/
 void MainWindow::ToGray()
@@ -930,7 +931,7 @@ QImage MainWindow::NoiseFilter(QImage x)//过滤单一元素的噪点
     }
 
     int elapsed=NFtimer.elapsed();
-   //qDebug()<<"NoiseFilter time used :"<<elapsed;
+    //qDebug()<<"NoiseFilter time used :"<<elapsed;
     QImage re=x;
     return re;
 }
@@ -1074,7 +1075,7 @@ void MainWindow::ConnectDomains()
     }
     delete [] temp;
     temp=NULL;
-   //qDebug()<<"the number of Domains: "<<order.length();
+    //qDebug()<<"the number of Domains: "<<order.length();
     /*for(int mm=0;mm<V4Domain.length();mm++)
     {
        //qDebug()<<"V4Domain:  "<<V4Domain[mm];
@@ -1117,7 +1118,7 @@ QImage MainWindow::GetOutLine(QImage II)
     QColor checkcolor4;
     QImage Ix=spaceImage;//要将检测和操作的图分开，不然自相操作会导致检测干扰;
     QImage rx=spaceImage;
-   OnlyOutLine.clear();
+    OnlyOutLine.clear();
     OnlyOutLine_count.clear();
     /* //qDebug()<<Ix.width();
    //qDebug()<<Ix.height();
@@ -1166,7 +1167,7 @@ QImage MainWindow::GetOutLine(QImage II)
 
     }
     int firstela=GOLtimer.elapsed();
-   //qDebug()<<"first step time used "<<firstela;
+    //qDebug()<<"first step time used "<<firstela;
     ////qDebug()<<"Outline:  "<<OutLine.length();
     OutLine_copy=OutLine;//copy the all xy to use
 
@@ -1268,12 +1269,12 @@ QImage MainWindow::GetOutLine(QImage II)
             ////qDebug()<<OnlyOutLine_count;
         }
         int secondst=GOLtimer.elapsed()-timeF;
-       qDebug()<<"second step time used:"<<secondst;
+        qDebug()<<"second step time used:"<<secondst;
         //上色
 
         if(m_bOnlyOutline)
         {
-           //qDebug()<<"draw new color!";
+            //qDebug()<<"draw new color!";
             if(OnlyOutLine.length()!=0){
                 for(int i=0;i<OnlyOutLine.length();i++)
                 {
@@ -1281,13 +1282,13 @@ QImage MainWindow::GetOutLine(QImage II)
                 }
             }
         }
-       //qDebug()<<"go to here";
+        //qDebug()<<"go to here";
 
         //  Ix.setPixel(SumX/pixcount,SumY/pixcount,qRgb(255,0,0));
 
         int alltime=GOLtimer.elapsed();
 
-       qDebug()<<"Get outline time used:"<<alltime;
+        qDebug()<<"Get outline time used:"<<alltime;
 
         delete []outlineX;
 
@@ -1307,7 +1308,7 @@ void MainWindow::SmoothOutline()
 
     ReOrderOutline(OnlyOutLine);//重新排序边界
 
-    //CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
+    CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
 
     //计算全部边界的两点间方向//9.22尝试
 
@@ -1328,7 +1329,7 @@ void MainWindow::SmoothOutline()
 
     /*************************************************************/
     int SOalltime=SOtimer.elapsed();
-   qDebug()<<"smooth outline time used:"<<SOalltime;
+    qDebug()<<"smooth outline time used:"<<SOalltime;
 
 }
 /*void MainWindow::DisplayButton()
@@ -1495,10 +1496,12 @@ void MainWindow::ReadPngButton()
     {
         //表示需要偏移
         int offsetValue=ui->OffsetValueInput->text().toInt();
+        if(ui->Erosion_checkBox->isChecked()){
+            QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
+            OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
+        }
 
-        QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
 
-         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
     }
 
 
@@ -1506,19 +1509,17 @@ void MainWindow::ReadPngButton()
 
     SmoothOulineImage=spaceImage;
 
+    if(!ui->Erosion_checkBox->isChecked()&&ui->isOutlineoffset->isChecked()){
+      QVector<QVector2D>insideroutline=CurveOffset(QVector<QVector2D>OrderdOutLine,offsetValue);
+               OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
+    }
+
     for(int i=0;i<OrderdOutLine.length();i++){
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
 
 
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
-
-
-
-
-
-
-
 
     ui->CameraView_Button->setEnabled(true);
 
@@ -1534,7 +1535,7 @@ void MainWindow::ReadPngButton()
 
     if(HoughPoints.length()>=2){
 
-       //qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+        //qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
         QVector<QVector2D>OrderedSline;
 
@@ -1567,7 +1568,7 @@ void MainWindow::ReadPngButton()
 
     {//一条直线的情况
         //直线数量不足，说明全部是曲线，直接进行曲线检测
-       //qDebug()<<"+++***   Only one strait line is here    ***+++";
+        //qDebug()<<"+++***   Only one strait line is here    ***+++";
 
 
         int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
@@ -1577,7 +1578,7 @@ void MainWindow::ReadPngButton()
         if(Checkflag<Checklength)
         {//this situation is that  origin point is not in this line；
             // so curve contain origin points
-           //qDebug()<<"Only one line and *******curve****** contain the origin point";
+            //qDebug()<<"Only one line and *******curve****** contain the origin point";
             QVector<int> CurvePoints_int;
 
             for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
@@ -1596,7 +1597,7 @@ void MainWindow::ReadPngButton()
         }
         else
         {//直线包含原点
-           //qDebug()<<"Only one line and **********Line******* contain the origin point";
+            //qDebug()<<"Only one line and **********Line******* contain the origin point";
             QVector<int> CurvePoints_int;
 
             for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
@@ -1612,11 +1613,9 @@ void MainWindow::ReadPngButton()
         }
 
     }
-
-
     else
     {
-       //qDebug()<<"+++***               there is no strait line                    ***+++";
+        //qDebug()<<"+++***               there is no strait line                    ***+++";
 
 
         QVector<int> CurvePoints_int;
@@ -1652,10 +1651,7 @@ void MainWindow::ReadPngButton()
 
     m_bReadState=true;
 
-
     //CreadOrders();
-
-
     int elapsed=WhoseTime.elapsed()-readstart;
     ui->time_label->setText(QString::number(elapsed)+" ms");
 
@@ -1668,8 +1664,8 @@ void MainWindow::on_openCamera_clicked()
         ui->ReadPicture->setEnabled(false);
         ui->openCamera->setText("关闭相机");
 
-        cam = cvCreateCameraCapture(0);
-
+        // cam = cvCreateCameraCapture(0);
+        VCcam=cv::VideoCapture(0);
 
 
         timer->start(80);
@@ -1677,7 +1673,7 @@ void MainWindow::on_openCamera_clicked()
         GetpicTimer->start(4000);
         QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(TakingPhoto()));
         QObject::connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
-       //qDebug()<<"opened";
+        //qDebug()<<"opened";
 
     }
     else
@@ -1688,25 +1684,29 @@ void MainWindow::on_openCamera_clicked()
         timer->stop();
         GetpicTimer->stop();
         connect(timer, SIGNAL(timeout()), this, SLOT(EmptySlots()));
-         QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(EmptySlots()));
-        cvReleaseCapture(&cam);
+        QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(EmptySlots()));
+        //cvReleaseCapture(&cam);
+        VCcam.release();
     }
 
 }
 void MainWindow::readFarme()
 {
-    ////qDebug()<<"get frame";
-    frame = cvQueryFrame(cam);//Grabs each frame from the camera and return
-    //qDebug()<<frame->height;
-    // catch the frame and transform to QImage,QImage::Format_RGB888different camera should use a different form。
+
+    //   frame = cvQueryFrame(cam);//Grabs each frame from the camera and return
+    cv::Mat vcframe;
+    VCcam>>vcframe;
 
     if(!frame)
     {
-       //qDebug()<<"error frame";
+        //qDebug()<<"error frame";
         exit(0);
     }
-    QImage image = QImage((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888).rgbSwapped();
+    // QImage image = QImage((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888).rgbSwapped();
+
+    QImage image=cvMat2QImage(vcframe);
     image=image.scaled(width,height);
+
     if(m_bFrompreView){
         for(int i=0;i<width;i++)
         {
@@ -1717,8 +1717,6 @@ void MainWindow::readFarme()
             }
 
         }
-
-
     }
     //ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
     ImageDisplayFunciton(ui->Origin_Label,image,400,300);
@@ -1727,25 +1725,28 @@ void MainWindow::readFarme()
 }
 void MainWindow::EmptyFunction()
 {
-   //qDebug()<<"empty function";
+    //qDebug()<<"empty function";
 }
 void MainWindow::TakingPhoto()
 {
-    frame = cvQueryFrame(cam);
-    QImage image2 = QImage((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888).rgbSwapped();
+    // frame = cvQueryFrame(cam);
+    //   QImage image2 = QImage((const uchar*)frame->imageData, frame->width, frame->height, QImage::Format_RGB888).rgbSwapped();
 
-
+    cv:: Mat vcframe;
+    VCcam>>vcframe;
+    QImage image2 =cvMat2QImage(vcframe);
     origin_image=image2.scaled(width,height);
     AutoRun();
+
 }
 void MainWindow::AutoRun()
 {
-   //qDebug()<<"Auto run ";
+    //qDebug()<<"Auto run ";
 
     AutoRunTimer.restart();
     ui->progressBar->setRange(0,1000);
 
-   ui->progressBar->setValue(0);
+    ui->progressBar->setValue(0);
 
     ui->progressBar->setValue(3);
 
@@ -1833,7 +1834,7 @@ void MainWindow::AutoRun()
 
         QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
 
-         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
+        OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
     }
 
     ui->progressBar->setValue(150);
@@ -1848,7 +1849,7 @@ void MainWindow::AutoRun()
 
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
 
-   ui->progressBar->setValue(250);
+    ui->progressBar->setValue(250);
 
 
 
@@ -1870,7 +1871,7 @@ void MainWindow::AutoRun()
     ui->progressBar->setValue(300);
     if(HoughPoints.length()>=2){
 
-       //qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+        //qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
         QVector<QVector2D>OrderedSline;
 
@@ -1880,7 +1881,7 @@ void MainWindow::AutoRun()
 
         testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
 
-        ui->progressBar->setValue(350);
+
 
         OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
 
@@ -1899,13 +1900,13 @@ void MainWindow::AutoRun()
         m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,minL);
 
 
-        ui->progressBar->setValue(700);
+
 
         CharacteristicPoint.clear();
 
         CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
 
-        ui->progressBar->setValue(750);
+
         //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
 
     }
@@ -1913,17 +1914,17 @@ void MainWindow::AutoRun()
 
     {//一条直线的情况
         //直线数量不足，说明全部是曲线，直接进行曲线检测
-       //qDebug()<<"+++***   Only one strait line is here    ***+++";
+        //qDebug()<<"+++***   Only one strait line is here    ***+++";
 
 
         int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
 
         int Checklength=HoughPoints[0].x()+ All_Points_cout-HoughPoints[0].y();
-            ui->progressBar->setValue(350);
+
         if(Checkflag<Checklength)
         {//this situation is that  origin point is not in this line；
             // so curve contain origin points
-           //qDebug()<<"Only one line and *******curve****** contain the origin point";
+            //qDebug()<<"Only one line and *******curve****** contain the origin point";
             QVector<int> CurvePoints_int;
 
             for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
@@ -1936,21 +1937,20 @@ void MainWindow::AutoRun()
             }
 
 
-             ui->progressBar->setValue(400);
+
             QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
             CharacteristicPoint.clear();
 
-             ui->progressBar->setValue(700);
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
             CharacteristicPoint.push_back(CharacteristicPoint[0]);
 
-             ui->progressBar->setValue(750);
+
         }
         else
         {//直线包含原点
-           //qDebug()<<"Only one line and **********Line******* contain the origin point";
+            //qDebug()<<"Only one line and **********Line******* contain the origin point";
             QVector<int> CurvePoints_int;
-             ui->progressBar->setValue(350);
+
             for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
             {
                 CurvePoints_int.push_back(n);
@@ -1960,10 +1960,10 @@ void MainWindow::AutoRun()
 
             QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
             CharacteristicPoint.clear();
-             ui->progressBar->setValue(700);
+
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
             CharacteristicPoint.push_back(CharacteristicPoint[0]);
-             ui->progressBar->setValue(750);
+
         }
 
     }
@@ -1971,7 +1971,7 @@ void MainWindow::AutoRun()
 
     else
     {
-       //qDebug()<<"+++***               there is no strait line                    ***+++";
+        //qDebug()<<"+++***               there is no strait line                    ***+++";
 
 
         QVector<int> CurvePoints_int;
@@ -1980,20 +1980,21 @@ void MainWindow::AutoRun()
         {
             CurvePoints_int.push_back(n);
         }
-         ui->progressBar->setValue(350);
+
         QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
         CharacteristicPoint.clear();
-         ui->progressBar->setValue(700);
+
         CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
         CharacteristicPoint.push_back(CharacteristicPoint[0]);
-         ui->progressBar->setValue(750);
+
     }
 
+    ui->progressBar->setValue(750);
     Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
 
 
     OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
-     ui->progressBar->setValue(800);
+    ui->progressBar->setValue(800);
 
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
@@ -2006,14 +2007,10 @@ void MainWindow::AutoRun()
 
     ui->progressBar->setValue(900);
     CreadOrders();
-
-
-
-
     int elapsed=AutoRunTimer.elapsed();
     ui->time_label->setText(QString::number(elapsed)+" ms");
     ClearVector();
-    GetpicTimer->start(8000);
+
 }
 void MainWindow::ClearVector()
 {
@@ -2052,18 +2049,16 @@ void MainWindow::CameraPreView()
 {
     if(ui->CameraView_Button->text()=="相机预览")
     {
-       //qDebug()<<"open camera!";
+        using namespace cv;
+        //qDebug()<<"open camera!";
         m_bFrompreView=true;
 
         ui->openCamera->setEnabled(false);
 
         connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
-
-        cam = cvCreateCameraCapture(0);
-
+        //  cam = cvCreateCameraCapture(0);
+        VCcam=cv::VideoCapture(0);
         timer->start(20);
-
-
         ui->CameraView_Button->setText("关闭相机");
 
     }else
@@ -2072,7 +2067,8 @@ void MainWindow::CameraPreView()
         ui->CameraView_Button->setText("相机预览");
         timer->stop();
         connect(timer, SIGNAL(timeout()), this, SLOT(EmptyFunction()));
-        cvReleaseCapture(&cam);
+        //cvReleaseCapture(&cam);
+        VCcam.release();
         ui->openCamera->setEnabled(true);
         // ui->Origin_Label->setPixmap(QPixmap::fromImage(spaceImage));
 
@@ -2085,7 +2081,7 @@ void MainWindow::CameraPreView()
 void MainWindow::on_GetTheWorldCoordinate_button_clicked()
 {   m_bSerialIsOpen=true;
     if(m_bSerialIsOpen){
-       //qDebug()<<"get!";
+        //qDebug()<<"get!";
         QString sendstr;
         sendstr.append("G97");
         sendstr.append("\n");
@@ -2207,8 +2203,10 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(int index)
 }
 void MainWindow::DeleteOutlineNoise()
 {
-   //qDebug()<<"this is delete funciton!";
+    //qDebug()<<"this is delete funciton!";
     //delete the derection vector's noise
+    QTime DOtime;
+    DOtime.start();
     int length=num_Derec.length();
     if(length==0)
     {
@@ -2225,7 +2223,7 @@ void MainWindow::DeleteOutlineNoise()
     {
         if(length-i<Sample)
         {
-           //qDebug()<<"out";
+            //qDebug()<<"out";
             break;
         }
         for(int j=0;j<8;j++)
@@ -2267,15 +2265,12 @@ void MainWindow::DeleteOutlineNoise()
     Dr=NULL;
     delete []ss;
     ss=NULL;
+    qDebug()<<"delete outline noise time "<<QString::number(DOtime.elapsed());
 
 }
 QVector<QVector2D>MainWindow:: ReOrderOutline_8Neighboor(QVector <QVector2D> inputarray,QImage inputIMG)
 {
-
     QVector<QVector2D> Toreturn;
-
-
-
     foreach (QVector2D P, inputarray) //边界上异色
     {
         inputIMG.setPixel(P.x(),P.y(),qRgb(125,200,235));
@@ -2342,24 +2337,15 @@ QVector<QVector2D>MainWindow:: ReOrderOutline_8Neighboor(QVector <QVector2D> inp
         }
     }
 
-   //qDebug()<<"length of the input:"<<inputarray.length();
-   //qDebug()<<"length of the output:"<<Toreturn.length();
-
-
-
+    //qDebug()<<"length of the input:"<<inputarray.length();
+    //qDebug()<<"length of the output:"<<Toreturn.length();
     return Toreturn;
-
-
-
-
-
-
 
 }
 
 void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
 {
-   //qDebug()<<"reorder!";
+    //qDebug()<<"reorder!";
     int length=RO.length();
     QVector <QVector2D> NewOrder;
     QVector2D Last;
@@ -2377,7 +2363,7 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
     tempx[0]=-10;
     tempy[0]=-10;
     outbot.push_back(0);
-   //qDebug()<<"to get new order!";
+    //qDebug()<<"to get new order!";
 
     for(int i=1;i<length;i++)
     {
@@ -2438,7 +2424,7 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
      * return the new ordered outline in 2D type
  */
 
-   //qDebug()<<"==================================>enter the function OutlineErosion!";
+    //qDebug()<<"==================================>enter the function OutlineErosion!";
     QTime ErosionTimer;
     ErosionTimer.start();
     QVector<QVector2D>Toreturn;
@@ -2729,13 +2715,13 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
 
 
 
-   //qDebug()<<"returned from outline Erosion function;";
+    //qDebug()<<"returned from outline Erosion function;";
 
 
     ErosionImage=inputImg;
 
     int Erotimerus=ErosionTimer.elapsed();
-   qDebug()<<"EROSION FUNCTION TIME US ::"<<Erotimerus;
+    qDebug()<<"EROSION FUNCTION TIME US ::"<<Erotimerus;
     return Toreturn;
 
 }
@@ -2785,7 +2771,7 @@ void MainWindow::CurveFit(QVector<QVector2D> Curve)
 
 
 
-   qDebug()<<"CurveFit time Cast:    "<<CurveCast;
+    qDebug()<<"CurveFit time Cast:    "<<CurveCast;
 
 
 }
@@ -3007,12 +2993,12 @@ void MainWindow::on_Hough_Button_clicked()
 
     for(size_t i=0;i<SLines.size();i++)
     {
-       //qDebug()<<SLines[i]<<"SLines is this";
+        //qDebug()<<SLines[i]<<"SLines is this";
     }
 
     size_t sizei=Pcvlines.size();
 
-   //qDebug()<<sizei<<"length  of Pcvlines";
+    //qDebug()<<sizei<<"length  of Pcvlines";
 
 
 
@@ -3063,7 +3049,7 @@ void MainWindow::on_Hough_Button_clicked()
 
     for(size_t i=0;i<lines.size();i++)
     {
-       //qDebug()<<lines[i][0]<<"   "<<lines[i][1];
+        //qDebug()<<lines[i][0]<<"   "<<lines[i][1];
     }
     //依次在图中绘制出每条线段
     for( size_t i = 0; i < lines.size(); i++ )
@@ -3077,8 +3063,8 @@ void MainWindow::on_Hough_Button_clicked()
         pt1.y = cvRound(y0 + 335*(a));
         pt2.x = cvRound(x0 - 335*(-b));
         pt2.y = cvRound(y0 - 335*(a));
-       //qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
-       //qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
+        //qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
+        //qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
         line( drawmat, pt1, pt2, Scalar(0,255,0),1,CV_AA);//(image,startpoint,endpoint,color,board,linetype,decemal)
     }
 
@@ -3116,7 +3102,7 @@ void MainWindow::on_ImageWatch_pushButton_clicked()
 
 }
 
-void MainWindow::on_Outline_Button_clicked()
+/*void MainWindow::on_Outline_Button_clicked()
 {
     QString fileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.xlsx");
     if(fileadd.isEmpty())
@@ -3150,12 +3136,12 @@ void MainWindow::on_Outline_Button_clicked()
 
     }
 
-    /*************************/
+
     work_book->dynamicCall("Close(Boolean)", false);  //关闭文件
     excel.dynamicCall("Quit(void)");
     QMessageBox::information(NULL,"Read template","模板导入完毕");
 
-}
+}*/
 void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int Iwidth,
                                       int Iheight)
 {
@@ -3182,7 +3168,7 @@ void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int 
     outputlabel->setPixmap(TP);
 
 }
-QVector<QVector2D>CurveOffset(QVector<QVector2D>input,int Offset=-5)
+QVector<QVector2D>MainWindow::CurveOffset(QVector<QVector2D>input, QVector<QPointF>curvefit,int Offset=0)
 {
     //input 是输入的排序好的外轮廓，xy形势
     //Offset是偏移距离，负数表示向内偏移，正数表示向外偏移
@@ -3211,4 +3197,252 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(const QString &arg1)
 
 }
 
+
+
+void MainWindow::on_DistortionCalibration_button_clicked()
+{
+    using namespace cv;
+    using namespace std;
+
+
+
+    enum { DETECTION = 0, CAPTURING = 1, CALIBRATED = 2 };
+    /************************************************************************
+               从摄像机中读取多幅图像,从中提取出角点，然后对角点进行亚像素精确化
+        *************************************************************************/
+    int image_count=  10;                    /****    图像数量     ****/
+    Mat frame;
+    Size image_size;                         /****     图像的尺寸      ****/
+    Size board_size = Size(9,6);            /****    定标板上每行、列的角点数       ****/
+    vector<Point2f> corners;                  /****    缓存每幅图像上检测到的角点       ****/
+    vector<vector<Point2f>>  corners_Seq;    /****  保存检测到的所有角点       ****/
+    ofstream fout("F:/output/calibration_result.txt");  /**    保存定标结果的文件     **/
+    int mode = DETECTION;
+
+
+
+
+    VideoCapture cap(0);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
+    if(!cap.isOpened()){
+        std::cout<<"Open Camera Failed !";
+        exit(-1);
+    }
+    namedWindow("Calibration");
+
+
+
+
+    std::cout<<"Press 'g' to start capturing images!"<<endl;
+
+    int count = 0,n=0;
+    stringstream tempname;
+    string filename;
+    int key;
+    string msg;
+    int baseLine;
+    Size textSize;
+    while(n < image_count )
+    {
+        frame.setTo(0);
+        cap>>frame;
+        if(mode == DETECTION)
+        {
+            key = 0xff & waitKey(30);
+            if( (key & 255) == 27 )
+                break;
+
+            if( cap.isOpened() && key == 'g' )
+            {
+                mode = CAPTURING;
+            }
+        }
+
+        if(mode == CAPTURING)
+        {
+            key = 0xff & waitKey(30);
+            if( (key & 255) == 32 )
+            {
+                image_size = frame.size();
+                /* 提取角点 */
+                Mat imageGray;
+                cvtColor(frame, imageGray , CV_RGB2GRAY);
+                bool patternfound = findChessboardCorners(frame, board_size, corners,CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK );
+                if (patternfound)
+                {
+                    n++;
+                    tempname<<"F:/output/";
+                    tempname<<n;
+                    tempname>>filename;
+                    filename+=".jpg";
+                    /* 亚像素精确化 */
+                    cornerSubPix(imageGray, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+                    count += corners.size();
+                    corners_Seq.push_back(corners);
+                    imwrite(filename,frame);
+                    tempname.clear();
+                    filename.clear();
+                }
+                else
+                {
+                    std::cout<<"Detect Failed.\n";
+                }
+            }
+        }
+        msg = mode == CAPTURING ? "100/100/s" : mode == CALIBRATED ? "Calibrated" : "Press 'g' to start";
+        baseLine = 0;
+        textSize = getTextSize(msg, 1, 1, 1, &baseLine);
+        Point textOrigin(frame.cols - 2*textSize.width - 10, frame.rows - 2*baseLine - 10);
+
+        if( mode == CAPTURING )
+        {
+            msg = format( "%d/%d",n,image_count);
+        }
+
+        putText( frame, msg, textOrigin, 1, 1,mode != CALIBRATED ? Scalar(0,0,255) : Scalar(0,255,0));
+
+        imshow("Calibration",frame);
+        key = 0xff & waitKey(1);
+        if( (key & 255) == 27 )
+            break;
+    }
+
+    std::cout<<"角点提取完成！\n";
+
+    /************************************************************************
+                   摄像机定标
+            *************************************************************************/
+    std::cout<<"Start to calibration"<<endl;
+    Size square_size = Size(19,19);                                      /**** 实际测量得到的定标板上每个棋盘格的大小   ****/
+    vector<vector<Point3f>>  object_Points;                                      /****  保存定标板上角点的三维坐标   ****/
+
+    Mat image_points = Mat(1, count , CV_32FC2, Scalar::all(0));          /*****   保存提取的所有角点   *****/
+    vector<int>  point_counts;                                          /*****    每幅图像中角点的数量    ****/
+    Mat intrinsic_matrix = Mat(3,3, CV_32FC1, Scalar::all(0));                /*****    摄像机内参数矩阵    ****/
+    Mat distortion_coeffs = Mat(1,5, CV_32FC1, Scalar::all(0));            /* 摄像机的5个畸变系数：k1,k2,p1,p2,k3 */
+    vector<Mat> rotation_vectors;                                      /* 每幅图像的旋转向量 */
+    vector<Mat> translation_vectors;                                  /* 每幅图像的平移向量 */
+
+    /* 初始化定标板上角点的三维坐标 */
+    for (int t=0;t<image_count;t++)
+    {
+        vector<Point3f> tempPointSet;
+        for (int i=0;i<board_size.height;i++)
+        {
+            for (int j=0;j<board_size.width;j++)
+            {
+                /* 假设定标板放在世界坐标系中z=0的平面上 */
+                Point3f tempPoint;
+                tempPoint.x = i*square_size.width;
+                tempPoint.y = j*square_size.height;
+                tempPoint.z = 0;
+                tempPointSet.push_back(tempPoint);
+            }
+        }
+        object_Points.push_back(tempPointSet);
+    }
+
+    /* 初始化每幅图像中的角点数，这里我们假设每幅图像中都可以看到完整的定标板 */
+    for (int i=0; i< image_count; i++)
+    {
+        point_counts.push_back(board_size.width*board_size.height);
+    }
+
+    /* 开始定标 */
+    calibrateCamera(object_Points, corners_Seq, image_size,  intrinsic_matrix  ,distortion_coeffs, rotation_vectors, translation_vectors);
+    std::cout<<"定标完成！\n";
+
+    /************************************************************************
+                   对定标结果进行评价
+            *************************************************************************/
+    std::cout<<" start evaluate............."<<endl;
+    double total_err = 0.0;                   /* 所有图像的平均误差的总和 */
+    double err = 0.0;                        /* 每幅图像的平均误差 */
+    vector<Point2f>  image_points2;             /****   保存重新计算得到的投影点    ****/
+
+    std::cout<<"每幅图像的定标误差："<<endl;
+    fout<<"每幅图像的定标误差："<<endl<<endl;
+    for (int i=0;  i<image_count;  i++)
+    {
+        vector<Point3f> tempPointSet = object_Points[i];
+        /****    通过得到的摄像机内外参数，对空间的三维点进行重新投影计算，得到新的投影点     ****/
+        projectPoints(tempPointSet, rotation_vectors[i], translation_vectors[i], intrinsic_matrix, distortion_coeffs, image_points2);
+        /* 计算新的投影点和旧的投影点之间的误差*/
+        vector<Point2f> tempImagePoint = corners_Seq[i];
+        Mat tempImagePointMat = Mat(1,tempImagePoint.size(),CV_32FC2);
+        Mat image_points2Mat = Mat(1,image_points2.size(), CV_32FC2);
+        for (int j = 0 ; j < tempImagePoint.size(); j++)
+        {
+            image_points2Mat.at<Vec2f>(0,j) = Vec2f(image_points2[j].x, image_points2[j].y);
+            tempImagePointMat.at<Vec2f>(0,j) = Vec2f(tempImagePoint[j].x, tempImagePoint[j].y);
+        }
+        err = norm(image_points2Mat, tempImagePointMat, NORM_L2);
+        total_err += err/=  point_counts[i];
+        std::cout<<"the  "<<i+1<<" image 's average Deviation :"<<err<<"  pixel"<<endl;
+        fout<<"the"<<i+1<<"image 's average Deviation:"<<err<<"  pixel"<<endl;
+    }
+    std::cout<<"Average deviation in all :"<<total_err/image_count<<"pixel"<<endl;
+    fout<<"Average deviation in all :"<<total_err/image_count<<"pixel"<<endl<<endl;
+    std::cout<<"Evaluate Done!"<<endl;
+
+    /************************************************************************
+                   保存定标结果
+            *************************************************************************/
+    std::cout<<"save the results.........."<<endl;
+    Mat rotation_matrix = Mat(3,3,CV_32FC1, Scalar::all(0)); /* 保存每幅图像的旋转矩阵 */
+
+    fout<<"Camera parameter matrix:  "<<endl;
+    fout<<intrinsic_matrix<<endl<<endl;
+    fout<<"distortion factor：\n";
+    fout<<distortion_coeffs<<endl<<endl<<endl;
+    for (int i=0; i<image_count; i++)
+    {
+        fout<<"the "<<i+1<<"image's rotate vector: "<<endl;
+        fout<<rotation_vectors[i]<<endl;
+
+        /* 将旋转向量转换为相对应的旋转矩阵 */
+        Rodrigues(rotation_vectors[i],rotation_matrix);
+        fout<<"the "<<i+1<<"image's rotate matrix"<<endl;
+        fout<<rotation_matrix<<endl;
+        fout<<"the "<<i+1<<"image's move vector "<<endl;
+        fout<<translation_vectors[i]<<endl<<endl;
+    }
+    std::cout<<"Save is done"<<endl;
+
+    fout<<endl;
+    destroyWindow("Calibration");
+    cap.release();
+    /************************************************************************
+                   显示定标结果
+            *************************************************************************/
+    // 	Mat mapx = Mat(image_size,CV_32FC1);
+    // 	Mat mapy = Mat(image_size,CV_32FC1);
+    // 	Mat R = Mat::eye(3,3,CV_32F);
+    // 	std::cout<<"save the corrected image"<<endl;
+    // 	string imageFileName;
+    // 	std::stringstream StrStm;
+    // 	for (int i = 0 ; i != image_count ; i++)
+    // 	{
+    // 		std::cout<<"Frame #"<<i+1<<"..."<<endl;
+    // 		Mat newCameraMatrix = Mat(3,3,CV_32FC1,Scalar::all(0));
+    // 		initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,R,intrinsic_matrix,image_size,CV_32FC1,mapx,mapy);
+    // 		StrStm.clear();
+    // 		imageFileName.clear();
+    // 		StrStm<<i+1;
+    // 		StrStm>>imageFileName;
+    // 		imageFileName += ".jpg";
+    // 		Mat t = imread(imageFileName);
+    // 		Mat newimage = t.clone();
+    // 		cv::remap(t,newimage,mapx, mapy, INTER_LINEAR);
+    // 		StrStm.clear();
+    // 		imageFileName.clear();
+    // 		StrStm<<i+1;
+    // 		StrStm>>imageFileName;
+    // 		imageFileName += "_d.jpg";
+    // 		imwrite(imageFileName,newimage);
+    // 	}
+    // 	std::cout<<"save is done"<<endl;
+
+}
 
