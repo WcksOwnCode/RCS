@@ -3231,9 +3231,6 @@ void MainWindow::on_DistortionCalibration_button_clicked()
     }
     namedWindow("Calibration");
 
-
-
-
     std::cout<<"Press 'g' to start capturing images!"<<endl;
 
     int count = 0,n=0;
@@ -3290,7 +3287,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
                 }
             }
         }
-        msg = mode == CAPTURING ? "100/100/s" : mode == CALIBRATED ? "Calibrated" : "Press 'g' to start";
+        msg = mode == CAPTURING ? "100/100/s" : mode == CALIBRATED ? "Calibrated" : "Press 'g' on your keyboard to start";
         baseLine = 0;
         textSize = getTextSize(msg, 1, 1, 1, &baseLine);
         Point textOrigin(frame.cols - 2*textSize.width - 10, frame.rows - 2*baseLine - 10);
@@ -3351,7 +3348,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
 
     /* 开始定标 */
     calibrateCamera(object_Points, corners_Seq, image_size,  intrinsic_matrix  ,distortion_coeffs, rotation_vectors, translation_vectors);
-    std::cout<<"定标完成！\n";
+    std::cout<<"标定完成！\n";
 
     /************************************************************************
                    对定标结果进行评价
@@ -3387,7 +3384,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
     std::cout<<"Evaluate Done!"<<endl;
 
     /************************************************************************
-                   保存定标结果
+                   Save the Results
             *************************************************************************/
     std::cout<<"save the results.........."<<endl;
     Mat rotation_matrix = Mat(3,3,CV_32FC1, Scalar::all(0)); /* 保存每幅图像的旋转矩阵 */
@@ -3413,6 +3410,17 @@ void MainWindow::on_DistortionCalibration_button_clicked()
     fout<<endl;
     destroyWindow("Calibration");
     cap.release();
+
+
+    /*******************************************/
+    Mat xmat,ymat,newimage;
+
+    Mat R = Mat::eye(3,3,CV_32F);
+    initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,intrinsic_matrix ,R,image_size,CV_32FC1,,xmat,ymat);
+    remap(imageSource,newimage,xmat, ymat, INTER_LINEAR);
+
+
+    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     /************************************************************************
                    显示定标结果
             *************************************************************************/

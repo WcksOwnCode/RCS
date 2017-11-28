@@ -155,7 +155,7 @@ private:
 
     int m_iSendRepeatedlyCount;
 
-
+    bool m_bCalibration;//是否标定完成
 
     bool m_bReadState;
 
