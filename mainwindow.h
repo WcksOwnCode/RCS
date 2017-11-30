@@ -138,7 +138,7 @@ private:
 
     QString FullOrder;
 
-    int minmumDcres=25;//曲线离散后最短直线
+    int minmumDcres=30;//曲线离散后最短直线
 
     int rows;
 
@@ -178,7 +178,11 @@ private:
 
     bool m_bWorldCheck=false;//获取现在坐标的bool
 
+    bool m_bCurrentGoted=false;
+
     bool m_bOnlyStraitLine=true;//轮廓边界是否只看做直线
+
+    bool m_bFromMinitrim=false;
 
     double Coordinate[3][5000];//储存坐标值x y z最多5000组
 
@@ -279,6 +283,10 @@ private:
     QVector<int> BreakPointDistance;
 
     QVector<QVector2D>Linetype;
+
+    QVector3D CurrentSpot;
+
+    QVector3D CurrentAngel;
 
     QImage origin_image;//原图
 
@@ -407,6 +415,30 @@ private slots:
     void on_DistortionCalibration_button_clicked();
 
     void on_GoToOriginSpot_button_clicked();
+
+    void on_Xplus_Button_clicked();
+
+    void on_Yplus_Button_clicked();
+
+    void on_Zplus_Button_clicked();
+
+    void on_Xmini_Button_clicked();
+
+    void on_Ymini_Button_clicked();
+
+    void on_Zmini_Button_clicked();
+
+    void on_Aplus_Button_clicked();
+
+    void on_Bplus_Button_clicked();
+
+    void on_Cplus_Button_clicked();
+
+    void on_Amini_Button_clicked();
+
+    void on_Bmini_Button_clicked();
+
+    void on_Cmini_Button_clicked();
 
 signals:
     void Receveid();

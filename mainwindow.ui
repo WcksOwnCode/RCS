@@ -128,8 +128,6 @@
          <string/>
         </property>
        </widget>
-       <zorder>final_label</zorder>
-       <zorder></zorder>
       </widget>
      </item>
     </layout>
@@ -267,7 +265,7 @@
        <property name="title">
         <string>显示区域</string>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>13</x>
@@ -588,8 +586,8 @@
     <widget class="QPushButton" name="Canny_button">
      <property name="geometry">
       <rect>
-       <x>460</x>
-       <y>210</y>
+       <x>100</x>
+       <y>230</y>
        <width>93</width>
        <height>28</height>
       </rect>
@@ -602,7 +600,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>210</y>
+       <y>230</y>
        <width>87</width>
        <height>21</height>
       </rect>
@@ -628,19 +626,6 @@
       </property>
      </item>
     </widget>
-    <widget class="QPushButton" name="Hough_Button">
-     <property name="geometry">
-      <rect>
-       <x>330</x>
-       <y>200</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>霍夫变换测试</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="replace_pushButton">
      <property name="geometry">
       <rect>
@@ -657,9 +642,9 @@
     <widget class="QPushButton" name="ImageWatch_pushButton">
      <property name="geometry">
       <rect>
-       <x>580</x>
-       <y>180</y>
-       <width>141</width>
+       <x>10</x>
+       <y>190</y>
+       <width>91</width>
        <height>28</height>
       </rect>
      </property>
@@ -680,7 +665,7 @@
       <string>到基础位置</string>
      </property>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -718,7 +703,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -881,7 +866,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -934,7 +919,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>250</x>
@@ -1000,62 +985,12 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
-     <property name="geometry">
-      <rect>
-       <x>570</x>
-       <y>210</y>
-       <width>169</width>
-       <height>82</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_8">
-      <item>
-       <widget class="QPushButton" name="EmergencyStop_Button">
-        <property name="minimumSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>急停</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="ExitButton">
-        <property name="minimumSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>EXIT</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
        <y>110</y>
-       <width>677</width>
+       <width>737</width>
        <height>29</height>
       </rect>
      </property>
@@ -1099,7 +1034,7 @@
         <item>
          <widget class="QCheckBox" name="disperse_checkBox">
           <property name="text">
-           <string>等间距取点</string>
+           <string>全部轮廓等距取点</string>
           </property>
          </widget>
         </item>
@@ -1145,11 +1080,11 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>120</x>
-       <y>210</y>
+       <x>110</x>
+       <y>190</y>
        <width>180</width>
        <height>27</height>
       </rect>
@@ -1195,7 +1130,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -1245,32 +1180,321 @@
       </item>
      </layout>
     </widget>
+    <widget class="QCheckBox" name="CurvedBisector_checkBox">
+     <property name="geometry">
+      <rect>
+       <x>650</x>
+       <y>80</y>
+       <width>91</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>曲线等间距取点</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>180</y>
+       <width>331</width>
+       <height>130</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>微调</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QPushButton" name="Xplus_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>X+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Yplus_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Y+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Zplus_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Z+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Aplus_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>A+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Bplus_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>B+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Cplus_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>C+</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
+        <item>
+         <widget class="QPushButton" name="Xmini_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>X-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Ymini_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Y-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Zmini_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Z-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Amini_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>A-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Bmini_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>B-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Cmini_Button">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>C-</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QPushButton" name="ExitButton">
+     <property name="geometry">
+      <rect>
+       <x>700</x>
+       <y>190</y>
+       <width>50</width>
+       <height>100</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>50</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>50</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>EXIT</string>
+     </property>
+    </widget>
     <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
-       <x>250</x>
-       <y>250</y>
-       <width>276</width>
+       <x>190</x>
+       <y>260</y>
+       <width>196</width>
        <height>27</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_14">
+     <layout class="QHBoxLayout" name="horizontalLayout_15">
       <item>
        <widget class="QLabel" name="label_15">
         <property name="minimumSize">
          <size>
-          <width>85</width>
+          <width>50</width>
           <height>25</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>85</width>
+          <width>50</width>
           <height>25</height>
          </size>
         </property>
         <property name="text">
-         <string>每一个像素=</string>
+         <string>像素=</string>
         </property>
        </widget>
       </item>
@@ -1278,13 +1502,13 @@
        <widget class="QLabel" name="Pixeltomm_Label">
         <property name="minimumSize">
          <size>
-          <width>125</width>
+          <width>80</width>
           <height>25</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>125</width>
+          <width>80</width>
           <height>25</height>
          </size>
         </property>
@@ -1314,41 +1538,80 @@
       </item>
      </layout>
     </widget>
-    <zorder>EmergencyStop_Button</zorder>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>230</y>
+       <width>163</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_16">
+      <item>
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>C</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="XYZ_spinBox">
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_18">
+        <property name="text">
+         <string>A</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="ABC_doubleSpinBox">
+        <property name="minimum">
+         <double>-3.140000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>3.140000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
     <zorder>ExitButton</zorder>
-    <zorder>label_11</zorder>
-    <zorder>Speed_Percentage</zorder>
-    <zorder>BoltSpeed_spinBox</zorder>
-    <zorder>SpeedDirection_comboBox</zorder>
-    <zorder>BoltSpeed_checkBox</zorder>
-    <zorder>label_7</zorder>
-    <zorder>label_10</zorder>
-    <zorder>Xbase_spin</zorder>
-    <zorder>label_8</zorder>
-    <zorder>label_9</zorder>
-    <zorder>Ybase_spin</zorder>
-    <zorder>Zbase_spin</zorder>
-    <zorder>label_13</zorder>
-    <zorder>progressBar</zorder>
-    <zorder>time_label</zorder>
-    <zorder>label_14</zorder>
+    <zorder>label_17</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
     <zorder>GetTheWorldCoordinate_button</zorder>
     <zorder>Canny_button</zorder>
     <zorder>ChangeTheimage_</zorder>
-    <zorder>currentK_comBox</zorder>
-    <zorder>disperse_checkBox</zorder>
-    <zorder>DisperseSlider</zorder>
-    <zorder>Shownumber_for_disperse</zorder>
-    <zorder>Hough_Button</zorder>
     <zorder>replace_pushButton</zorder>
     <zorder>ImageWatch_pushButton</zorder>
-    <zorder>isOutlineoffset</zorder>
-    <zorder>OffsetValueInput</zorder>
-    <zorder>label_12</zorder>
     <zorder>GoToOriginSpot_button</zorder>
-    <zorder>label_15</zorder>
-    <zorder>Pixeltomm_Label</zorder>
-    <zorder>label_17</zorder>
+    <zorder>CurvedBisector_checkBox</zorder>
+    <zorder>groupBox_6</zorder>
+    <zorder>XYZ_spinBox</zorder>
+    <zorder>ABC_doubleSpinBox</zorder>
+    <zorder>label_16</zorder>
+    <zorder>label_18</zorder>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

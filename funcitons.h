@@ -69,7 +69,7 @@ void Output2File(QVector<int>InputArray,QString Outputadd="",int newline=1);
 void Output2File(QVector<double>InputArray,QString Outputadd="",int newline=1);
 QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
 QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray);
-QVector<int> LineMerge(QVector<int> input_int,QVector<QVector2D>input_Point, QVector<QVector2D> allp, QVector<int> BreakP, int minL);
+QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D>input_Point, QVector<QVector2D> allp, QVector<int> BreakP, bool bisect, int minL);
 
 void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
 
@@ -85,5 +85,7 @@ QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>inp
 QVector<int>Unique_Int(QVector<int>Input);
 QVector<QVector2D>Unique_2D(QVector<QVector2D>Input);
 QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
+
+void QimageSave(QImage Tosave,QString add,int width=800,int height=600);
 
 #endif // FUNCITONS_H

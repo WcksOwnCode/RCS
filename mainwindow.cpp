@@ -25,6 +25,21 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Creat_code->setEnabled(false);
     ui->SpeedDirection_comboBox->setEnabled(false);
     ui->BoltSpeed_spinBox->setEnabled(false);
+
+
+    ui->Xplus_Button->setEnabled(false);
+    ui->Yplus_Button->setEnabled(false);
+    ui->Zplus_Button->setEnabled(false);
+    ui->Aplus_Button->setEnabled(false);
+    ui->Bplus_Button->setEnabled(false);
+    ui->Cplus_Button->setEnabled(false);
+    ui->Xmini_Button->setEnabled(false);
+    ui->Ymini_Button->setEnabled(false);
+    ui->Zmini_Button->setEnabled(false);
+    ui->Amini_Button->setEnabled(false);
+    ui->Bmini_Button->setEnabled(false);
+    ui->Cmini_Button->setEnabled(false);
+
     cam     = NULL;
     timer   = new QTimer(this);
     imag    = new QImage();
@@ -85,6 +100,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 
+
+
     delete ui;
 
 }
@@ -126,6 +143,8 @@ void MainWindow::readmycom() //读串口函数
             QString Yc="Y";
             QString Zc="Z";
             QString Ac="A";
+            QString Bc="B";
+            QString Cc="C";
             for(int i=0;i<sss.length();i++)
             {
                 QString K=sss.mid(i,1);
@@ -153,6 +172,17 @@ void MainWindow::readmycom() //读串口函数
                     tempcount++;
                     sa=i;
                 }
+                if(K==Bc)
+                {
+                    tempcount++;
+                    sa=i;
+                }
+                if(K==Cc)
+                {
+                    tempcount++;
+                    sa=i;
+                }
+
             }
 
             toFindXYZABC=sss.mid(sx+2,sy-sx-3) ;
@@ -163,12 +193,45 @@ void MainWindow::readmycom() //读串口函数
             m_dYbase=toFindXYZABC.toDouble();
             toFindXYZABC=sss.mid(sz+2,sa-sz-3) ;
             m_dZbase=toFindXYZABC.toDouble();
+
+            toFindXYZABC=sss.mid(sx+2,sy-sx-3) ;
+            //qDebug()<<toFindXYZABC;
+            CurrentAngel.setX(toFindXYZABC.toDouble());
+            //qDebug()<<m_dXbase;
+            toFindXYZABC=sss.mid(sy+2,sz-sy-3) ;
+            CurrentAngel.setY(toFindXYZABC.toDouble());
+            toFindXYZABC=sss.mid(sz+2,sa-sz-3) ;
+            CurrentAngel.setZ(toFindXYZABC.toDouble());
+
+
             qDebug()<<m_dZbase;
             ui->Xbase_spin->setValue(m_dXbase);
             ui->Ybase_spin->setValue(m_dYbase);
             ui->Zbase_spin->setValue(m_dZbase);
 
+            CurrentSpot.setX(m_dXbase);
+            CurrentSpot.setY(m_dYbase);
+            CurrentSpot.setZ(m_dZbase);
+
+            qDebug()<<"Current angel: "<<CurrentAngel;
+            qDebug()<<"Current spot: "<<CurrentSpot;
+
             m_bWorldCheck=false;
+            m_bCurrentGoted=true;
+            if(m_bCurrentGoted){
+                ui->Xplus_Button->setEnabled(true);
+                ui->Yplus_Button->setEnabled(true);
+                ui->Zplus_Button->setEnabled(true);
+                ui->Aplus_Button->setEnabled(true);
+                ui->Bplus_Button->setEnabled(true);
+                ui->Cplus_Button->setEnabled(true);
+                ui->Xmini_Button->setEnabled(true);
+                ui->Ymini_Button->setEnabled(true);
+                ui->Zmini_Button->setEnabled(true);
+                ui->Amini_Button->setEnabled(true);
+                ui->Bmini_Button->setEnabled(true);
+                ui->Cmini_Button->setEnabled(true);
+            }
 
         }
     }
@@ -182,7 +245,7 @@ void MainWindow::readmycom() //读串口函数
         ui->Read_txt_Button->setEnabled(true);
         ui->CameraView_Button->setEnabled(true);
         ui->Canny_button->setEnabled(true);
-        ui->Hough_Button->setEnabled(true);
+
         ui->ChangeTheimage_->setEnabled(true);
         ui->replace_pushButton->setEnabled(true);
         ui->DistortionCalibration_button->setEnabled(true);
@@ -190,6 +253,26 @@ void MainWindow::readmycom() //读串口函数
         ui->ImageWatch_pushButton->setEnabled(true);
         m_bOrisend=false;
     }
+
+    if(m_bFromMinitrim)
+    {
+        m_bFromMinitrim=false;
+        ui->AutoSend_Button->setEnabled(true);
+        ui->GetTheWorldCoordinate_button->setEnabled(true);
+        ui->SendMesg_Button->setEnabled(true);
+        ui->openCamera->setEnabled(true);
+        ui->ReadPicture->setEnabled(true);
+        ui->Read_txt_Button->setEnabled(true);
+        ui->CameraView_Button->setEnabled(true);
+        ui->Canny_button->setEnabled(true);
+
+        ui->ChangeTheimage_->setEnabled(true);
+        ui->replace_pushButton->setEnabled(true);
+        ui->DistortionCalibration_button->setEnabled(true);
+        ui->CheckCode_Button->setEnabled(true);
+        ui->ImageWatch_pushButton->setEnabled(true);
+    }
+
     if(!buf.isEmpty())
     {
 
@@ -461,7 +544,14 @@ void MainWindow::CreatGcodefile()
 }
 void MainWindow::on_ExitButton_clicked()
 {
-    cvReleaseCapture(&cam);
+    if(VCcam.isOpened())
+    {
+         connect(timer, SIGNAL(timeout()), this, SLOT(EmptyFunction()));
+        timer->stop();
+
+        GetpicTimer->stop();
+        VCcam.release();
+    }
     ClearVector();
     if(m_bSerialIsOpen)
     {
@@ -1344,7 +1434,7 @@ void MainWindow::SmoothOutline()
 
     //获取特征点
 
-  //  CharacteristicCalculate(BreakPoints);//此处未完待续
+    //  CharacteristicCalculate(BreakPoints);//此处未完待续
 
     /*************************************************************/
     int SOalltime=SOtimer.elapsed();
@@ -1545,111 +1635,122 @@ void MainWindow::ReadPngButton()
     ui->CameraView_Button->setEnabled(true);
 
     ui->openCamera->setEnabled(true);
+    if(!ui->disperse_checkBox->isChecked()){
 
-    QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
+        QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
 
-    HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
+        HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
 
-    Output2File(HoughPoints,"F:/output/HoughPoints.txt");
+        Output2File(HoughPoints,"F:/output/HoughPoints.txt");
 
-    int All_Points_cout=OrderdOutLine.length();//获取总点数
+        int All_Points_cout=OrderdOutLine.length();//获取总点数
 
-    if(HoughPoints.length()>=2){
+        if(HoughPoints.length()>=2){
 
-        qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+            qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
-        QVector<QVector2D>OrderedSline;
+            QVector<QVector2D>OrderedSline;
 
-        QVector<int>testorder;
+            QVector<int>testorder;
 
-        QVector<QVector2D>test2D;
+            QVector<QVector2D>test2D;
 
-        testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
+            testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
 
-        OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
+            OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
 
-        Output2File(OrderedSline,"F:/output/OrderedSline.txt");
+            Output2File(OrderedSline,"F:/output/OrderedSline.txt");
 
-        Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
+            Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
-        QVector<int>m_Int_Line;
+            QVector<int>m_Int_Line;
 
-        int minL=width/100;
+            int minL=width/100;
 
-        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,minL);
+            m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minL);
 
-        CharacteristicPoint.clear();
-
-        CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
-
-        //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
-
-    }
-    else if(HoughPoints.length()==1)
-
-    {//一条直线的情况
-        //直线数量不足，说明全部是曲线，直接进行曲线检测
-        qDebug()<<"+++***   Only one strait line is here    ***+++";
-
-
-        int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
-
-        int Checklength=HoughPoints[0].x()+ All_Points_cout-HoughPoints[0].y();
-
-        if(Checkflag<Checklength)
-        {//this situation is that  origin point is not in this line；
-            // so curve contain origin points
-            qDebug()<<"Only one line and *******curve****** contain the origin point";
-            QVector<int> CurvePoints_int;
-
-            for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
-            {
-                CurvePoints_int.push_back(n);
-            }
-            for(int n=0;n<=HoughPoints[0].x();n++)
-            {
-                CurvePoints_int.push_back(n);
-            }
-
-            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
             CharacteristicPoint.clear();
-            CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
-            CharacteristicPoint.push_back(CharacteristicPoint[0]);
+
+            CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
+
+            //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
+
+        }
+        else if(HoughPoints.length()==1)
+
+        {//一条直线的情况
+            //直线数量不足，说明全部是曲线，直接进行曲线检测
+            qDebug()<<"+++***   Only one strait line is here    ***+++";
+
+
+            int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
+
+            int Checklength=HoughPoints[0].x()+ All_Points_cout-HoughPoints[0].y();
+
+            if(Checkflag<Checklength)
+            {//this situation is that  origin point is not in this line；
+                // so curve contain origin points
+                qDebug()<<"Only one line and *******curve****** contain the origin point";
+                QVector<int> CurvePoints_int;
+
+                for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
+                {
+                    CurvePoints_int.push_back(n);
+                }
+                for(int n=0;n<=HoughPoints[0].x();n++)
+                {
+                    CurvePoints_int.push_back(n);
+                }
+
+                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+                CharacteristicPoint.clear();
+                CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+                CharacteristicPoint.push_back(CharacteristicPoint[0]);
+            }
+            else
+            {//直线包含原点
+                qDebug()<<"Only one line and **********Line******* contain the origin point";
+                QVector<int> CurvePoints_int;
+
+                for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
+                {
+                    CurvePoints_int.push_back(n);
+                }
+
+
+                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+                CharacteristicPoint.clear();
+                CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+                CharacteristicPoint.push_back(CharacteristicPoint[0]);
+            }
+
         }
         else
-        {//直线包含原点
-            qDebug()<<"Only one line and **********Line******* contain the origin point";
+        {
             QVector<int> CurvePoints_int;
 
-            for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
+            for(int n=0;n<=All_Points_cout;n++)
             {
                 CurvePoints_int.push_back(n);
             }
-
-
             QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
             CharacteristicPoint.clear();
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
             CharacteristicPoint.push_back(CharacteristicPoint[0]);
         }
+
+        Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
 
     }
     else
     {
-        QVector<int> CurvePoints_int;
-
-        for(int n=0;n<=All_Points_cout;n++)
-        {
-            CurvePoints_int.push_back(n);
-        }
-        QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
         CharacteristicPoint.clear();
-        CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
-        CharacteristicPoint.push_back(CharacteristicPoint[0]);
+        for(int nn=0;nn<OrderdOutLine.length();nn+=disperse)
+        {
+           CharacteristicPoint.push_back(OrderdOutLine[nn]);
+        }
+        CharacteristicPoint.push_back(OrderdOutLine[0]);
     }
-
-    Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
-
 
     OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
 
@@ -1667,7 +1768,8 @@ void MainWindow::ReadPngButton()
 
     CreadOrders();
 
-
+    QimageSave(OulineImage_b,"outlineb");
+    QimageSave(origin_image,"Originimage");
     m_bReadState=true;
 
     //CreadOrders();
@@ -1976,7 +2078,7 @@ void MainWindow::AutoRun()
 
         int minL=width/100;
 
-        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,minL);
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minL);
 
 
 
@@ -3583,7 +3685,7 @@ void MainWindow::on_GoToOriginSpot_button_clicked()
         ui->Read_txt_Button->setEnabled(false);
         ui->CameraView_Button->setEnabled(false);
         ui->Canny_button->setEnabled(false);
-        ui->Hough_Button->setEnabled(false);
+
         ui->ChangeTheimage_->setEnabled(false);
         ui->replace_pushButton->setEnabled(false);
         ui->DistortionCalibration_button->setEnabled(false);
@@ -3595,5 +3697,376 @@ void MainWindow::on_GoToOriginSpot_button_clicked()
     else
     {
         QMessageBox::warning(NULL,"warning","Serial port is not open , please check!");
+    }
+}
+
+void MainWindow::on_Xplus_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentSpot.x()+ui->XYZ_spinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(NextValue)+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Yplus_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentSpot.y()+ui->XYZ_spinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(NextValue)+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Zplus_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentSpot.z()+ui->XYZ_spinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(NextValue)+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Xmini_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentSpot.x()-ui->XYZ_spinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(NextValue)+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Ymini_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentSpot.y()-ui->XYZ_spinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(NextValue)+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Zmini_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentSpot.z()-ui->XYZ_spinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(NextValue)+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Aplus_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentAngel.x()+ui->ABC_doubleSpinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(NextValue)+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Bplus_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentAngel.y()+ui->ABC_doubleSpinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(NextValue)+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Cplus_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentAngel.z()+ui->ABC_doubleSpinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(NextValue);
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Amini_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentAngel.x()-ui->ABC_doubleSpinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(NextValue)+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+
+void MainWindow::on_Bmini_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentAngel.y()-ui->ABC_doubleSpinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(NextValue)+" C="+QString::number(CurrentAngel.z());
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
+    }
+}
+void MainWindow::on_Cmini_Button_clicked()
+{
+    if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
+    {
+        double NextValue=CurrentAngel.z()-ui->ABC_doubleSpinBox->text().toDouble();
+        QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
+                QString::number(CurrentAngel.y())+" C="+QString::number(NextValue);
+
+        sendCode.append("\n");
+        qDebug()<<sendCode;
+        // serial->write(ui->SendEditor->toPlainText().toLatin1());
+        serial->write(sendCode.toLatin1());
+        m_bFromMinitrim=true;
+
+        ui->Xplus_Button->setEnabled(false);
+        ui->Yplus_Button->setEnabled(false);
+        ui->Zplus_Button->setEnabled(false);
+        ui->Aplus_Button->setEnabled(false);
+        ui->Bplus_Button->setEnabled(false);
+        ui->Cplus_Button->setEnabled(false);
+        ui->Xmini_Button->setEnabled(false);
+        ui->Ymini_Button->setEnabled(false);
+        ui->Zmini_Button->setEnabled(false);
+        ui->Amini_Button->setEnabled(false);
+        ui->Bmini_Button->setEnabled(false);
+        ui->Cmini_Button->setEnabled(false);
+
     }
 }
