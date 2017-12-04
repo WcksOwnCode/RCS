@@ -286,7 +286,7 @@ private:
 
     QVector3D CurrentSpot;
 
-    QVector3D CurrentAngel;
+    QVector<float> CurrentAngel;
 
     QImage origin_image;//原图
 
@@ -336,6 +336,8 @@ private:
 
     QString SpaceimageADD="E:/softwaresFiles/QT/RobotCotrolSystem/SpaceImage.png";
 
+   QString orispot="G00 X=500 Y=0 Z=400 A=3.14 B=0 C=0";
+
     QString readfileadd;
 
     const int Max_C_num=500;//最大特征点数量，过多跳出
@@ -359,6 +361,12 @@ private:
     Mat distortion_coeffs = Mat(1,5, CV_32FC1, Scalar::all(0));            /* 摄像机的5个畸变系数：k1,k2,p1,p2,k3 */
 
     Mat xmat,ymat;
+
+    QString CurrentReturn;
+
+    int Currentcont=0;
+
+    float PixeltoMeter;
 
 private slots:
 

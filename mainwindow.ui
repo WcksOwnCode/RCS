@@ -1469,7 +1469,7 @@
       <string>EXIT</string>
      </property>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -1538,7 +1538,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>200</x>
@@ -1590,8 +1590,8 @@
       </item>
      </layout>
     </widget>
+    <zorder>layoutWidget</zorder>
     <zorder>ExitButton</zorder>
-    <zorder>label_17</zorder>
     <zorder>layoutWidget</zorder>
     <zorder>layoutWidget</zorder>
     <zorder>layoutWidget</zorder>
@@ -1608,10 +1608,6 @@
     <zorder>GoToOriginSpot_button</zorder>
     <zorder>CurvedBisector_checkBox</zorder>
     <zorder>groupBox_6</zorder>
-    <zorder>XYZ_spinBox</zorder>
-    <zorder>ABC_doubleSpinBox</zorder>
-    <zorder>label_16</zorder>
-    <zorder>label_18</zorder>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

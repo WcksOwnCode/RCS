@@ -9,6 +9,8 @@
 
 double DisCalFuc(int x1,int y1,int x2,int y2);
 
+float TwoPointdis(float x1, float y1, float x2, float y2);
+
 QVector<int> ReorderArray(QVector<int> Array, int n);
 
 int FindMinorMax(QVector<int>input,int M=0);

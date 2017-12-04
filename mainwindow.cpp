@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
     imag    = new QImage();
     WTimer  = new QTimer(this);
     GetpicTimer= new QTimer(this);
-
+    orispot.push_back("\n");
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
     QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(TakingPhoto()));
 
@@ -83,8 +83,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_dXbase=0.0;
     m_dYbase=0.0;
     m_dZbase=0.0;
-
-
     m_dCurrentX=0;
     m_dCurrentY=0;
     m_dCurrentZ=0;
@@ -110,9 +108,12 @@ void MainWindow::readmycom() //读串口函数
 {
     ui->Message_Label->clear();
     qDebug()<<"Receive";
-    QByteArray buf;
+    QString buf;
     buf = serial->readAll();
+    qDebug()<<"buff         "<<buf;
+
     if(m_bReadState){
+
         QString StrC;
         StrC.append(Array[m_iSendCount]);
         QString StrCheck=StrC.left(2);
@@ -127,114 +128,153 @@ void MainWindow::readmycom() //读串口函数
         }
     }
     if(m_bWorldCheck){
+
         QString sss;
-        sss+=tr(buf);
-        QString tocheck=sss.left(3);
-        QString StrC;
-        StrC.append("G97");
-        QString StrCheck=StrC.left(3);
+        sss=buf;
 
-        QString toFindXYZABC;
-        int sx,sy,sz,sa;
-        int tempcount=-1;
-        if(tocheck==StrCheck)
+
+        if(Currentcont==0)
         {
-            QString Xc="X";
-            QString Yc="Y";
-            QString Zc="Z";
-            QString Ac="A";
-            QString Bc="B";
-            QString Cc="C";
-            for(int i=0;i<sss.length();i++)
+            CurrentReturn=buf;
+
+
+        }else if(Currentcont==1){
+            /// sss+=tr(buf);
+            QString tocheck=sss.left(3);
+            QString StrC;
+            StrC.append("G97");
+            QString StrCheck=StrC;
+
+            QString toFindXYZABC;
+            int sx,sy,sz,sa,sb,sc;
+            int tempcount=-1;
+            qDebug()<<sss.length()<<"sss length";
+
+
+
+            bool hasx=false;
+            bool hasy=false;
+            bool hasz=false;
+            bool hasa=false;
+            bool hasb=false;
+            bool hasc=false;
+
+            if(m_bWorldCheck&&Currentcont==1)
             {
-                QString K=sss.mid(i,1);
-                qDebug()<<K;
-                if(K==Xc){
-                    //qDebug()<<"enter x";
-                    tempcount++;
-                    sx=i;
-                }
-                if(K==Yc)
+                QString Xc="X";
+                QString Yc="Y";
+                QString Zc="Z";
+                QString Ac="A";
+                QString Bc="B";
+                QString Cc="C";
+                for(int i=0;i<sss.length();i++)
                 {
-                    //qDebug()<<"enter y";
-                    tempcount++;
-                    sy=i;
+                    QString K=sss.mid(i,1);
+                    qDebug()<<K;
+                    if(K==Xc){
+                        //qDebug()<<"enter x";
+                        tempcount++;
+                        hasx=true;
+                        sx=i;
+                    }
+                    if(K==Yc)
+                    {
+                        //qDebug()<<"enter y";
+                        tempcount++;
+                        hasy=true;
+                        sy=i;
+
+                    }
+                    if(K==Zc)
+                    {
+                        //qDebug()<<"enter z";
+                        tempcount++;
+                        hasz=true;
+                        sz=i;
+                    }
+                    if(K==Ac)
+                    {
+                        tempcount++;
+                        hasa=true;
+                        sa=i;
+                    }
+                    if(K==Bc)
+                    {
+                        tempcount++;
+                        hasb=true;
+                        sb=i;
+                    }
+                    if(K==Cc)
+                    {
+                        tempcount++;
+                        hasc=true;
+                        sc=i;
+                    }
 
                 }
-                if(K==Zc)
-                {
-                    qDebug()<<"enter z";
-                    tempcount++;
-                    sz=i;
+
+
+
+                if(hasx){
+                    toFindXYZABC=sss.mid(sx+2,sy-sx-3) ;
+                    m_dXbase=toFindXYZABC.toDouble();
                 }
-                if(K==Ac)
-                {
-                    tempcount++;
-                    sa=i;
+                if(hasb){
+                    toFindXYZABC=sss.mid(sy+2,sz-sy-3) ;
+                    m_dYbase=toFindXYZABC.toDouble();
                 }
-                if(K==Bc)
-                {
-                    tempcount++;
-                    sa=i;
+                if(hasa){
+                    toFindXYZABC=sss.mid(sz+2,sa-sz-3) ;
+                    m_dZbase=toFindXYZABC.toDouble();
                 }
-                if(K==Cc)
-                {
-                    tempcount++;
-                    sa=i;
+                if(hasa){
+                    CurrentAngel.clear();
+                    toFindXYZABC=sss.mid(sa+2,sb-sa-3) ;
+                    CurrentAngel.push_back(toFindXYZABC.toFloat());
+
+
+                    toFindXYZABC=sss.mid(sb+2,sc-sb-3) ;
+                    CurrentAngel.push_back(toFindXYZABC.toFloat());
+
+                    toFindXYZABC=sss.mid(sc+2,sss.length()-sc-2) ;
+                    CurrentAngel.push_back(toFindXYZABC.toFloat());
+                }
+                ui->Xbase_spin->setValue(m_dXbase);
+                ui->Ybase_spin->setValue(m_dYbase);
+                ui->Zbase_spin->setValue(m_dZbase);
+
+                CurrentSpot.setX(m_dXbase);
+                CurrentSpot.setY(m_dYbase);
+                CurrentSpot.setZ(m_dZbase);
+
+                qDebug()<<"Current angel: "<<CurrentAngel;
+                qDebug()<<"Current spot: "<<CurrentSpot;
+
+                m_bWorldCheck=false;
+                m_bCurrentGoted=true;
+                Currentcont=0;
+                if(m_bCurrentGoted){
+                    ui->Xplus_Button->setEnabled(true);
+                    ui->Yplus_Button->setEnabled(true);
+                    ui->Zplus_Button->setEnabled(true);
+                    ui->Aplus_Button->setEnabled(true);
+                    ui->Bplus_Button->setEnabled(true);
+                    ui->Cplus_Button->setEnabled(true);
+                    ui->Xmini_Button->setEnabled(true);
+                    ui->Ymini_Button->setEnabled(true);
+                    ui->Zmini_Button->setEnabled(true);
+                    ui->Amini_Button->setEnabled(true);
+                    ui->Bmini_Button->setEnabled(true);
+                    ui->Cmini_Button->setEnabled(true);
                 }
 
             }
-
-            toFindXYZABC=sss.mid(sx+2,sy-sx-3) ;
-            //qDebug()<<toFindXYZABC;
-            m_dXbase=toFindXYZABC.toDouble();
-            //qDebug()<<m_dXbase;
-            toFindXYZABC=sss.mid(sy+2,sz-sy-3) ;
-            m_dYbase=toFindXYZABC.toDouble();
-            toFindXYZABC=sss.mid(sz+2,sa-sz-3) ;
-            m_dZbase=toFindXYZABC.toDouble();
-
-            toFindXYZABC=sss.mid(sx+2,sy-sx-3) ;
-            //qDebug()<<toFindXYZABC;
-            CurrentAngel.setX(toFindXYZABC.toDouble());
-            //qDebug()<<m_dXbase;
-            toFindXYZABC=sss.mid(sy+2,sz-sy-3) ;
-            CurrentAngel.setY(toFindXYZABC.toDouble());
-            toFindXYZABC=sss.mid(sz+2,sa-sz-3) ;
-            CurrentAngel.setZ(toFindXYZABC.toDouble());
-
-
-            qDebug()<<m_dZbase;
-            ui->Xbase_spin->setValue(m_dXbase);
-            ui->Ybase_spin->setValue(m_dYbase);
-            ui->Zbase_spin->setValue(m_dZbase);
-
-            CurrentSpot.setX(m_dXbase);
-            CurrentSpot.setY(m_dYbase);
-            CurrentSpot.setZ(m_dZbase);
-
-            qDebug()<<"Current angel: "<<CurrentAngel;
-            qDebug()<<"Current spot: "<<CurrentSpot;
-
-            m_bWorldCheck=false;
-            m_bCurrentGoted=true;
-            if(m_bCurrentGoted){
-                ui->Xplus_Button->setEnabled(true);
-                ui->Yplus_Button->setEnabled(true);
-                ui->Zplus_Button->setEnabled(true);
-                ui->Aplus_Button->setEnabled(true);
-                ui->Bplus_Button->setEnabled(true);
-                ui->Cplus_Button->setEnabled(true);
-                ui->Xmini_Button->setEnabled(true);
-                ui->Ymini_Button->setEnabled(true);
-                ui->Zmini_Button->setEnabled(true);
-                ui->Amini_Button->setEnabled(true);
-                ui->Bmini_Button->setEnabled(true);
-                ui->Cmini_Button->setEnabled(true);
-            }
-
         }
+        Currentcont++;
+        qDebug()<<"currentcont:  "<<Currentcont;
     }
+
+
     if(m_bOrisend)
     {//说明是回归原点的设置发送
         ui->AutoSend_Button->setEnabled(true);
@@ -251,12 +291,14 @@ void MainWindow::readmycom() //读串口函数
         ui->DistortionCalibration_button->setEnabled(true);
         ui->CheckCode_Button->setEnabled(true);
         ui->ImageWatch_pushButton->setEnabled(true);
+
         m_bOrisend=false;
     }
 
     if(m_bFromMinitrim)
     {
         m_bFromMinitrim=false;
+        on_GetTheWorldCoordinate_button_clicked();
         ui->AutoSend_Button->setEnabled(true);
         ui->GetTheWorldCoordinate_button->setEnabled(true);
         ui->SendMesg_Button->setEnabled(true);
@@ -277,11 +319,12 @@ void MainWindow::readmycom() //读串口函数
     {
 
         QString str = ui->Message_Label->text();
-        str+=tr(buf);
+        //   str+=tr(buf);
+        str=buf;
         QDateTime time = QDateTime::currentDateTime();//获取系统现在的时间
         QString Tstr = time.toString("yyyy-MM-dd hh:mm:ss.zzz ");
         Tstr.append(": \n");
-        Tstr.append(str);
+        Tstr+=str;
         ui->Message_Label->clear();
         ui->Message_Label->setText(Tstr);
     }
@@ -546,7 +589,7 @@ void MainWindow::on_ExitButton_clicked()
 {
     if(VCcam.isOpened())
     {
-         connect(timer, SIGNAL(timeout()), this, SLOT(EmptyFunction()));
+        connect(timer, SIGNAL(timeout()), this, SLOT(EmptyFunction()));
         timer->stop();
 
         GetpicTimer->stop();
@@ -1747,7 +1790,7 @@ void MainWindow::ReadPngButton()
         CharacteristicPoint.clear();
         for(int nn=0;nn<OrderdOutLine.length();nn+=disperse)
         {
-           CharacteristicPoint.push_back(OrderdOutLine[nn]);
+            CharacteristicPoint.push_back(OrderdOutLine[nn]);
         }
         CharacteristicPoint.push_back(OrderdOutLine[0]);
     }
@@ -1819,6 +1862,7 @@ Mat MainWindow::CenterClipping(Mat inputarray)
 {
     int rows=inputarray.rows/2;
     int cols=inputarray.cols/2;
+    qDebug()<<"to clip the mat to size of  "<<rows<<"   "<<cols;
     Mat Toreturn,midarray;
     midarray=inputarray.clone();
     Toreturn=midarray.rowRange(rows-height/2,rows+height/2);
@@ -1831,7 +1875,7 @@ void MainWindow::readFarme()
     if(VCcam.isOpened()){
         cv::Mat vcframe;
         VCcam>>vcframe;
-        qDebug()<<vcframe.rows<<"    "<<vcframe.cols;
+        //  qDebug()<<vcframe.rows<<"    "<<vcframe.cols;
         if(!frame)
         {
             exit(0);
@@ -2254,7 +2298,7 @@ void MainWindow::CameraPreView()
         VCcam.set(CV_CAP_PROP_FRAME_WIDTH,camerawidth);
         VCcam.set(CV_CAP_PROP_FRAME_HEIGHT,cameraheight);
 
-        timer->start(20);
+        timer->start(100);
 
         ui->CameraView_Button->setText("关闭相机");
 
@@ -2276,14 +2320,14 @@ void MainWindow::CameraPreView()
 
 }
 void MainWindow::on_GetTheWorldCoordinate_button_clicked()
-{   m_bSerialIsOpen=true;
+{
+    m_bSerialIsOpen=true;
     if(m_bSerialIsOpen){
-        qDebug()<<"get!";
+
         QString sendstr;
         sendstr.append("G97");
         sendstr.append("\n");
-        //sendstr.append("\n");
-        // serial->write(sendstr.toLatin1());
+        serial->write(sendstr.toLatin1());
         m_bWorldCheck=true;
     }
     else
@@ -3470,6 +3514,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
                     cornerSubPix(imageGray, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
                     count += corners.size();
                     corners_Seq.push_back(corners);
+
                     imwrite(filename,frame);
 
                     if(n==3)
@@ -3631,6 +3676,53 @@ void MainWindow::on_DistortionCalibration_button_clicked()
 
         Mat clipcheck=CenterClipping(Tocheck);
 
+
+        //计算像素和实际尺寸的关系
+        float corMinX,corMinY;
+        float corMindis=11120.11;
+        float PixtoM[10];
+        int tempcont=0;
+        int pictucont=0;
+
+        foreach (vector<Point2f>ff, corners_Seq) {
+
+            foreach (Point2f xy2f, ff)
+            {
+                if(tempcont==0)
+                {
+                    corMinX=xy2f.x;
+                    corMinY=xy2f.y;
+
+                }
+                else
+                {
+                    float disp=TwoPointdis(corMinX,corMinY,xy2f.x,xy2f.y);
+                    if(corMindis>disp)
+                    {
+                        corMindis=disp;
+
+                    }
+                }
+                tempcont++;
+
+            }
+            PixtoM[pictucont]=corMindis;
+            pictucont++;
+            tempcont=0;
+        }
+        float sumf;
+        std::cout<<"pixto m"<<PixtoM;
+        for(int kkk=0;kkk<10;kkk++)
+        {
+            float aver=PixtoM[kkk];
+            sumf+=aver;
+        }
+        sumf=sumf/corners_Seq.size();
+        qDebug()<<"sumf   "<<sumf;
+        PixeltoMeter=19/sumf;
+        qDebug()<<"pixel size is"<<PixeltoMeter;
+        ui->Pixeltomm_Label->setText(QString::number(PixeltoMeter));
+
         imshow("origin image",Tocheck);
         imshow("correctec image",newimage);
         imshow("cliped",clipcheck);
@@ -3674,8 +3766,8 @@ void MainWindow::on_GoToOriginSpot_button_clicked()
 {
     if(m_bSerialIsOpen)
     {
-        QString orispot="G00 X=350 Y=0 Z=600 A=3.14 B=0 C=0";
-        orispot.push_back("\n");
+
+
         serial->write(orispot.toLatin1());
         ui->AutoSend_Button->setEnabled(false);
         ui->GetTheWorldCoordinate_button->setEnabled(false);
@@ -3706,10 +3798,11 @@ void MainWindow::on_Xplus_Button_clicked()
     {
         double NextValue=CurrentSpot.x()+ui->XYZ_spinBox->text().toDouble();
         QString sendCode="G00 X="+QString::number(NextValue)+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
-        sendCode.append("\n");
+
+        CurrentSpot.setX(NextValue);
         qDebug()<<sendCode;
         // serial->write(ui->SendEditor->toPlainText().toLatin1());
         serial->write(sendCode.toLatin1());
@@ -3737,8 +3830,8 @@ void MainWindow::on_Yplus_Button_clicked()
     {
         double NextValue=CurrentSpot.y()+ui->XYZ_spinBox->text().toDouble();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(NextValue)+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3768,8 +3861,8 @@ void MainWindow::on_Zplus_Button_clicked()
     {
         double NextValue=CurrentSpot.z()+ui->XYZ_spinBox->text().toDouble();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(NextValue)+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(NextValue)+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3799,8 +3892,8 @@ void MainWindow::on_Xmini_Button_clicked()
     {
         double NextValue=CurrentSpot.x()-ui->XYZ_spinBox->text().toDouble();
         QString sendCode="G00 X="+QString::number(NextValue)+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3830,8 +3923,8 @@ void MainWindow::on_Ymini_Button_clicked()
     {
         double NextValue=CurrentSpot.y()-ui->XYZ_spinBox->text().toDouble();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(NextValue)+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3861,8 +3954,8 @@ void MainWindow::on_Zmini_Button_clicked()
     {
         double NextValue=CurrentSpot.z()-ui->XYZ_spinBox->text().toDouble();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(NextValue)+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(NextValue)+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3890,10 +3983,10 @@ void MainWindow::on_Aplus_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
     {
-        double NextValue=CurrentAngel.x()+ui->ABC_doubleSpinBox->text().toDouble();
+        float NextValue=CurrentAngel[0]+ui->ABC_doubleSpinBox->text().toFloat();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
                 QString::number(CurrentSpot.z())+" A="+QString::number(NextValue)+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3921,10 +4014,10 @@ void MainWindow::on_Bplus_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
     {
-        double NextValue=CurrentAngel.y()+ui->ABC_doubleSpinBox->text().toDouble();
+        float NextValue=CurrentAngel[1]+ui->ABC_doubleSpinBox->text().toFloat();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(NextValue)+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(NextValue)+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3952,10 +4045,10 @@ void MainWindow::on_Cplus_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
     {
-        double NextValue=CurrentAngel.z()+ui->ABC_doubleSpinBox->text().toDouble();
+        float NextValue=CurrentAngel[2]+ui->ABC_doubleSpinBox->text().toFloat();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(NextValue);
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(NextValue);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -3983,10 +4076,10 @@ void MainWindow::on_Amini_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
     {
-        double NextValue=CurrentAngel.x()-ui->ABC_doubleSpinBox->text().toDouble();
+        float NextValue=CurrentAngel[0]-ui->ABC_doubleSpinBox->text().toFloat();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
                 QString::number(CurrentSpot.z())+" A="+QString::number(NextValue)+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentAngel[1])+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -4014,10 +4107,10 @@ void MainWindow::on_Bmini_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
     {
-        double NextValue=CurrentAngel.y()-ui->ABC_doubleSpinBox->text().toDouble();
+        float NextValue=CurrentAngel[1]-ui->ABC_doubleSpinBox->text().toFloat();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(NextValue)+" C="+QString::number(CurrentAngel.z());
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(NextValue)+" C="+QString::number(CurrentAngel[2]);
 
         sendCode.append("\n");
         qDebug()<<sendCode;
@@ -4044,10 +4137,10 @@ void MainWindow::on_Cmini_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
     {
-        double NextValue=CurrentAngel.z()-ui->ABC_doubleSpinBox->text().toDouble();
+        float NextValue=CurrentAngel[2]-ui->ABC_doubleSpinBox->text().toFloat();
         QString sendCode="G00 X="+QString::number(CurrentSpot.x())+" Y="+QString::number(CurrentSpot.y())+" Z="+
-                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel.x())+" B="+
-                QString::number(CurrentAngel.y())+" C="+QString::number(NextValue);
+                QString::number(CurrentSpot.z())+" A="+QString::number(CurrentAngel[0])+" B="+
+                QString::number(CurrentAngel[1])+" C="+QString::number(NextValue);
 
         sendCode.append("\n");
         qDebug()<<sendCode;

@@ -45,6 +45,16 @@ int FindMinorMax(QVector<int>input,int M)
     }
 
 }
+float TwoPointdis(float x1,float y1,float x2,float y2)
+{
+    float toreturn;
+
+    toreturn=std::sqrt(std::pow(y2-y1,2)+std::pow(x2-x1,2));
+
+
+    return toreturn;
+
+}
 
 double DisCalFuc(int x1, int y1, int x2, int y2)
 {
