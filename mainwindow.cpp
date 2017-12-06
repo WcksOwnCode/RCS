@@ -134,31 +134,23 @@ void MainWindow::readmycom() //读串口函数
 
 
         if(Currentcont==0)
+
         {
+            CurrentReturn.clear();
             CurrentReturn=buf;
 
-
-        }else if(Currentcont==1){
+        }
+        else if(Currentcont==1)
+        {
             /// sss+=tr(buf);
-            QString tocheck=sss.left(3);
             QString StrC;
             StrC.append("G97");
-            QString StrCheck=StrC;
-
+            CurrentReturn+=buf;
+            qDebug()<<"case currentcont=1 and currentreturn is "<<CurrentReturn;
             QString toFindXYZABC;
             int sx,sy,sz,sa,sb,sc;
             int tempcount=-1;
-            qDebug()<<sss.length()<<"sss length";
-
-
-
-            bool hasx=false;
-            bool hasy=false;
-            bool hasz=false;
-            bool hasa=false;
-            bool hasb=false;
-            bool hasc=false;
-
+            qDebug()<<CurrentReturn.length()<<"CurrentReturn length";
             if(m_bWorldCheck&&Currentcont==1)
             {
                 QString Xc="X";
@@ -167,21 +159,21 @@ void MainWindow::readmycom() //读串口函数
                 QString Ac="A";
                 QString Bc="B";
                 QString Cc="C";
-                for(int i=0;i<sss.length();i++)
+                for(int i=0;i<CurrentReturn.length();i++)
                 {
-                    QString K=sss.mid(i,1);
+                    QString K=CurrentReturn.mid(i,1);
                     qDebug()<<K;
                     if(K==Xc){
                         //qDebug()<<"enter x";
                         tempcount++;
-                        hasx=true;
+
                         sx=i;
                     }
                     if(K==Yc)
                     {
                         //qDebug()<<"enter y";
                         tempcount++;
-                        hasy=true;
+
                         sy=i;
 
                     }
@@ -189,56 +181,53 @@ void MainWindow::readmycom() //读串口函数
                     {
                         //qDebug()<<"enter z";
                         tempcount++;
-                        hasz=true;
+
                         sz=i;
                     }
                     if(K==Ac)
                     {
                         tempcount++;
-                        hasa=true;
+
                         sa=i;
                     }
                     if(K==Bc)
                     {
                         tempcount++;
-                        hasb=true;
+
                         sb=i;
                     }
                     if(K==Cc)
                     {
                         tempcount++;
-                        hasc=true;
+
                         sc=i;
                     }
 
                 }
 
+                toFindXYZABC=CurrentReturn.mid(sx+2,sy-sx-3) ;
+                m_dXbase=toFindXYZABC.toDouble();
 
 
-                if(hasx){
-                    toFindXYZABC=sss.mid(sx+2,sy-sx-3) ;
-                    m_dXbase=toFindXYZABC.toDouble();
-                }
-                if(hasb){
-                    toFindXYZABC=sss.mid(sy+2,sz-sy-3) ;
-                    m_dYbase=toFindXYZABC.toDouble();
-                }
-                if(hasa){
-                    toFindXYZABC=sss.mid(sz+2,sa-sz-3) ;
-                    m_dZbase=toFindXYZABC.toDouble();
-                }
-                if(hasa){
-                    CurrentAngel.clear();
-                    toFindXYZABC=sss.mid(sa+2,sb-sa-3) ;
-                    CurrentAngel.push_back(toFindXYZABC.toFloat());
+                toFindXYZABC=CurrentReturn.mid(sy+2,sz-sy-3) ;
+                m_dYbase=toFindXYZABC.toDouble();
 
 
-                    toFindXYZABC=sss.mid(sb+2,sc-sb-3) ;
-                    CurrentAngel.push_back(toFindXYZABC.toFloat());
+                toFindXYZABC=CurrentReturn.mid(sz+2,sa-sz-3) ;
+                m_dZbase=toFindXYZABC.toDouble();
 
-                    toFindXYZABC=sss.mid(sc+2,sss.length()-sc-2) ;
-                    CurrentAngel.push_back(toFindXYZABC.toFloat());
-                }
+
+                CurrentAngel.clear();
+                toFindXYZABC=CurrentReturn.mid(sa+2,sb-sa-3) ;
+                CurrentAngel.push_back(toFindXYZABC.toFloat());
+
+
+                toFindXYZABC=CurrentReturn.mid(sb+2,sc-sb-3) ;
+                CurrentAngel.push_back(toFindXYZABC.toFloat());
+
+                toFindXYZABC=CurrentReturn.mid(sc+2,sss.length()-sc-2) ;
+                CurrentAngel.push_back(toFindXYZABC.toFloat());
+
                 ui->Xbase_spin->setValue(m_dXbase);
                 ui->Ybase_spin->setValue(m_dYbase);
                 ui->Zbase_spin->setValue(m_dZbase);
@@ -1448,6 +1437,8 @@ QImage MainWindow::GetOutLine(QImage II)
 
 
     }
+
+    OnlyOutLine=Unique_2D(OnlyOutLine);
     return rx;
 }
 
@@ -1458,9 +1449,12 @@ void MainWindow::SmoothOutline()
     SOtimer.start();
 
 
-    ReOrderOutline(OnlyOutLine);//重新排序边界
+   ReOrderOutline(OnlyOutLine);//重新排序边界
+
+    //OrderdOutLine= ReOrderOutline_8Neighboor(OnlyOutLine,OulineImage);
 
     CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
+
 
     //计算全部边界的两点间方向//9.22尝试
 
@@ -1675,6 +1669,7 @@ void MainWindow::ReadPngButton()
 
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
 
+
     ui->CameraView_Button->setEnabled(true);
 
     ui->openCamera->setEnabled(true);
@@ -1708,15 +1703,13 @@ void MainWindow::ReadPngButton()
 
             QVector<int>m_Int_Line;
 
-            int minL=width/100;
-
-            m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minL);
+            m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minmumDcres);
 
             CharacteristicPoint.clear();
 
             CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
 
-            //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
+
 
         }
         else if(HoughPoints.length()==1)
@@ -1745,7 +1738,7 @@ void MainWindow::ReadPngButton()
                     CurvePoints_int.push_back(n);
                 }
 
-                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
                 CharacteristicPoint.clear();
                 CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
                 CharacteristicPoint.push_back(CharacteristicPoint[0]);
@@ -1761,7 +1754,7 @@ void MainWindow::ReadPngButton()
                 }
 
 
-                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
                 CharacteristicPoint.clear();
                 CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
                 CharacteristicPoint.push_back(CharacteristicPoint[0]);
@@ -1776,7 +1769,7 @@ void MainWindow::ReadPngButton()
             {
                 CurvePoints_int.push_back(n);
             }
-            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
             CharacteristicPoint.clear();
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
             CharacteristicPoint.push_back(CharacteristicPoint[0]);
@@ -1795,9 +1788,17 @@ void MainWindow::ReadPngButton()
         CharacteristicPoint.push_back(OrderdOutLine[0]);
     }
 
+    OulineImage_b=ImageDrawer( OulineImage_b,Orioutline,QColor(185,120,125),2);
+
+    // Mat toshow =QImage2cvMat(OulineImage_b);
+    //  imshow("boundary",toshow);
+
     OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
 
-    OulineImage_b=ImageDrawer( OulineImage_b,Orioutline,QColor(185,120,125),2);
+
+
+
+
 
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
@@ -2120,9 +2121,9 @@ void MainWindow::AutoRun()
 
         QVector<int>m_Int_Line;
 
-        int minL=width/100;
 
-        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minL);
+
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minmumDcres);
 
 
 
@@ -2132,7 +2133,7 @@ void MainWindow::AutoRun()
         CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
 
 
-        //    OrderedSline=LineMerge(OrderedSline);//this function is not prepared!
+
 
     }
     else if(HoughPoints.length()==1)
@@ -2163,7 +2164,7 @@ void MainWindow::AutoRun()
 
 
 
-            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
             CharacteristicPoint.clear();
 
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
@@ -2183,7 +2184,7 @@ void MainWindow::AutoRun()
 
 
 
-            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
             CharacteristicPoint.clear();
 
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
@@ -2206,7 +2207,7 @@ void MainWindow::AutoRun()
             CurvePoints_int.push_back(n);
         }
 
-        QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,10);
+        QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
         CharacteristicPoint.clear();
 
         CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
@@ -2505,69 +2506,110 @@ void MainWindow::DeleteOutlineNoise()
 QVector<QVector2D>MainWindow:: ReOrderOutline_8Neighboor(QVector <QVector2D> inputarray,QImage inputIMG)
 {
     QVector<QVector2D> Toreturn;
+    Output2File(inputarray,"F:/output/outline");
     foreach (QVector2D P, inputarray) //边界上异色
     {
         inputIMG.setPixel(P.x(),P.y(),qRgb(125,200,235));
     }
-
-    foreach (QVector2D P, inputarray)
+    Toreturn.push_back(inputarray[0]);
+    inputIMG.setPixel(inputarray[0].x(),inputarray[0].y(),qRgb(0,0,0));
+    QVector2D LastP(-5,-5);
+    QVector2D P=inputarray[0];
+    int conntt=0;
+    for(int i=1;i<inputarray.length();i++)
     {
-        if(inputIMG.pixel(P.x()-1,P.y()+1)==qRgb(125,200,235))
+
+        if(Toreturn.length()>=2)
+        {
+            LastP=Toreturn[Toreturn.length()-2];
+        }
+
+        QVector2D NewP;
+        if(inputIMG.pixel(P.x()-1,P.y()+1)==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x()-1,P.y()+1)>1)
         {
             //左上角
-
-            Toreturn.push_back(P);
+            NewP.setX(P.x()-1);
+            NewP.setY(P.y()+1);
+            P=NewP;
+            Toreturn.push_back(NewP);
             inputIMG.setPixel(P.x()-1,P.y()+1,qRgb(0,0,0));
             continue;
 
         }
-        else if(inputIMG.pixel(P.x(),P.y()+1)==qRgb(125,200,235))
+        else if(inputIMG.pixel(P.x(),P.y()+1)==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x(),P.y()+1)>1)
         {
             //正上方
-            Toreturn.push_back(P);
+            NewP.setX(P.x());
+            NewP.setY(P.y()+1);
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x(),P.y()+1,qRgb(0,0,0));
             continue;
         }
-        else if(inputIMG.pixel(P.x()+1,P.y()+1)==qRgb(125,200,235))
+        else if(inputIMG.pixel(P.x()+1,P.y()+1)==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x()+1,P.y()+1)>1)
         {
             //右上角
-            Toreturn.push_back(P);
+            NewP.setX(P.x()+1);
+            NewP.setY(P.y()+1);
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x()+1,P.y()+1,qRgb(0,0,0));
             continue;
         }
-        else if(inputIMG.pixel(P.x()+1,P.y())==qRgb(125,200,235))
+        else if(inputIMG.pixel(P.x()+1,P.y())==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x()+1,P.y())>1)
         {
             //正右边
-            Toreturn.push_back(P);
+            NewP.setX(P.x()-1);
+            NewP.setY(P.y());
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x()+1,P.y(),qRgb(0,0,0));
             continue;
         }
-        else if(inputIMG.pixel(P.x()+1,P.y()-1)==qRgb(125,200,235))
+        else if(inputIMG.pixel(P.x()+1,P.y()-1)==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x()+1,P.y()-1)>1)
         {
             //右下角
-            Toreturn.push_back(P);
+            NewP.setX(P.x()+1);
+            NewP.setY(P.y()-1);
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x()+1,P.y()-1,qRgb(0,0,0));
             continue;
         }
-        else if(inputIMG.pixel(P.x(),P.y()-1)==qRgb(125,200,235))
+        else if(inputIMG.pixel(P.x(),P.y()-1)==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x(),P.y()-1)>1)
         {
             //正下方
-            Toreturn.push_back(P);
+            NewP.setX(P.x());
+            NewP.setY(P.y()-1);
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x(),P.y()-1,qRgb(0,0,0));
             continue;
         }
-        else if(inputIMG.pixel(P.x()-1,P.y()-1)==qRgb(125,200,235))
+        else if(inputIMG.pixel(P.x()-1,P.y()-1)==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x()-1,P.y()-1)>1)
         {
             //左下角
-            Toreturn.push_back(P);
+            NewP.setX(P.x()-1);
+            NewP.setY(P.y()-1);
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x()-1,P.y()-1,qRgb(0,0,0));
             continue;
-        }else
+        }else if(inputIMG.pixel(P.x()-1,P.y())==qRgb(125,200,235)&&DisCalFuc(LastP.x(),LastP.y(),P.x()-1,P.y())>1)
         {
             //正左边
-            Toreturn.push_back(P);
+            NewP.setX(P.x()-1);
+            NewP.setY(P.y());
+            Toreturn.push_back(NewP);
+            P=NewP;
             inputIMG.setPixel(P.x()-1,P.y(),qRgb(0,0,0));
             continue;
+        }
+        else{
+            QMessageBox::information(NULL,"infor","impossible");
+            qDebug()<<"dis   "<<DisCalFuc(LastP.x(),LastP.y(),P.x(),P.y())<<"    spot   P "<< P<<"  LastP"<<LastP;
+            qDebug()<<"toreturn  "<<Toreturn;
+            exit(0);
         }
     }
 
@@ -2586,6 +2628,9 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
     QVector<int>outbot;
     int *tempx=new int[length];
     int *tempy=new int[length];
+
+    QVector2D Cantchoose;
+
     for(int i=0;i<length;i++)
     {
         tempx[i]=RO[i].x();
@@ -2594,6 +2639,7 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
     Last.setX(tempx[0]);
     Last.setY(tempy[0]);
     NewOrder.push_back(Last);
+    Cantchoose=Last;
     tempx[0]=-10;
     tempy[0]=-10;
     outbot.push_back(0);
@@ -2606,15 +2652,19 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
         int minspot=-5;
         for(int j=1;j<length;j++)
         {
-            dis[j]=sqrt(pow(Last.x()-tempx[j],2)+pow(Last.y()-tempy[j],2));
-            if(minval>dis[j]){
-                minval=dis[j];
-                minspot=j;
-            }
+           // if(abs(tempx[j]-Cantchoose.x())>1&&abs(tempy[j]-Cantchoose.y())>1)
+            //{
+                dis[j]=sqrt(pow(Last.x()-tempx[j],2)+pow(Last.y()-tempy[j],2));
+                if(minval>dis[j]){
+                    minval=dis[j];
+                    minspot=j;
+                }
+          //  }
         }
 
         Last.setX(tempx[minspot]);
         Last.setY(tempy[minspot]);
+        Cantchoose=Last;
         NewOrder.push_back(Last);
         tempx[minspot]=-10;
         tempy[minspot]=-10;
@@ -3002,6 +3052,7 @@ void MainWindow::CurveFit(QVector<QVector2D> Curve)
 
     int CurveCast=CurveTimer.elapsed();
 
+    Output2File(curvePoints,"F:/output/curvefit.txt");
 
 
 
@@ -3415,14 +3466,12 @@ QVector<QVector2D>MainWindow::CurveOffset(QVector<QVector2D>input, QVector<QPoin
 
     QVector<QVector2D>Toreturn;
 
+    if(!ui->Erosion_checkBox->isChecked())//没有加入腐蚀才用这个方式
+    {
+
+    }
+
     return Toreturn;
-
-
-
-
-
-
-
 }
 
 

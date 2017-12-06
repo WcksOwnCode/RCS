@@ -37,7 +37,7 @@ QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP);
 QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
 
 QVector<int> CheckPointInline(QVector<int>BP,
-                              QVector<QVector2D> OOL, QVector<int> BreakP, int MinL=10);
+                              QVector<QVector2D> OOL, QVector<int> BreakP, int MinL);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
 
 QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
@@ -55,11 +55,11 @@ QVector<QVector3D>PeriodDetection(QVector<double> PD);
 QVector<QVector3D>Curvature(QVector<QVector2D> OUTLINE);
 
 
-QVector<int> InsertCalculate(int startP, int endP, int maxor, int MinL=10);
+QVector<int> InsertCalculate(int startP, int endP, int maxor, int MinL);
 
 QVector<QVector2D> Performance( QVector<double> change);
 
-QVector<QVector2D> HoughTransform(QImage OutlineImage,int PointCount,int minmumLine=10);
+QVector<QVector2D> HoughTransform(QImage OutlineImage,int PointCount,int minmumLine);
 
 QImage cvMat2QImage(const cv::Mat& mat);
 
@@ -69,9 +69,14 @@ void Output2File(QVector<QVector2D>InputArray,QString Outputadd="");
 void Output2File(QVector<QVector4D>InputArray,QString Outputadd="");
 void Output2File(QVector<int>InputArray,QString Outputadd="",int newline=1);
 void Output2File(QVector<double>InputArray,QString Outputadd="",int newline=1);
+void Output2File(QVector<QPointF> InputArray,QString Outputadd="");
+
+
+
 QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
 QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray);
-QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D>input_Point, QVector<QVector2D> allp, QVector<int> BreakP, bool bisect, int minL);
+QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D>input_Point,
+                       QVector<QVector2D> allp, QVector<int> BreakP, bool bisect, int MinL=15);
 
 void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
 
@@ -89,5 +94,7 @@ QVector<QVector2D>Unique_2D(QVector<QVector2D>Input);
 QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
 
 void QimageSave(QImage Tosave,QString add,int width=800,int height=600);
+
+QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points);
 
 #endif // FUNCITONS_H

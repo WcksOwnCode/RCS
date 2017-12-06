@@ -138,8 +138,8 @@ private:
 
     QString FullOrder;
 
-    int minmumDcres=30;//曲线离散后最短直线
-
+    const int minmumDcres=30;//曲线离散后最短直线
+    const int minmumLine=15;//霍夫变换最后参数
     int rows;
 
     int columns;
@@ -208,13 +208,13 @@ private:
 
     int all;
 
-    const int minmumLine=15;
+
 
     const int m_iTotwoValue=120;//转二值图的时候的阈值
 
-    const int width=600;//设定图片长宽
+    const int width=800;//设定图片长宽
 
-    const int height=450;
+    const int height=600;
 
     const int cameraheight=768;
 
@@ -336,7 +336,7 @@ private:
 
     QString SpaceimageADD="E:/softwaresFiles/QT/RobotCotrolSystem/SpaceImage.png";
 
-   QString orispot="G00 X=500 Y=0 Z=400 A=3.14 B=0 C=0";
+   QString orispot="G00 X=800 Y=0 Z=400 A=3.14 B=0 C=0";
 
     QString readfileadd;
 
