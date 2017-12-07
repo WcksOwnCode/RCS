@@ -50,6 +50,7 @@
 #include "funcitons.h"
 #include "matrix_4.h"
 #include"imagewatch.h"
+
 using namespace std;
 using namespace cv;
 namespace Ui {

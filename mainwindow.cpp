@@ -10,8 +10,6 @@
 #include<iostream>
 #include <fstream>
 #include "capturethread.h"
-#pragma comment(lib,"MVCAMSDK.lib")
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -960,7 +958,7 @@ void MainWindow::DomainCalcu(QImage x)
         }
     }
     // qDebug()<<"all:  "<<all;
-    qDebug()<<"VD  "<<V4Domain;
+    //qDebug()<<"VD  "<<V4Domain;
     ConnectDomains();
 
     int elapsed=DCtimer.elapsed();
@@ -1242,7 +1240,7 @@ void MainWindow::ConnectDomains()
         }
 
     }
-    qDebug()<<"max: "<<V4Domain_max;
+   // qDebug()<<"max: "<<V4Domain_max;
 }
 
 QImage MainWindow::GetOutLine(QImage II)
@@ -1449,7 +1447,7 @@ void MainWindow::SmoothOutline()
     SOtimer.start();
 
 
-   ReOrderOutline(OnlyOutLine);//重新排序边界
+    ReOrderOutline(OnlyOutLine);//重新排序边界
 
     //OrderdOutLine= ReOrderOutline_8Neighboor(OnlyOutLine,OulineImage);
 
@@ -1643,11 +1641,9 @@ void MainWindow::ReadPngButton()
         //表示需要偏移
         int offsetValue=ui->OffsetValueInput->text().toInt();
         Orioutline=OnlyOutLine;
-        if(ui->Erosion_checkBox->isChecked()){
+
             QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
             OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
-        }
-
 
     }
 
@@ -1808,6 +1804,24 @@ void MainWindow::ReadPngButton()
     {
         SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
     }
+///asd  直接线条加粗的方式测试腐蚀和膨胀
+   /*QImage tetimage=spaceImage;
+   tetimage =ImageDrawer( tetimage,Orioutline,QColor(0,0,0),1);
+   Mat testmat =QImage2cvMat(tetimage);
+   imwrite("F:/output/oritetimage.png",testmat);
+    OutlineErosion(tetimage,Orioutline,V4Domain_max,offsetValue);
+    qDebug()<<"3123123";
+    tetimage=ErosionImage;
+    Mat ttmat =QImage2cvMat(tetimage);
+    imwrite("F:/output/dstimage.png",ttmat);
+
+    imshow("tetimage",testmat);
+    ErosionImage=spaceImage;*/
+
+
+
+
+
 
 
     CreadOrders();
@@ -1815,6 +1829,7 @@ void MainWindow::ReadPngButton()
     QimageSave(OulineImage_b,"outlineb");
     QimageSave(origin_image,"Originimage");
     m_bReadState=true;
+
 
     //CreadOrders();
     int elapsed=WhoseTime.elapsed()-readstart;
@@ -1876,7 +1891,6 @@ void MainWindow::readFarme()
     if(VCcam.isOpened()){
         cv::Mat vcframe;
         VCcam>>vcframe;
-        //  qDebug()<<vcframe.rows<<"    "<<vcframe.cols;
         if(!frame)
         {
             exit(0);
@@ -2652,14 +2666,14 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
         int minspot=-5;
         for(int j=1;j<length;j++)
         {
-           // if(abs(tempx[j]-Cantchoose.x())>1&&abs(tempy[j]-Cantchoose.y())>1)
+            // if(abs(tempx[j]-Cantchoose.x())>1&&abs(tempy[j]-Cantchoose.y())>1)
             //{
-                dis[j]=sqrt(pow(Last.x()-tempx[j],2)+pow(Last.y()-tempy[j],2));
-                if(minval>dis[j]){
-                    minval=dis[j];
-                    minspot=j;
-                }
-          //  }
+            dis[j]=sqrt(pow(Last.x()-tempx[j],2)+pow(Last.y()-tempy[j],2));
+            if(minval>dis[j]){
+                minval=dis[j];
+                minspot=j;
+            }
+            //  }
         }
 
         Last.setX(tempx[minspot]);
@@ -2712,117 +2726,120 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
     QTime ErosionTimer;
     ErosionTimer.start();
     QVector<QVector2D>Toreturn;
-    QVector<QVector2D>MidData;
-    QVector<QVector2D> area;
-    QVector2D temp2DD;
 
-    int Xstart,Xend,Ystart,Yend;//找到一个更小的矩形框来框住连通域，这样检索范围会小一些
-
-    //to get all  the area points to 2D type
-    for(int i=0;i<V4area.length();i++)
+    if(ui->Erosion_checkBox->isChecked()&&ui->isOutlineoffset->isChecked())//两个都勾选的时候则用我的方法
     {
+        QVector<QVector2D>MidData;
+        QVector<QVector2D> area;
+        QVector2D temp2DD;
 
-        for(int j=V4area[i].z();j<V4area[i].w();j++)
+        int Xstart,Xend,Ystart,Yend;//找到一个更小的矩形框来框住连通域，这样检索范围会小一些
+
+        //to get all  the area points to 2D type
+        for(int i=0;i<V4area.length();i++)
         {
-            temp2DD.setX(V4area[i].x());
-            temp2DD.setY(j);
-            area.push_back(temp2DD);
 
-        }
-    }
-    Xstart=Xend=area[0].x();
-    Ystart=Yend=area[0].y();
-
-    foreach (QVector2D xy, area)
-    {
-        if(xy.x()<Xstart)
-        {
-            Xstart=xy.x();
-        }
-        if(xy.x()>Xend)
-        {
-            Xend=xy.x();
-        }
-        if(xy.y()<Ystart)
-        {
-            Ystart=xy.y();
-        }
-        if(xy.y()>Yend)
-        {
-            Yend=xy.y();
-        }
-    }
-    Xstart=Xstart-2;
-    Ystart=Ystart-2;
-    Xend=Xend+2;
-    Yend=Yend+2;//扩大一点方框
-
-    foreach (QVector2D ks, OutlinePoints)
-    {
-        inputImg.setPixel(ks.x(),ks.y(),qRgb(255,255,255));
-    }
-
-
-    QVector<int>newhere;
-
-    if(distances<0){
-        //first to check four neiborhood
-        bool lastround=false;
-        for(int i=1;i<=-distances;i++){
-            MidData.clear();
-            for(int x=Xstart;x<Xend;x++)
+            for(int j=V4area[i].z();j<V4area[i].w();j++)
             {
-                for(int y=Ystart;y<Yend;y++)
+                temp2DD.setX(V4area[i].x());
+                temp2DD.setY(j);
+                area.push_back(temp2DD);
+
+            }
+        }
+        Xstart=Xend=area[0].x();
+        Ystart=Yend=area[0].y();
+
+        foreach (QVector2D xy, area)
+        {
+            if(xy.x()<Xstart)
+            {
+                Xstart=xy.x();
+            }
+            if(xy.x()>Xend)
+            {
+                Xend=xy.x();
+            }
+            if(xy.y()<Ystart)
+            {
+                Ystart=xy.y();
+            }
+            if(xy.y()>Yend)
+            {
+                Yend=xy.y();
+            }
+        }
+        Xstart=Xstart-2;
+        Ystart=Ystart-2;
+        Xend=Xend+2;
+        Yend=Yend+2;//扩大一点方框
+
+        foreach (QVector2D ks, OutlinePoints)
+        {
+            inputImg.setPixel(ks.x(),ks.y(),qRgb(255,255,255));
+        }
+
+
+        QVector<int>newhere;
+
+        if(distances<0){
+            //first to check four neiborhood
+            bool lastround=false;
+            for(int i=1;i<=-distances;i++){
+                MidData.clear();
+                for(int x=Xstart;x<Xend;x++)
                 {
-                    QColor inputcolor;
-                    inputcolor=inputImg.pixel(x,y);
-                    if(inputcolor.red()==255&&inputcolor.blue()==255&&inputcolor.green()==255)
+                    for(int y=Ystart;y<Yend;y++)
                     {
-                        inputcolor=inputImg.pixel(x+1,y);
-                        if(inputcolor.red()==0)
+                        QColor inputcolor;
+                        inputcolor=inputImg.pixel(x,y);
+                        if(inputcolor.red()==255&&inputcolor.blue()==255&&inputcolor.green()==255)
                         {
-                            temp2DD.setX(x+1);
-                            temp2DD.setY(y);
-                            MidData.push_back(temp2DD);
-                            continue;
+                            inputcolor=inputImg.pixel(x+1,y);
+                            if(inputcolor.red()==0)
+                            {
+                                temp2DD.setX(x+1);
+                                temp2DD.setY(y);
+                                MidData.push_back(temp2DD);
+                                continue;
+                            }
+                            inputcolor=inputImg.pixel(x-1,y);
+                            if(inputcolor.red()==0)
+                            {
+                                temp2DD.setX(x-1);
+                                temp2DD.setY(y);
+                                MidData.push_back(temp2DD);
+                                continue;
+                            }
+                            inputcolor=inputImg.pixel(x,y+1);
+                            if(inputcolor.red()==0)
+                            {
+                                temp2DD.setX(x);
+                                temp2DD.setY(y+1);
+                                MidData.push_back(temp2DD);
+                                continue;
+                            }
+                            inputcolor=inputImg.pixel(x,y-1);
+                            if(inputcolor.red()==0)
+                            {
+                                temp2DD.setX(x);
+                                temp2DD.setY(y-1);
+                                MidData.push_back(temp2DD);
+                                continue;
+                            }
                         }
-                        inputcolor=inputImg.pixel(x-1,y);
-                        if(inputcolor.red()==0)
-                        {
-                            temp2DD.setX(x-1);
-                            temp2DD.setY(y);
-                            MidData.push_back(temp2DD);
-                            continue;
-                        }
-                        inputcolor=inputImg.pixel(x,y+1);
-                        if(inputcolor.red()==0)
-                        {
-                            temp2DD.setX(x);
-                            temp2DD.setY(y+1);
-                            MidData.push_back(temp2DD);
-                            continue;
-                        }
-                        inputcolor=inputImg.pixel(x,y-1);
-                        if(inputcolor.red()==0)
-                        {
-                            temp2DD.setX(x);
-                            temp2DD.setY(y-1);
-                            MidData.push_back(temp2DD);
-                            continue;
-                        }
+
                     }
-
                 }
-            }
 
 
-            for(int t=0;t<MidData.length();t++)
-            {
-                inputImg.setPixel(MidData[t].x(),MidData[t].y(),qRgb(255,255,255));
-            }
+                for(int t=0;t<MidData.length();t++)
+                {
+                    inputImg.setPixel(MidData[t].x(),MidData[t].y(),qRgb(255,255,255));
+                }
 
 
-            /*if(i==-distances)
+                /*if(i==-distances)
             {
                 lastround=true;
             }
@@ -2874,138 +2891,200 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
             OutlinePoints.clear();
              OutlinePoints=MidData;
              MidData.clear();
-*/
+*/               
+            }
 
         }
-
-    }
-    else if(distances>0)
-    {//向外扩张
-        Xstart=Xstart-distances-2;
-        Xend=Xend+distances+2;
-        Ystart=Ystart-distances-2;
-        Yend=Yend+distances+2;
-
-
-        int count=0;
+        else if(distances>0)
+        {//向外扩张
+            Xstart=Xstart-distances-2;
+            Xend=Xend+distances+2;
+            Ystart=Ystart-distances-2;
+            Yend=Yend+distances+2;
+            int count=0;
 
 
-        for(int i=1;i<=distances;i++){
-            MidData.clear();
+            for(int i=1;i<=distances;i++){
+                MidData.clear();
 
-            for(int x=Xstart;x<Xend;x++)
-            {
-                for(int y=Ystart;y<Yend;y++)
+                for(int x=Xstart;x<Xend;x++)
                 {
-                    count=0;
-                    QVector4D type(0,0,0,0);//(左，上，右，下),有值则是1，没值是0
-                    QColor inputcolor;
-                    inputcolor=inputImg.pixel(x,y);
-                    if(inputcolor.red()==0&&inputcolor.blue()==0&&inputcolor.green()==0)
+                    for(int y=Ystart;y<Yend;y++)
                     {
-                        inputcolor=inputImg.pixel(x+1,y);
-                        if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
+                        count=0;
+                        QVector4D type(0,0,0,0);//(左，上，右，下),有值则是1，没值是0
+                        QColor inputcolor;
+                        inputcolor=inputImg.pixel(x,y);
+                        if(inputcolor.red()==0&&inputcolor.blue()==0&&inputcolor.green()==0)
                         {
-                            temp2DD.setX(x+1);
-                            temp2DD.setY(y);
-                            MidData.push_back(temp2DD);
-                            count++;
-                            type.setZ(1);
-                        }
-                        inputcolor=inputImg.pixel(x-1,y);
-                        if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
-                        {
-                            temp2DD.setX(x-1);
-                            temp2DD.setY(y);
-                            MidData.push_back(temp2DD);
-                            count++;
-                            type.setX(1);
-
-                        }
-                        inputcolor=inputImg.pixel(x,y+1);
-                        if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
-                        {
-                            temp2DD.setX(x);
-                            temp2DD.setY(y+1);
-                            MidData.push_back(temp2DD);
-                            count++;
-                            type.setY(1);
-
-                        }
-                        inputcolor=inputImg.pixel(x,y-1);
-                        if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
-                        {
-                            temp2DD.setX(x);
-                            temp2DD.setY(y-1);
-                            MidData.push_back(temp2DD);
-                            count++;
-                            type.setW(1);
-
-                        }
-
-                        if(count>=2)
-                        {
-                            if(type.x()==1&&type.w()==1)
-                            {
-                                temp2DD.setX(x-1);
-                                temp2DD.setY(y-1);
-                                MidData.push_back(temp2DD);
-                            }else if(type.x()==1&&type.y()==1)
-                            {
-                                temp2DD.setX(x-1);
-                                temp2DD.setY(y+1);
-                                MidData.push_back(temp2DD);
-                            }
-                            else if(type.y()==1&&type.z()==1)
+                            inputcolor=inputImg.pixel(x+1,y);
+                            if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
                             {
                                 temp2DD.setX(x+1);
+                                temp2DD.setY(y);
+                                MidData.push_back(temp2DD);
+                                count++;
+                                type.setZ(1);
+                            }
+                            inputcolor=inputImg.pixel(x-1,y);
+                            if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
+                            {
+                                temp2DD.setX(x-1);
+                                temp2DD.setY(y);
+                                MidData.push_back(temp2DD);
+                                count++;
+                                type.setX(1);
+
+                            }
+                            inputcolor=inputImg.pixel(x,y+1);
+                            if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
+                            {
+                                temp2DD.setX(x);
                                 temp2DD.setY(y+1);
                                 MidData.push_back(temp2DD);
+                                count++;
+                                type.setY(1);
+
                             }
-                            else if(type.z()==1&&type.w()==1)
+                            inputcolor=inputImg.pixel(x,y-1);
+                            if(inputcolor.red()>200&&inputcolor.blue()>200&&inputcolor.green()>200)
                             {
-                                temp2DD.setX(x+1);
+                                temp2DD.setX(x);
                                 temp2DD.setY(y-1);
                                 MidData.push_back(temp2DD);
-                            }
-                            else{
+                                count++;
+                                type.setW(1);
 
                             }
+
+                            if(count>=2)
+                            {
+                                if(type.x()==1&&type.w()==1)
+                                {
+                                    temp2DD.setX(x-1);
+                                    temp2DD.setY(y-1);
+                                    MidData.push_back(temp2DD);
+                                }else if(type.x()==1&&type.y()==1)
+                                {
+                                    temp2DD.setX(x-1);
+                                    temp2DD.setY(y+1);
+                                    MidData.push_back(temp2DD);
+                                }
+                                else if(type.y()==1&&type.z()==1)
+                                {
+                                    temp2DD.setX(x+1);
+                                    temp2DD.setY(y+1);
+                                    MidData.push_back(temp2DD);
+                                }
+                                else if(type.z()==1&&type.w()==1)
+                                {
+                                    temp2DD.setX(x+1);
+                                    temp2DD.setY(y-1);
+                                    MidData.push_back(temp2DD);
+                                }
+                                else{
+
+                                }
+                            }
+
+
                         }
-
 
                     }
+                }
 
+
+                for(int t=0;t<MidData.length();t++)
+                {
+                    inputImg.setPixel(MidData[t].x(),MidData[t].y(),qRgb(0,0,0));
                 }
             }
-
-
-            for(int t=0;t<MidData.length();t++)
-            {
-                inputImg.setPixel(MidData[t].x(),MidData[t].y(),qRgb(0,0,0));
-            }
         }
+        else
+        {
+            //return OutlinePoints;
+        }
+
+        Toreturn=MidData;
+
+        Toreturn=Unique_2D(Toreturn);
+
+        Output2File(Toreturn,"F:/output/insidertest.txt");
+
+
+
+        qDebug()<<"returned from outline Erosion function;";
+
+
+        ErosionImage=inputImg;
+
+
     }
-    else
-    {
-        //return OutlinePoints;
+    else if(ui->isOutlineoffset->isChecked()&&!ui->Erosion_checkBox->isChecked())
+    {//形态学方法试试
+
+        Mat inputmat=QImage2cvMat(inputImg);
+
+        Mat erosion_dst, dilation_dst;
+
+        int erosion_elem = 0;
+        int erosion_size =abs(distances);
+        int dilation_elem = 0;
+        int dilation_size = abs(distances);
+
+
+
+        if(ui->OffsetValueInput->text().toInt()>0)
+        {//向外，腐蚀方法
+            int erosion_type;
+              if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }//矩形
+              else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }//椭圆和圆形
+              else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }//十字形
+
+              Mat element = getStructuringElement( erosion_type,
+                                                   Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                                   Point( erosion_size, erosion_size ) );
+              /// 腐蚀操作
+              erode( inputmat, erosion_dst, element );
+              ErosionImage=cvMat2QImage(erosion_dst);
+              imshow( "Erosion Demo", erosion_dst );
+              imshow("ori",inputmat);
+        }
+        else if(ui->OffsetValueInput->text().toInt()<0)//向内，膨胀方法
+        {
+            int dilation_type;
+              if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+              else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+              else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+
+              Mat element = getStructuringElement( dilation_type,
+                                                   Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                                   Point( dilation_size, dilation_size ) );
+              ///膨胀操作
+              dilate( inputmat, dilation_dst, element );
+              imshow( "Dilation Demo", dilation_dst );
+              imshow("ori",inputmat);
+              ErosionImage=cvMat2QImage(dilation_dst);
+        }
+
+        //显示原图
+
+
+          //尺寸调整
+       // Mat dstImage1,dstImage2;
+       //   cv::resize(inputmat,dstImage1,Size(inputmat.cols/2,inputmat.rows/2),0,0,INTER_LINEAR);
+      //    cv::resize(inputmat,dstImage2,Size(inputmat.cols*2,inputmat.rows*2),0,0,INTER_LINEAR);
+       //   imshow("dst1",dstImage1);
+          //imshow("dst2",dstImage2);
     }
-
-    Toreturn=MidData;
-
-    Toreturn=Unique_2D(Toreturn);
-
-    Output2File(Toreturn,"F:/output/insidertest.txt");
-
-
-
-    qDebug()<<"returned from outline Erosion function;";
-
-
-    ErosionImage=inputImg;
 
     int Erotimerus=ErosionTimer.elapsed();
     qDebug()<<"EROSION FUNCTION TIME US ::"<<Erotimerus;
+
+
+
+    //waitKey(0);
+
     return Toreturn;
 
 }
@@ -3480,8 +3559,6 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(const QString &arg1)
 
 }
 
-
-
 void MainWindow::on_DistortionCalibration_button_clicked()
 {
     using namespace cv;
@@ -3809,7 +3886,6 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         // 	std::cout<<"save is done"<<endl;
     }
 }
-
 
 void MainWindow::on_GoToOriginSpot_button_clicked()
 {
@@ -4151,7 +4227,6 @@ void MainWindow::on_Amini_Button_clicked()
 
     }
 }
-
 void MainWindow::on_Bmini_Button_clicked()
 {
     if(m_bCurrentGoted&&m_bSerialIsOpen)//确保已经有现在的坐标和串口已经打开
