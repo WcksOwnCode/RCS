@@ -1024,6 +1024,7 @@ QVector<int>  CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<
 QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
 {
     //points 是输入的暂且认为是关键点的点坐标
+
     QVector<QVector2D> Toreturn;
     int length=points.length();
     if(length<=1)
@@ -1045,6 +1046,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
         qDebug()<<kepdis;
         Output2File(kepdis,"F:/output/kepdis"+QString::number(qrand())+".txt");
         QVector<QVector2D> Cluster;
+        QVector<int>Cluster_int;
         QVector<QVector2D>KeyPoints;
         QVector<double> ClusterSlope;
         QVector<double> ClusterDis;
@@ -1056,18 +1058,21 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                 if(i==0&&kepdis[i]>=5)
                 {
                     Cluster.push_back(points[i]);
+                    Cluster_int.push_back(i);
                     Current_pos=i;
                     break;
                 }
                 if(kepdis[i]<5)//大于5认为从团簇分离
                 {
                     Cluster.push_back(points[i]);
+                    Cluster_int.push_back(i);
                     ClusterSlope.push_back(kepslope[i]);
                     ClusterDis.push_back(kepdis[i]);
                 }
                 if(kepdis[i]>5)
                 {
                     Cluster.push_back(points[i]);
+                    Cluster_int.push_back(i);
                     Current_pos=i;
                     break;
                 }
@@ -1090,7 +1095,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                     em.setX(xx);
                     em.setY(yy);
 
-                   KeyPoints.push_back(em);
+                    KeyPoints.push_back(em);
                 }
                 else
                 {
@@ -1108,7 +1113,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                         else if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==2
                                 &&AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==1)
                         {
-                             KeyPoints.push_back(Cluster[0]);
+                            KeyPoints.push_back(Cluster[0]);
                         }
                         else if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==1
                                 &&AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==2)
@@ -1123,7 +1128,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                         {
                             if(AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==2)
                             {
-                               KeyPoints.push_back(Cluster[1]);
+                                KeyPoints.push_back(Cluster[1]);
                             }
                         }
                     }
@@ -1135,7 +1140,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                             if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==2)
                             {
 
-                               KeyPoints.push_back(Cluster[0]);
+                                KeyPoints.push_back(Cluster[0]);
                             }
                         }
                     }
@@ -1145,20 +1150,51 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
             {
                 KeyPoints.push_back(Cluster[1]);//只保留中间那个
             }
-            else if (Cluster_Length>3&&Cluster_Length<8)
-            {
-
-            }
-            else if(ClusterDis>8)
+            else if(Cluster_Length>3)
             {
                 // here need fix!
-                for(int i=0;i<ClusterDis.length();i++)
+                QVector<QVector2D> CandidateP;
+                QVector<int>Candidate_int;
+                for(int i=0;i<ClusterSlope.length()-1;i++)
                 {
-                    if(ClusterDis>=2)//才有参考价值
+                    if(AngelCompare(ClusterSlope[i],ClusterSlope[i+1],0.8)==2)
                     {
+                        if(ClusterDis[i]>2&&ClusterDis[i+1]>2)
+                        {
+                            KeyPoints.push_back(points[i+1]);
+                        }
+                        else if(ClusterDis[i]>2&&!ClusterDis[i+1]>2)
+                        {
+                            //考察第三个点隔一个点的斜率
+                             KeyPoints.push_back(points[i]);
+                             KeyPoints.push_back(points[i+2]);
+
+                        }
+                        else if(!ClusterDis[i]>2&&ClusterDis[i+1]>2)
+                        {
+                            KeyPoints.push_back(points[i]);
+                            KeyPoints.push_back(points[i+2]);
+                        }
+                        else{
+                            CandidateP.push_back(points[i+1]);//保存候选点
+                            Candidate_int.push_back(i+1);
+                        }
+                    }
+                }
+                //候选点获取之后，对候选点进行进一步考察
+                if(CandidateP.length()==0)
+                {
+                    //没有候选点北选出,这个可能性很小
+                }else
+                {
+                    for(int j=0;j<CandidateP.length();j++)
+                    {//进一步考察候选点，寻找峰值点
 
                     }
                 }
+
+
+
             }
 
 
