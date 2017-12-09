@@ -87,8 +87,6 @@ public:
 
     void EmptyFunction();
 
-
-
     void TransferToWorldCoordinate();
 
     void DynamicEncoding(QVector <QVector2D> DE);

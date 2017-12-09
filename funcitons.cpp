@@ -1124,7 +1124,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                     else if(Current_pos-2<0)
                     {//起点越界,说明两个点中第一个点就是起点
                         KeyPoints.push_back(Cluster[0]);
-                        if(ClusterDis>2)//第二个点距离第一个点很近，可以忽略了
+                        if(ClusterDis[0]>2)//第二个点距离第一个点很近，可以忽略了
                         {
                             if(AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==2)
                             {
@@ -1135,7 +1135,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                     else if(Current_pos+1>length-1)
                     {//终点越界，说明第二个点是终点
                         KeyPoints.push_back(Cluster[1]);
-                        if(ClusterDis>2)//第二个点距离第一个点很近，可以忽略了
+                        if(ClusterDis[0]>2)//第二个点距离第一个点很近，可以忽略了
                         {
                             if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==2)
                             {
@@ -1163,7 +1163,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
                         {
                             KeyPoints.push_back(points[i+1]);
                         }
-                        else if(ClusterDis[i]>2&&!ClusterDis[i+1]>2)
+                        else if(ClusterDis[i]>2&&ClusterDis[i+1]<=2)
                         {
                             //考察第三个点隔一个点的斜率
                              KeyPoints.push_back(points[i]);
