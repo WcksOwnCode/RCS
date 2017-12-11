@@ -41,31 +41,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-    QVector<QVector2D>testpoly;
-    for(int i=0;i<10;i++)
-    {
-
-            int x=2*i;
-            int y=x*x+2*x+1;
-            QVector2D d2;
-            d2.setX(x);
-            d2.setY(y);
-            testpoly.push_back(d2);
-
-    }
-
-    qDebug()<<"test   "<<testpoly;
-   QVector<double>paraus= polyfit(testpoly,4);
-   qDebug()<<paraus;
-
-    exit(0);
-
-
-
-
-
-
-
 
 
 
@@ -1484,7 +1459,7 @@ void MainWindow::SmoothOutline()
 
     //OrderdOutLine= ReOrderOutline_8Neighboor(OnlyOutLine,OulineImage);
 
-    CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
+  //  CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
 
 
     //计算全部边界的两点间方向//9.22尝试

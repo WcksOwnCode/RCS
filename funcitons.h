@@ -89,6 +89,7 @@ bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double t
 
 QVector<double> DistanceEvaluate(QVector<double>dis);
 QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>input);
+QVector<int>TransSequence2D_ToInt(QVector<QVector2D>Alloutline,QVector<QVector2D>input2D);
 QVector<int>Unique_Int(QVector<int>Input);
 QVector<QVector2D>Unique_2D(QVector<QVector2D>Input);
 QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
@@ -96,5 +97,9 @@ QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
 void QimageSave(QImage Tosave,QString add,int width=800,int height=600);
 
 QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points);
+
+bool IsEvenNumber(int input);
+
+double SumofArray(QVector<double>inputarray);
 
 #endif // FUNCITONS_H

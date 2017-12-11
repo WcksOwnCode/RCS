@@ -661,9 +661,6 @@ QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP)
 
     return toreturn;
 }
-
-
-
 QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
 {
     //into 是传入的点阵位置矩阵，求出两个点之间的距离
@@ -887,33 +884,33 @@ QVector<int>  CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<
 
         qDebug()<<Break_int[i]<<"break_int i";
 
-        if(Break_int[i]-12>=0&&Break_int[i]+12<OOL.length())
+        if(Break_int[i]-9>=0&&Break_int[i]+9<OOL.length())
         {
-            PreThree.push_back(OOL[Break_int[i]-12]);
-            PreThree.push_back(OOL[Break_int[i]-8]);
-            PreThree.push_back(OOL[Break_int[i]-4]);
-            AfterThree.push_back(OOL[Break_int[i]+4]);
-            AfterThree.push_back(OOL[Break_int[i]+8]);
-            AfterThree.push_back(OOL[Break_int[i]+12]);
+            PreThree.push_back(OOL[Break_int[i]-9]);
+            PreThree.push_back(OOL[Break_int[i]-6]);
+            PreThree.push_back(OOL[Break_int[i]-3]);
+            AfterThree.push_back(OOL[Break_int[i]+3]);
+            AfterThree.push_back(OOL[Break_int[i]+6]);
+            AfterThree.push_back(OOL[Break_int[i]+9]);
         }
-        else if(Break_int[i]-12<0&&Break_int[i]+12<OOL.length())
+        else if(Break_int[i]-9<0&&Break_int[i]+9<OOL.length())
         {
             int leng=Break_int[i];
-            if(leng>1&&leng<12){
+            if(leng>1&&leng<9){
                 PreThree.push_back(OOL[Break_int[i]-leng]);
                 PreThree.push_back(OOL[Break_int[i]-leng/2]);
                 PreThree.push_back(OOL[Break_int[i]-leng/4]);
-                AfterThree.push_back(OOL[Break_int[i]+4]);
-                AfterThree.push_back(OOL[Break_int[i]+8]);
-                AfterThree.push_back(OOL[Break_int[i]+12]);
+                AfterThree.push_back(OOL[Break_int[i]+3]);
+                AfterThree.push_back(OOL[Break_int[i]+6]);
+                AfterThree.push_back(OOL[Break_int[i]+9]);
             }
-        }else if(Break_int[i]-12>=0&&Break_int[i]+12<OOL.length())
+        }else if(Break_int[i]-9>=0&&Break_int[i]+9<OOL.length())
         {
             int leng=Break_int[i];
-            if(leng>1&&leng<12){
-                PreThree.push_back(OOL[Break_int[i]-12]);
-                PreThree.push_back(OOL[Break_int[i]-8]);
-                PreThree.push_back(OOL[Break_int[i]-4]);
+            if(leng>1&&leng<9){
+                PreThree.push_back(OOL[Break_int[i]-9]);
+                PreThree.push_back(OOL[Break_int[i]-6]);
+                PreThree.push_back(OOL[Break_int[i]-3]);
                 AfterThree.push_back(OOL[Break_int[i]+leng/4]);
                 AfterThree.push_back(OOL[Break_int[i]+leng/2]);
                 AfterThree.push_back(OOL[Break_int[i]+leng]);
@@ -955,7 +952,6 @@ QVector<int>  CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<
             // qDebug()<<"Curvepoints:     "<<CurvePoints;
             // exit(0);
         }
-
         APslope.clear();
         PreThree.clear();
         AfterThree.clear();
@@ -966,10 +962,10 @@ QVector<int>  CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<
 
         //找到关键点后对关键点之间的点进行等距离散
         //should add some method here to correct the arlgorim
-        Output2File(P_turn,"F:/output/Pturn"+QString::number(qrand())+".txt");
-        // P_turn=  KeyPointFilter_RCS(P_turn);
-
-
+        Output2File(P_turn,"F:/output/Pturn_old"+QString::number(qrand())+".txt");
+        P_turn=  KeyPointFilter_RCS(P_turn);
+        P_turn_int=TransSequence2D_ToInt(OOL,P_turn);
+        Output2File(P_turn,"F:/output/Pturn_new"+QString::number(qrand())+".txt");
         //创建一个离散创建函数？
         QVector<int>totest;
 
@@ -1024,15 +1020,20 @@ QVector<int>  CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<
 QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
 {
     //points 是输入的暂且认为是关键点的点坐标
-
+    qDebug()<<"Enter the function keypoints filter!";
+    qDebug()<<"points is this: "<<points;
     QVector<QVector2D> Toreturn;
+    QVector<QVector2D>KeyPoints;
+
     int length=points.length();
     if(length<=1)
     {
         return points;
     }
+
     else
     {
+        qDebug()<<"length  is got: "<<length;
         QVector<double> kepdis;
         QVector<double> kepslope;
         for(int i=1;i<length;i++)//获取两两点间隔的直线距离
@@ -1043,171 +1044,173 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points)
         kepslope=Slope(points);//获取两两之间的斜率
         //then the most important thing ,how to filte the key point by the two parameters above
         //wait
-        qDebug()<<kepdis;
+        qDebug()<<"kepdis  is :"<<kepdis;
         Output2File(kepdis,"F:/output/kepdis"+QString::number(qrand())+".txt");
         QVector<QVector2D> Cluster;
         QVector<int>Cluster_int;
-        QVector<QVector2D>KeyPoints;
+
         QVector<double> ClusterSlope;
         QVector<double> ClusterDis;
         int Current_pos=0;
-        while(Current_pos!=points.length()-1)//不检测到最后一个不停止
+        qDebug()<<"will enter while";
+        int count=0;
+
+        const int Asgap=20;
+        while(count<points.length()-1)//不检测到最后一个不停止
         {
-            for(int i=Current_pos;i<kepdis.length();i++)
+            count++;
+            if(count>length)
             {
-                if(i==0&&kepdis[i]>=5)
-                {
-                    Cluster.push_back(points[i]);
-                    Cluster_int.push_back(i);
-                    Current_pos=i;
-                    break;
-                }
-                if(kepdis[i]<5)//大于5认为从团簇分离
-                {
-                    Cluster.push_back(points[i]);
-                    Cluster_int.push_back(i);
-                    ClusterSlope.push_back(kepslope[i]);
-                    ClusterDis.push_back(kepdis[i]);
-                }
-                if(kepdis[i]>5)
-                {
-                    Cluster.push_back(points[i]);
-                    Cluster_int.push_back(i);
-                    Current_pos=i;
-                    break;
-                }
+                qDebug()<<"count is more than length   "<<count;
+                qDebug()<<"current pos is"<<Current_pos;
+                exit(0);
+
             }
 
-            //聚合筛选出来，就跳到此处
-            int Cluster_Length=Cluster.length();
-            if(Cluster_Length==1)
+            for(int i=Current_pos;i<length;i++)
             {
-                KeyPoints.push_back(Cluster[0]);
-            }
-            else if(Cluster_Length>1&&Cluster_Length<=2)//两点之间距离是1或者根号2的，最多保留一个
-            {
-                if(ClusterDis[0]<2)
-                {
-                    //两点很近，取一个点(dierge)
-                    int xx=(Cluster[1].x()+Cluster[0].x())/2;
-                    int yy=(Cluster[1].y()+Cluster[0].y())/2;
-                    QVector2D em;
-                    em.setX(xx);
-                    em.setY(yy);
+                if(i<=kepdis.length()-1){
 
-                    KeyPoints.push_back(em);
+                    if(i==0&&kepdis[i]>=Asgap)
+                    {
+                        Cluster.push_back(points[i]);
+                        Cluster_int.push_back(i);
+                        Current_pos=i+1;
+                        break;
+                    }
+                    if(kepdis[i]<Asgap)//大于10认为从团簇分离
+                    {
+                        Cluster.push_back(points[i]);
+                        Cluster_int.push_back(i);
+                        ClusterSlope.push_back(kepslope[i]);
+                        ClusterDis.push_back(kepdis[i]);
+                    }
+                    if(kepdis[i]>Asgap)
+                    {
+                        Cluster.push_back(points[i]);
+                        Cluster_int.push_back(i);
+                        Current_pos=i+1;
+                        break;
+                    }
                 }
                 else
                 {
-                    //两点相聚还远 考察哪个点距离另外的聚合点远,此时Current_pos储存着第二个点的序号，所以下一个电视Current_pos+1，
-                    //前面的点是Current_pos-2
-                    //当然还要考虑端点越界
-                    if(Current_pos-2>=0&&Current_pos+1<=length-1)
-                    {//都不越界
-                        if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==2
-                                &&AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==2)
-                        {
-                            KeyPoints.push_back(Cluster[0]);
-                            KeyPoints.push_back(Cluster[1]);
-                        }
-                        else if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==2
-                                &&AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==1)
-                        {
-                            KeyPoints.push_back(Cluster[0]);
-                        }
-                        else if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==1
-                                &&AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==2)
-                        {
-                            KeyPoints.push_back(Cluster[1]);
-                        }
-                    }
-                    else if(Current_pos-2<0)
-                    {//起点越界,说明两个点中第一个点就是起点
-                        KeyPoints.push_back(Cluster[0]);
-                        if(ClusterDis[0]>2)//第二个点距离第一个点很近，可以忽略了
-                        {
-                            if(AngelCompare(kepslope[Current_pos+1],ClusterSlope[0],0.5)==2)
-                            {
-                                KeyPoints.push_back(Cluster[1]);
-                            }
-                        }
-                    }
-                    else if(Current_pos+1>length-1)
-                    {//终点越界，说明第二个点是终点
-                        KeyPoints.push_back(Cluster[1]);
-                        if(ClusterDis[0]>2)//第二个点距离第一个点很近，可以忽略了
-                        {
-                            if(AngelCompare(kepslope[Current_pos-2],ClusterSlope[0],0.5)==2)
-                            {
-
-                                KeyPoints.push_back(Cluster[0]);
-                            }
-                        }
-                    }
+                    Cluster.push_back(points[length-1]);
+                    Cluster_int.push_back(length-1);
+                    Current_pos=length;
                 }
+
+            }
+
+
+            qDebug()<<"got the cluster !    "<<Cluster;
+            //聚合筛选出来，就跳到此处
+            int Cluster_Length=Cluster.length();
+            qDebug()<<"cluster   length   "<<Cluster_Length;
+
+            if(Cluster_Length==1)
+            {
+                qDebug()<<"only one cluster points";
+                KeyPoints.push_back(Cluster[0]);
+
+            }
+            else if(Cluster_Length==2)//两点之间距离是1或者根号2的，最多保留一个
+            {
+                //考查起止点是不是在里面
+                if(Cluster[0]==points[0])
+                {
+                    KeyPoints.push_back(points[0]);
+                }
+                else if(Cluster[1]==points[length-1])
+                {
+                    KeyPoints.push_back(points[length-1]);
+                }
+                else
+                {
+                    int avx=0.5*(Cluster[0].x()+Cluster[1].x());
+                    int avy=0.5*(Cluster[0].y()+Cluster[1].y());
+                    QVector2D temslf;
+                    temslf.setX(avx);
+                    temslf.setY(avy);
+                    KeyPoints.push_back(temslf);
+                }
+
             }
             else if(Cluster_Length=3)
             {
-                KeyPoints.push_back(Cluster[1]);//只保留中间那个
-            }
-            else if(Cluster_Length>3)
-            {
-                // here need fix!
-                QVector<QVector2D> CandidateP;
-                QVector<int>Candidate_int;
-                for(int i=0;i<ClusterSlope.length()-1;i++)
+                bool cantain=false;
+                for(int ii=0;ii<Cluster.length();ii++)
                 {
-                    if(AngelCompare(ClusterSlope[i],ClusterSlope[i+1],0.8)==2)
+                    if(Cluster[ii]==points[0]||Cluster[ii]==points[length-1])
                     {
-                        if(ClusterDis[i]>2&&ClusterDis[i+1]>2)
-                        {
-                            KeyPoints.push_back(points[i+1]);
-                        }
-                        else if(ClusterDis[i]>2&&ClusterDis[i+1]<=2)
-                        {
-                            //考察第三个点隔一个点的斜率
-                             KeyPoints.push_back(points[i]);
-                             KeyPoints.push_back(points[i+2]);
-
-                        }
-                        else if(!ClusterDis[i]>2&&ClusterDis[i+1]>2)
-                        {
-                            KeyPoints.push_back(points[i]);
-                            KeyPoints.push_back(points[i+2]);
-                        }
-                        else{
-                            CandidateP.push_back(points[i+1]);//保存候选点
-                            Candidate_int.push_back(i+1);
-                        }
+                        KeyPoints.push_back(Cluster[ii]);
+                        cantain=true;
+                        break;
                     }
                 }
-                //候选点获取之后，对候选点进行进一步考察
-                if(CandidateP.length()==0)
-                {
-                    //没有候选点北选出,这个可能性很小
+                if(!cantain){
+                    KeyPoints.push_back(Cluster[1]);//只保留中间那个
+                }
+            }
+            else if(Cluster_Length>3&&Cluster_Length<6)
+            {
+                qDebug()<<"cluster is 3 to 6";
+                //4个点 取第二个
+                if(Cluster_Length==4){
+                    KeyPoints.push_back(Cluster[1]);
                 }else
                 {
-                    for(int j=0;j<CandidateP.length();j++)
-                    {//进一步考察候选点，寻找峰值点
+                    KeyPoints.push_back(Cluster[2]);
+                }
+            }
+            else if(Cluster_Length>=6)
+            {
+                // here need fix!
+                qDebug()<<"cluster is more than 6";
+                int P2Pgap=floor(sqrt(Cluster_Length));
+
+                QVector<double>Gapslope=Slope(Cluster,P2Pgap);
+
+                for(int j=0;j<Gapslope.length()-1;j++)
+                {
+                    if(AngelCompare(Gapslope[j],Gapslope[j+1],1.0)==2)
+                    {
+                        int needspot=(j+1)*P2Pgap;
+                        if(needspot>=length)
+                        {
+                            needspot-=1;
+                        }
+                        else
+                        {
+                            KeyPoints.push_back(points[j]);
+                        }
 
                     }
-                }
 
+                }
 
 
             }
 
+            if(Cluster[Cluster.length()-1]==points[length-1])
+            {
+                Cluster.clear();
+                Cluster_int.clear();
 
+                ClusterSlope.clear();
+                ClusterDis.clear();
+                break;
+            }
+            Cluster.clear();
+            Cluster_int.clear();
 
+            ClusterSlope.clear();
+            ClusterDis.clear();
         }
-
-
-
-
-
     }
-    return points;
-    //    return Toreturn;
+    Toreturn=KeyPoints;
+    qDebug()<<"ori length   "<<length<<"and after the filter is "<<Toreturn.length();
+    return Toreturn;
 
 }
 
@@ -1503,10 +1506,52 @@ QVector<int>CurveDisperce(QVector<QVector2D>AllOutline,
 
     qDebug()<<"Out from the function CurveDisperce!           [CurveDisperce]";
 }
+QVector<int>TransSequence2D_ToInt(QVector<QVector2D>Alloutline,QVector<QVector2D>input2D)
+{
+    QVector<int>Toreturn;
+    foreach (QVector2D k, input2D) {
+
+        bool notfind=true;
+        for (int i=0;i< Alloutline.length();i++)
+        {
+            QVector2D ou=Alloutline[i];
+            if(k==ou)
+            {
+                notfind=false;
+                Toreturn.push_back(i);
+            }
+        }
+        if(notfind)
+        {
+            double mind=99999;
+            int minspot=-5;
+            for(int i=0;i< Alloutline.length();i++)
+            {
+                for(int j=0;j<Toreturn.length();j++)
+                {
+                    if(i!=j)
+                    {
+                        double dis=DisCalFuc(k.x(),k.y(),Alloutline[i].x(),Alloutline[i].y());
+                        if(dis<mind)
+                        {
+                            mind=dis;
+                            minspot=i;
+                        }
+                    }
+                }
+
+            }
+            Toreturn.push_back(minspot);
+        }
+
+    }
+    qDebug()<<"returned from transSequence2DToint  [TransSequence2DToint]";
+    return Toreturn;
+}
 
 QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>input)
 {
-    qDebug()<<"===================================>Enter function transSequenceTo2D  [TransSequenceTo2D]";
+    //qDebug()<<"===================================>Enter function transSequenceTo2D  [TransSequenceTo2D]";
     QVector<QVector2D>Toreturn;
     foreach (int k, input) {
         //qDebug()<<" the k is"<<k<<"         [TransSequenceTo2D]";
@@ -1861,7 +1906,7 @@ QVector<QVector2D> HoughTransform(QImage OutlineImage, int PointCount, int minmu
     drawmat=graymat.clone();
     std::vector<cv::Vec4i> lines;//定义一个矢量结构lines用于存放得到的线段矢量集合
 
-    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*1.5,10); //(in,out,rho,theta,threshold,MinLength,maxgap)
+    cv::HoughLinesP(graymat, lines, 1, CV_PI/180,PointCount,minmumLine*1.5,20); //(in,out,rho,theta,threshold,MinLength,maxgap)
 
 
 
@@ -2162,7 +2207,7 @@ QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templa
 
 QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray)
 {
-
+//这个函数需要修改，会抹去一部分可以有的直线
     int templength=templateArray.length();
 
 
@@ -2759,7 +2804,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
     //qDebug()<<"original to return is "<<Toreturn;
     Toreturn=ReorderArray(Toreturn,1);
-    qDebug()<<"Orderedtoreturn is "<<Toreturn;
+    //qDebug()<<"Orderedtoreturn is "<<Toreturn;
 
 
     Toreturn=Unique_Int(Toreturn);
@@ -2769,7 +2814,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
 
     //qDebug()<<"2D is"<<To2D;
 
-    //Output2File(To2D,"F:/output/To2D.txt");
+    Output2File(To2D,"F:/output/To2D.txt");
 
 
 
@@ -2788,7 +2833,7 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
     //Linepoint是确定直线的两个点xy坐标
     //Points是需要考察到上述直线距离的点xy坐标
-    qDebug()<<"===================================>Enter the function PointToLineDis      [PointToLineDis]";
+    // qDebug()<<"===================================>Enter the function PointToLineDis      [PointToLineDis]";
     int length=Points.length();
 
     //qDebug()<<"the length of the points is "<<length<<"    [PointToLineDis]";
@@ -2799,14 +2844,14 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
     ss=SingelSlopeCalculate(LinePoint[0],LinePoint[1]);
 
-    qDebug()<<"Slope is done!                 [PointToLineDis]";
+    //qDebug()<<"Slope is done!                 [PointToLineDis]";
 
     //判断斜率情况，写出Ax+By+C=0的直线方程
     //返回的距离参数，同时还标明方向，设定为，直线方向的左手边为+1，右手边为-1,在直线上设定为0
 
     if(ss== CV_PI/2){
         //竖直
-        qDebug()<<"case one;        [PointToLineDis]";
+        //qDebug()<<"case one;        [PointToLineDis]";
         for(int i=0;i<Points.length();i++)
         {
             double dis=abs(Points[i].x()-LinePoint[0].x());
@@ -2823,7 +2868,7 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
     }else if(ss==CV_PI*1.5){
 
-        qDebug()<<"case two;        [PointToLineDis]";
+        //qDebug()<<"case two;        [PointToLineDis]";
 
         //竖直
         for(int i=0;i<Points.length();i++)
@@ -2851,7 +2896,7 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
     }
 
     else{
-        qDebug()<<"case three;        [PointToLineDis]";
+        //qDebug()<<"case three;        [PointToLineDis]";
         double k=tan(ss);
 
         double c=LinePoint[0].y()-k*LinePoint[0].x();
@@ -2879,7 +2924,7 @@ QVector<double> PointToLineDis(QVector<QVector2D> LinePoint,QVector<QVector2D>Po
 
 
     }
-    qDebug()<<"returned from PointToLineDis                       [PointToLineDis]";
+    //qDebug()<<"returned from PointToLineDis                       [PointToLineDis]";
     return Toreturn;
 
 }
@@ -3154,4 +3199,29 @@ void QimageSave(QImage Tosave,QString add,int width,int height)
     Tosave.scaled(width,height);
 
     Tosave.save(pres,"PNG",100);
+}
+bool IsEvenNumber(int input)
+{
+    if(input%2==1)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+double SumofArray(QVector<double>inputarray)
+{
+    double Toreturn=0;
+    foreach (double val, inputarray) {
+        Toreturn+=val;
+    }
+
+
+    return Toreturn;
+
+
+
+
 }
