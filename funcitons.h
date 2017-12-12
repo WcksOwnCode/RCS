@@ -35,14 +35,14 @@ QVector<int> SimplifySlope(QVector<double> S_Slope, QVector<int> BP);//斜率精
 QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inputP);//斜率精简2
 QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP);
 QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
-
+QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL);
 QVector<int> CheckPointInline(QVector<int>BP,
                               QVector<QVector2D> OOL, QVector<int> BreakP, int MinL);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
 
 QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
-                              QVector<int>CurP_keyP_int, QVector<QVector2D>CurP_keyP_2D,
-                              QVector<QVector2D> Alloutline, int Dl=8);
+                              QVector<int>keyP_int, QVector<QVector2D>keyP_2D,
+                              QVector<QVector2D> All, int Dl=8);
 
 QVector<int> CurveDisperce(QVector<QVector2D>AllOutline,
                                 QVector2D CurveEndpoints,int MinL=10);
@@ -101,5 +101,7 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points);
 bool IsEvenNumber(int input);
 
 double SumofArray(QVector<double>inputarray);
+
+QVector<int>VecAddVec(QVector<int>MainV,QVector<int>lowV,int n=1);
 
 #endif // FUNCITONS_H

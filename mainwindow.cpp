@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->BoltSpeed_spinBox->setEnabled(false);
 
 
+
     ui->Xplus_Button->setEnabled(false);
     ui->Yplus_Button->setEnabled(false);
     ui->Zplus_Button->setEnabled(false);
@@ -37,15 +38,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Amini_Button->setEnabled(false);
     ui->Bmini_Button->setEnabled(false);
     ui->Cmini_Button->setEnabled(false);
-
-
-
-
-
-
-
-
-
     cam     = NULL;
     timer   = new QTimer(this);
     imag    = new QImage();
@@ -1248,7 +1240,7 @@ void MainWindow::ConnectDomains()
         }
 
     }
-   // qDebug()<<"max: "<<V4Domain_max;
+    // qDebug()<<"max: "<<V4Domain_max;
 }
 
 QImage MainWindow::GetOutLine(QImage II)
@@ -1454,12 +1446,12 @@ void MainWindow::SmoothOutline()
 
     SOtimer.start();
 
-
+    Unique_2D(OnlyOutLine);
     ReOrderOutline(OnlyOutLine);//重新排序边界
 
     //OrderdOutLine= ReOrderOutline_8Neighboor(OnlyOutLine,OulineImage);
 
-  //  CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
+    //  CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
 
 
     //计算全部边界的两点间方向//9.22尝试
@@ -1549,17 +1541,11 @@ QImage MainWindow::DeleteOutRectangel(QImage input)
 void MainWindow::ReadPngButton()
 {
     ui->CameraView_Button->setEnabled(false);
-
     ui->openCamera->setEnabled(false);
     ClearVector();
     ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
-
     ImageDisplayFunciton(ui->final_label,spaceImage,400,300);
-
-
-
     readfileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.png");
-
     if(readfileadd.isEmpty())
     {
         QMessageBox::information(this,"notice","not opened");
@@ -1567,49 +1553,20 @@ void MainWindow::ReadPngButton()
         ui->openCamera->setEnabled(true);
         return;
     }
-
     int readstart=WhoseTime.elapsed();
-
     origin_image.load(readfileadd);
-
     origin_image = origin_image.scaled(width, height);
-
     origin_image=DeleteOutRectangel(origin_image);
-
-    // spaceImage=origin_image;
-
-
     Timage=origin_image;//二色图
-
     grayImage=origin_image;//灰度图
-
     ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
-
     ToGray();
-
     ToTwoColor();
-
     //jisuan liantongyu
-
     DomainCalcu(Timage);//then we get V4Domain
-
-    /* QImage DomainTest=spaceImage;
-
-    for(int i=0;i<V4Domain.length();i++)
-    {
-
-        for(int j=V4Domain[i].z();j<V4Domain[i].w();j++)
-        {
-            int x=V4Domain[i].x();
-            int y=j;
-            DomainTest.setPixel(x,y,qRgb(0,0,0));
-        }
-    }*/
-
     /**************************************************************/
     //过滤
     QImage mainim=spaceImage;
-
     for(int i=0;i<V4Domain_main.length();i++)
     {
 
@@ -1620,8 +1577,6 @@ void MainWindow::ReadPngButton()
             mainim.setPixel(x,y,qRgb(0,0,0));
         }
     }
-
-
     /******************************************************/
     //画出最大连通域的外轮廓
     /************************************************************/
@@ -1643,51 +1598,35 @@ void MainWindow::ReadPngButton()
     QImage maxDomain=OulineImage;
 
     OulineImage=GetOutLine(OulineImage);//get the outline of the max domain
-
     if(ui->isOutlineoffset->isChecked())
     {
         //表示需要偏移
         int offsetValue=ui->OffsetValueInput->text().toInt();
         Orioutline=OnlyOutLine;
-
-            QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
-            OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
-
+        QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
+        OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
     }
-
-
     SmoothOutline();
-
     SmoothOulineImage=spaceImage;
-
     int offsetValue=ui->OffsetValueInput->text().toInt();
     if(!ui->Erosion_checkBox->isChecked()&&ui->isOutlineoffset->isChecked()){
         QVector<QVector2D>insideroutline=CurveOffset(OrderdOutLine,curvePoints,offsetValue);
         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
     }
-
     for(int i=0;i<OrderdOutLine.length();i++){
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
-
-
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
-
-
     ui->CameraView_Button->setEnabled(true);
-
     ui->openCamera->setEnabled(true);
-    if(!ui->disperse_checkBox->isChecked()){
-
+    if(!ui->disperse_checkBox->isChecked())
+    {
         QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
-
         HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
-
         Output2File(HoughPoints,"F:/output/HoughPoints.txt");
-
         int All_Points_cout=OrderdOutLine.length();//获取总点数
 
-        if(HoughPoints.length()>=2){
+        if(HoughPoints.length()>=4){
 
             qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
@@ -1695,15 +1634,13 @@ void MainWindow::ReadPngButton()
 
             QVector<int>testorder;
 
-            QVector<QVector2D>test2D;
-
             testorder=PointReorder_Rint(HoughPoints,OrderdOutLine);
 
             OrderedSline=PointReorder(HoughPoints,OrderdOutLine);
 
-            Output2File(OrderedSline,"F:/output/OrderedSline.txt");
+            //Output2File(OrderedSline,"F:/output/OrderedSline.txt");
 
-            Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
+            // Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
             QVector<int>m_Int_Line;
 
@@ -1716,9 +1653,9 @@ void MainWindow::ReadPngButton()
 
 
         }
-        else if(HoughPoints.length()==1)
+        else if(HoughPoints.length()==2)
 
-        {//一条直线的情况
+        { //一条直线的情况
             //直线数量不足，说明全部是曲线，直接进行曲线检测
             qDebug()<<"+++***   Only one strait line is here    ***+++";
 
@@ -1742,7 +1679,8 @@ void MainWindow::ReadPngButton()
                     CurvePoints_int.push_back(n);
                 }
 
-                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
+                //QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
+                QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
                 CharacteristicPoint.clear();
                 CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
                 CharacteristicPoint.push_back(CharacteristicPoint[0]);
@@ -1758,22 +1696,24 @@ void MainWindow::ReadPngButton()
                 }
 
 
-                QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
+                // QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
+                QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
                 CharacteristicPoint.clear();
                 CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
                 CharacteristicPoint.push_back(CharacteristicPoint[0]);
             }
 
         }
-        else
+        else//全是曲线
         {
             QVector<int> CurvePoints_int;
 
-            for(int n=0;n<=All_Points_cout;n++)
+            for(int n=0;n<=All_Points_cout-1;n++)
             {
                 CurvePoints_int.push_back(n);
             }
-            QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
+            QVector<int > DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
+            //QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
             CharacteristicPoint.clear();
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
             CharacteristicPoint.push_back(CharacteristicPoint[0]);
@@ -1799,11 +1739,6 @@ void MainWindow::ReadPngButton()
 
     OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
 
-
-
-
-
-
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
     //创建关键点坐标代码
@@ -1812,24 +1747,6 @@ void MainWindow::ReadPngButton()
     {
         SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
     }
-///asd  直接线条加粗的方式测试腐蚀和膨胀
-   /*QImage tetimage=spaceImage;
-   tetimage =ImageDrawer( tetimage,Orioutline,QColor(0,0,0),1);
-   Mat testmat =QImage2cvMat(tetimage);
-   imwrite("F:/output/oritetimage.png",testmat);
-    OutlineErosion(tetimage,Orioutline,V4Domain_max,offsetValue);
-    qDebug()<<"3123123";
-    tetimage=ErosionImage;
-    Mat ttmat =QImage2cvMat(tetimage);
-    imwrite("F:/output/dstimage.png",ttmat);
-
-    imshow("tetimage",testmat);
-    ErosionImage=spaceImage;*/
-
-
-
-
-
 
 
     CreadOrders();
@@ -2683,11 +2600,12 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
             }
             //  }
         }
-
-        Last.setX(tempx[minspot]);
-        Last.setY(tempy[minspot]);
-        Cantchoose=Last;
-        NewOrder.push_back(Last);
+        if(minval<2){
+            Last.setX(tempx[minspot]);
+            Last.setY(tempy[minspot]);
+            Cantchoose=Last;
+            NewOrder.push_back(Last);
+        }
         tempx[minspot]=-10;
         tempy[minspot]=-10;
 
@@ -2695,11 +2613,11 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
         dis=NULL;
 
     }
-    if(NewOrder.length()!=length)
+    /* if(NewOrder.length()!=length)
     {
         QMessageBox::information(this,"notice!","NewOrder is not enough!");
         ErrorFunction();
-    }
+    }*/
     OrderdOutLine=NewOrder;
     if(NewOrder.length()>0){
         Last=NewOrder.last();
@@ -3045,45 +2963,45 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
         if(ui->OffsetValueInput->text().toInt()>0)
         {//向外，腐蚀方法
             int erosion_type;
-              if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }//矩形
-              else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }//椭圆和圆形
-              else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }//十字形
+            if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }//矩形
+            else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }//椭圆和圆形
+            else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }//十字形
 
-              Mat element = getStructuringElement( erosion_type,
-                                                   Size( 2*erosion_size + 1, 2*erosion_size+1 ),
-                                                   Point( erosion_size, erosion_size ) );
-              /// 腐蚀操作
-              erode( inputmat, erosion_dst, element );
-              ErosionImage=cvMat2QImage(erosion_dst);
-              imshow( "Erosion Demo", erosion_dst );
-              imshow("ori",inputmat);
+            Mat element = getStructuringElement( erosion_type,
+                                                 Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                                 Point( erosion_size, erosion_size ) );
+            /// 腐蚀操作
+            erode( inputmat, erosion_dst, element );
+            ErosionImage=cvMat2QImage(erosion_dst);
+            imshow( "Erosion Demo", erosion_dst );
+            imshow("ori",inputmat);
         }
         else if(ui->OffsetValueInput->text().toInt()<0)//向内，膨胀方法
         {
             int dilation_type;
-              if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
-              else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
-              else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+            if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+            else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+            else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
 
-              Mat element = getStructuringElement( dilation_type,
-                                                   Size( 2*dilation_size + 1, 2*dilation_size+1 ),
-                                                   Point( dilation_size, dilation_size ) );
-              ///膨胀操作
-              dilate( inputmat, dilation_dst, element );
-              imshow( "Dilation Demo", dilation_dst );
-              imshow("ori",inputmat);
-              ErosionImage=cvMat2QImage(dilation_dst);
+            Mat element = getStructuringElement( dilation_type,
+                                                 Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                                 Point( dilation_size, dilation_size ) );
+            ///膨胀操作
+            dilate( inputmat, dilation_dst, element );
+            imshow( "Dilation Demo", dilation_dst );
+            imshow("ori",inputmat);
+            ErosionImage=cvMat2QImage(dilation_dst);
         }
 
         //显示原图
 
 
-          //尺寸调整
-       // Mat dstImage1,dstImage2;
-       //   cv::resize(inputmat,dstImage1,Size(inputmat.cols/2,inputmat.rows/2),0,0,INTER_LINEAR);
-      //    cv::resize(inputmat,dstImage2,Size(inputmat.cols*2,inputmat.rows*2),0,0,INTER_LINEAR);
-       //   imshow("dst1",dstImage1);
-          //imshow("dst2",dstImage2);
+        //尺寸调整
+        // Mat dstImage1,dstImage2;
+        //   cv::resize(inputmat,dstImage1,Size(inputmat.cols/2,inputmat.rows/2),0,0,INTER_LINEAR);
+        //    cv::resize(inputmat,dstImage2,Size(inputmat.cols*2,inputmat.rows*2),0,0,INTER_LINEAR);
+        //   imshow("dst1",dstImage1);
+        //imshow("dst2",dstImage2);
     }
 
     int Erotimerus=ErosionTimer.elapsed();
