@@ -35,14 +35,14 @@ QVector<int> SimplifySlope(QVector<double> S_Slope, QVector<int> BP);//斜率精
 QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inputP);//斜率精简2
 QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP);
 QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
-QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL);
+QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL, int MinL);
 QVector<int> CheckPointInline(QVector<int>BP,
                               QVector<QVector2D> OOL, QVector<int> BreakP, int MinL);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
 
 QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
                               QVector<int>keyP_int, QVector<QVector2D>keyP_2D,
-                              QVector<QVector2D> All, int Dl=8);
+                              QVector<QVector2D> All, int MinL);
 
 QVector<int> CurveDisperce(QVector<QVector2D>AllOutline,
                                 QVector2D CurveEndpoints,int MinL=10);
@@ -73,8 +73,8 @@ void Output2File(QVector<QPointF> InputArray,QString Outputadd="");
 
 
 
-QVector<QVector2D> PointReorder(QVector<QVector2D>input,QVector<QVector2D>templateArray);
-QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templateArray);
+QVector<QVector2D> PointReorder(QVector<QVector2D>input, QVector<QVector2D>templateArray, int MinL);
+QVector<int> PointReorder_Rint(QVector<QVector2D>input, QVector<QVector2D>templateArray, int MinL);
 QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D>input_Point,
                        QVector<QVector2D> allp, QVector<int> BreakP, bool bisect, int MinL=15);
 
@@ -96,7 +96,7 @@ QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
 
 void QimageSave(QImage Tosave,QString add,int width=800,int height=600);
 
-QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>points);
+QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>KP, QVector<QVector2D> ALL, int Gap);
 
 bool IsEvenNumber(int input);
 
