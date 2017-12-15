@@ -124,6 +124,8 @@ public:
 
     Mat CenterClipping(Mat inputarray);
 
+    void CreatReport(QString add);
+
 private:
     Ui::MainWindow *ui;
 
@@ -134,6 +136,8 @@ private:
     QString RootAddress="F:\output";
 
     QVector<QString>Array;//gcode向量
+
+    QVector<QVector2D>OrderedSline;
 
     QString FullOrder;
 

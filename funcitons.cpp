@@ -109,6 +109,52 @@ QVector<int> ReorderArray(QVector<int>p, int n)
     }
     return p;
 }
+QVector<double> ReorderArray(QVector<double> Array, int n)
+{
+    int length= Array.length();
+
+    if(n==0){
+
+        //from maxmum to minmum
+
+        for(int i=0;i<length;i++)
+        {
+            for(int j=i;j<length;j++)
+            {
+
+                if( Array[i]< Array[j])
+                {
+
+                    SwapT( Array[i], Array[j]);
+                }
+
+            }
+
+        }
+    }
+    else if(n==1)
+    {
+        //from minmum to maxmum
+
+        for(int i=0;i<length;i++)
+        {
+            for(int j=i;j<length;j++)
+            {
+                if( Array[i]> Array[j])
+                {
+                    SwapT( Array[i], Array[j]);
+                }
+            }
+
+        }
+    }
+    else if(n!=1&&n!=0)
+    {
+        QMessageBox::information(NULL,"notice!","the third parameter is inappropriate!");
+        exit(0);
+    }
+    return  Array;
+}
 
 void SwapT(double &a,double &b)
 {
@@ -681,6 +727,31 @@ QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
     }
     return toreturn;
 }
+double FindMidValue(QVector<double>Array,int sort,int Ratio)
+{
+
+    if(Ratio>100)
+    {
+        Ratio=Ratio%100;
+    }
+    if(Ratio<0)
+    {
+        Ratio=0;
+    }
+    if(sort==1)//1就是从大到小排列，取大小超过ratio比例的数
+    {
+        QVector<double>retu= ReorderArray(Array,0);
+        int p=floor(retu.length()*Ratio/100);
+        return retu[p];
+    }
+    else
+    {//从小到大排列，取小于Ratio比例的数
+        QVector<double>retu= ReorderArray(Array,1);
+        int p=floor(retu.length()*Ratio/100);
+        return retu[p];
+    }
+}
+
 QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL)
 {
     QVector<QVector2D>Curve_2D=TransSequenceTo2D(OOL,BP);
@@ -703,18 +774,61 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL)
         }
     }
     //Output2File(Curve_2D,"F:/output/testcurvepoints.txt");
-    int Gap=15;
+    int Gap=12;
     for(int k=0;k<Curve_2D.length();k+=Gap)
     {
         gap_point.push_back(Curve_2D[k]);
     }
     Gap_slope=Slope(gap_point);
-    Output2File(gap_point,"F:/output/Gap_points"+QString::number(qrand())+".txt");
-    //Output2File(Gap_slope,"F:/output/Gapslope"+QString::number(qrand())+".txt");
-    QVector<QVector2D>NeedFielter;
+    QVector<double>Gap_slope_change;
     for(int i=0;i<Gap_slope.length()-1;i++)
     {
-        if(AngelCompare(Gap_slope[i],Gap_slope[i+1],0.5)==2)
+        Gap_slope_change.push_back(abs(Gap_slope[i+1]-Gap_slope[i]));
+    }
+
+   QVector< double >SampleContainer;
+
+
+    QVector<QVector2D>NeedFielter;
+
+    Output2File(gap_point,"F:/output/Gap_points"+QString::number(qrand())+".txt");
+    Output2File(Gap_slope_change,"F:/output/Gap_slopechanges"+QString::number(qrand())+".txt");
+    Output2File(Gap_slope,"F:/output/Gap_slope"+QString::number(qrand())+".txt");
+    //Output2File(Gap_slope,"F:/output/Gapslope"+QString::number(qrand())+".txt");
+    for(int i=0;i<Gap_slope_change.length();i+=6)
+    {
+        int count=0;
+        for(int j=0;j<6&&j+i<Gap_slope_change.length();j++)
+        {
+            SampleContainer.push_back(Gap_slope_change[i+j]);
+            count++;
+        }
+
+        double Change_MidValue=FindMidValue(SampleContainer,1,50);//找出斜率速的中位数
+
+        for(int j=0;j<count;j++)
+        {
+            if(SampleContainer[j]>=Change_MidValue&&AngelCompare(Gap_slope[i+j],Gap_slope[i+j+1],0.5)==2)
+            {
+                NeedFielter.push_back(gap_point[i+j]);
+                NeedFielter.push_back(gap_point[i+j+1]);
+                NeedFielter.push_back(gap_point[i+j+2]);
+                //  QMessageBox::information(NULL,"notice",QString::number(Gap_slope[i])+"  "+QString::number(Gap_slope[i+1]));
+                QVector<QVector2D>kk=KeyPointFilter_RCS(NeedFielter,OOL,Gap);
+                KeyPoints.push_back(kk[0]);
+                NeedFielter.clear();
+            }
+        }
+
+
+        SampleContainer.clear();
+    }
+
+
+
+  /*  for(int i=0;i<Gap_slope.length()-1;i++)
+    {
+        if(AngelCompare(Gap_slope[i],Gap_slope[i+1],0.35)==2)
         {
 
             NeedFielter.push_back(gap_point[i]);
@@ -726,7 +840,7 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL)
             NeedFielter.clear();
             // exit(0);
         }
-    }
+    }*/
     KeyPoints_int=TransSequence2D_ToInt(Curve_2D,KeyPoints);
     qDebug()<<"Keypoints count :"<<KeyPoints.length();
     Output2File(KeyPoints,"F:/output/keypoints"+QString::number(QTime::currentTime().msec())+".txt");
@@ -1935,6 +2049,10 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
         {
             SwapT_int_int(Toreturn[i],Toreturn[i+1]);
         }
+    }
+    if(Toreturn.length()==2)
+    {
+        return Toreturn;
     }
     QVector<int>toorder;
     QVector<int>getorder;

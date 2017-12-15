@@ -12,6 +12,7 @@ double DisCalFuc(int x1,int y1,int x2,int y2);
 float TwoPointdis(float x1, float y1, float x2, float y2);
 
 QVector<int> ReorderArray(QVector<int> Array, int n);
+QVector<double> ReorderArray(QVector<double> Array, int n);
 
 int FindMinorMax(QVector<int>input,int M=0);
 
@@ -103,5 +104,7 @@ bool IsEvenNumber(int input);
 double SumofArray(QVector<double>inputarray);
 
 QVector<int>VecAddVec(QVector<int>MainV,QVector<int>lowV,int n=1);
+
+double FindMidValue(QVector<double>Array, int sort, int Ratio);
 
 #endif // FUNCITONS_H

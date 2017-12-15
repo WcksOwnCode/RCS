@@ -1619,6 +1619,7 @@ void MainWindow::ReadPngButton()
     ui->openCamera->setEnabled(true);
     if(!ui->disperse_checkBox->isChecked())
     {
+
         QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
         HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
         Output2File(HoughPoints,"F:/output/HoughPoints.txt");
@@ -1627,15 +1628,19 @@ void MainWindow::ReadPngButton()
         QVector<QVector2D>OrderedSline;
 
         QVector<int>testorder;
+        if(HoughPoints.length()!=0){
+            testorder=PointReorder_Rint(HoughPoints,OrderdOutLine,minmumDcres);
 
-        testorder=PointReorder_Rint(HoughPoints,OrderdOutLine,minmumDcres);
+            OrderedSline=PointReorder(HoughPoints,OrderdOutLine,minmumDcres);
 
-        OrderedSline=PointReorder(HoughPoints,OrderdOutLine,minmumDcres);
-        HoughPoints=OrderedSline;
-        HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
-
+            HoughPoints=OrderedSline;
+            HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
+        }else
+        {
+            OrderedSline=HoughPoints;
+        }
         Output2File(OrderedSline,"F:/output/OrderedSline.txt");
-         Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
+        Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
         qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
         int All_Points_cout=OrderdOutLine.length();//获取总点数
         QMessageBox::information(NULL,"sss",QString::number(OrderedSline.length()));
@@ -1701,11 +1706,12 @@ void MainWindow::ReadPngButton()
                     QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
                     CharacteristicPoint.clear();
                     qDebug()<<"chchchchchchchchch";
-                    CharacteristicPoint.push_back(HoughPoints[0]);
+                    CharacteristicPoint.push_back(OrderedSline[0]);
                     CharacteristicPoint= TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
-                    CharacteristicPoint.push_back(CharacteristicPoint[0]);
                     CharacteristicPoint.push_back(HoughPoints[1]);
-                     qDebug()<<"chchchchchchchchch";
+                    CharacteristicPoint.push_back(OrderedSline[0]);
+
+                    qDebug()<<"chchchchchchchchch";
                 }
                 else
                 {
@@ -1731,11 +1737,12 @@ void MainWindow::ReadPngButton()
                     QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
                     CharacteristicPoint.clear();
                     qDebug()<<"chchchchchchchchch";
-                    CharacteristicPoint.push_back(HoughPoints[0]);
+                    CharacteristicPoint.push_back(OrderedSline[0]);
                     CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
+                    CharacteristicPoint.push_back(OrderedSline[1]);
                     CharacteristicPoint.push_back(CharacteristicPoint[0]);
-                    CharacteristicPoint.push_back(HoughPoints[1]);
-                     qDebug()<<"chchchchchchchchch";
+
+                    qDebug()<<"chchchchchchchchch";
                 }
             }
             else
@@ -1795,7 +1802,7 @@ T:
         SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
     }
 
-
+    CreatReport("");
     CreadOrders();
 
     QimageSave(OulineImage_b,"outlineb");
@@ -2085,7 +2092,7 @@ void MainWindow::AutoRun()
 
         qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
-        QVector<QVector2D>OrderedSline;
+
 
         QVector<int>testorder;
 
@@ -2267,6 +2274,7 @@ void MainWindow::ClearVector()
     curvePoints.clear();
     Outline_template.clear();
     Orioutline.clear();
+    OrderedSline.clear();
     CoorCount=0;
 }
 void MainWindow::CameraPreView()
@@ -4259,4 +4267,53 @@ void MainWindow::on_Cmini_Button_clicked()
         ui->Cmini_Button->setEnabled(false);
 
     }
+}
+void MainWindow::CreatReport(QString add)
+{
+
+   if(add.isEmpty()){
+       //   QMessageBox::information(NULL,"warning","no out put file address!");
+       add="F:/output/ReportFile_RCS/Report"+QString::number(qrand())+".txt";
+   }
+
+
+
+   QFile *outflie=new QFile;
+   outflie->setFileName(add);
+   bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+   if(ok)
+   {
+       int count=0;
+       QTextStream out(outflie);
+
+        out<<"Robot Control System Report File";
+        out<<"\n";
+        QDateTime current_date_time =QDateTime::currentDateTime();
+        QString current_date =current_date_time.toString("yyyy.MM.dd hh:mm:ss.zzz ddd");
+        out<<"\n";
+        current_date.push_front("生成文件时间     ");
+        out<<current_date;
+        out<<"\n";
+        QString outstr;
+        outstr.push_back("文件位置     ");
+        outstr.push_back(readfileadd);
+
+        out<<outstr;
+        out<<"\n";
+        outstr.clear();
+         out<<"离散距离    "+QString::number(minmumDcres);
+         out<<"\n";
+        out<<"外轮廓总点数   "+QString::number(OrderdOutLine.length());
+        out<<"\n";
+        out<<"直线数量   "+QString::number(OrderedSline.length()/2);
+        out<<"\n";
+        out<<"特征点数量   "+QString::number(CharacteristicPoint.length()/2);
+        QImage tosaveimage=ImageDrawer(origin_image,CharacteristicPoint,QColor(255,0,0),6);
+        QimageSave(OulineImage_b,"ReportFile_RCS/outlineb");
+        QimageSave(origin_image,"ReportFile_RCS/Originimage");
+        QimageSave(origin_image,"ReportFile_RCS/Originimage_withC");
+       outflie->close();
+       delete outflie;
+   }
+
 }
