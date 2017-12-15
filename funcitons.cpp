@@ -775,18 +775,20 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL)
     }
     //Output2File(Curve_2D,"F:/output/testcurvepoints.txt");
     int Gap=12;
+    samplingGap=Gap;
     for(int k=0;k<Curve_2D.length();k+=Gap)
     {
         gap_point.push_back(Curve_2D[k]);
     }
     Gap_slope=Slope(gap_point);
+    samplingcount+=gap_point.length();
     QVector<double>Gap_slope_change;
     for(int i=0;i<Gap_slope.length()-1;i++)
     {
         Gap_slope_change.push_back(abs(Gap_slope[i+1]-Gap_slope[i]));
     }
 
-   QVector< double >SampleContainer;
+    QVector< double >SampleContainer;
 
 
     QVector<QVector2D>NeedFielter;
@@ -819,44 +821,24 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL)
                 NeedFielter.clear();
             }
         }
-
-
         SampleContainer.clear();
     }
-
-
-
-  /*  for(int i=0;i<Gap_slope.length()-1;i++)
-    {
-        if(AngelCompare(Gap_slope[i],Gap_slope[i+1],0.35)==2)
-        {
-
-            NeedFielter.push_back(gap_point[i]);
-            NeedFielter.push_back(gap_point[i+1]);
-            NeedFielter.push_back(gap_point[i+2]);
-            //  QMessageBox::information(NULL,"notice",QString::number(Gap_slope[i])+"  "+QString::number(Gap_slope[i+1]));
-            QVector<QVector2D>kk=KeyPointFilter_RCS(NeedFielter,OOL,Gap);
-            KeyPoints.push_back(kk[0]);
-            NeedFielter.clear();
-            // exit(0);
-        }
-    }*/
-    KeyPoints_int=TransSequence2D_ToInt(Curve_2D,KeyPoints);
+    KeyPoints_int=TransSequence2D_ToInt(OOL,KeyPoints);
     qDebug()<<"Keypoints count :"<<KeyPoints.length();
     Output2File(KeyPoints,"F:/output/keypoints"+QString::number(QTime::currentTime().msec())+".txt");
 
     //找到关键点后对关键点之间的点进行等距离散
     //should add some method here to correct the arlgorim
-    // KeyPoints=  KeyPointFilter_RCS(KeyPoints);
-    // KeyPoints_int=TransSequence2D_ToInt(OOL,KeyPoints);
-    QVector<int>totest;
 
-    /* totest =CurveCheck(Curve_2D,BP,KeyPoints_int,KeyPoints,OOL,MinL);
-    Toreturn.clear();
-    Toreturn=totest;*/
-    Toreturn=TransSequence2D_ToInt(OOL,KeyPoints);
+    QVector<int>totest;
+    totest =CurveCheck(Curve_2D,BP,KeyPoints_int,KeyPoints,OOL,MinL);
 
     qDebug()<<"back from curve check!";
+    Toreturn.clear();
+    Toreturn=totest;
+   // Toreturn=TransSequence2D_ToInt(OOL,KeyPoints);
+
+
 
     // Output2File(totest,"F:/output/KEYKEY"+QString::number(QTime::currentTime().msec())+".txt");
     qDebug()<<"OUT the function check point in line!";
@@ -1188,71 +1170,41 @@ QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>KP, QVector<QVector2D>ALL
     qDebug()<<"Enter the function keypoints filter!";
     QVector <QVector2D>virtualLine;
     qDebug()<<ALL.length();
-    virtualLine.push_back(KP[0]);
-    virtualLine.push_back(KP[2]);
-    QVector<int> Threespot=TransSequence2D_ToInt(ALL,KP);
-    qDebug()<<"threespot "<<Threespot;
-    QVector<QVector2D>MidP;
-    for(int i=Threespot[0];i<=Threespot[2];i++)
-    {
-        MidP.push_back(ALL[i]);
-    }
-    QVector<double>Alldis=  PointToLineDis(virtualLine,MidP);
-    /*int MinerCount=0;
-    int ZeroCount=0;
-    int OneCount=0;
-    double Minersum=0;
-    double ZeroSum=0;
-    double OneSum=0;
-    for (int j=1;j<Alldis.length();j+=2)
-    {
-        if(Alldis[j]==-1)
-        {
-            MinerCount++;
-            Minersum+=Alldis[j-1];
-        }
-        if(Alldis[j]==0)
-        {
-            ZeroCount++;
-            ZeroSum+=Alldis[j-1];
-        }
-        if(Alldis[j]==1)
-        {
-            OneCount++;
-            OneSum+=Alldis[j-1];
-        }
-    }*/
+    qDebug()<<KP.length()<<"Keypoints length";
 
-    double maxva=-1;
-    int where=-1;
-    qDebug()<<Alldis.length();
-    qDebug()<<MidP.length();
-    for (int j=0;j<Alldis.length();j+=2)
-    {
-        if(Alldis[j]>maxva)
+        virtualLine.push_back(KP[0]);
+        virtualLine.push_back(KP[2]);
+        QVector<int> Threespot=TransSequence2D_ToInt(ALL,KP);
+        qDebug()<<"threespot "<<Threespot;
+        QVector<QVector2D>MidP;
+        for(int i=Threespot[0];i<=Threespot[2];i++)
         {
-            maxva=Alldis[j];
-            where=j;
+            MidP.push_back(ALL[i]);
         }
-    }
-    if(where!=-1){
-        Toreturn.clear();
-        Toreturn.push_back(MidP[where/2]);
-    }
-    else{
-        Toreturn.clear();
-        Toreturn.push_back(KP[1]);
-    }
+        QVector<double>Alldis=  PointToLineDis(virtualLine,MidP);
 
-    /*qDebug()<<"alldistance   "<<Alldis;
-    qDebug()<<"kEYDIS   "<<Keydis;
-    qDebug()<<"line points "<<virtualLine;
-    qDebug()<<" mid p "<<MidP;
-    qDebug()<<"KP "<<KP;
-    Output2File(MidP,"F:/output/midp.txt");
-    Toreturn.push_back(KP[1]);*/
+        double maxva=-1;
+        int where=-1;
+        qDebug()<<"All  dis length:   "<<Alldis.length();
+        qDebug()<<"mid p length  "<<MidP.length();
+        for (int j=0;j<Alldis.length();j+=2)
+        {
+            if(Alldis[j]>maxva)
+            {
+                maxva=Alldis[j];
+                where=j;
+            }
+        }
+        if(where!=-1){
+            Toreturn.clear();
+            Toreturn.push_back(MidP[where/2]);
+        }
+        else{
+            Toreturn.clear();
+            Toreturn.push_back(KP[1]);
+        }
 
-    return Toreturn;
+        return Toreturn;
 
 }
 
@@ -1262,7 +1214,7 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
     /*
    * 该函数对曲线进行离散。
    * CurP_2D是曲线点的xy坐标，
-   * CurP_int是曲线点的序号（对曲线）
+   * CurP_int是曲线点的序号（对全局）
    * keyP_int是相对于全部轮廓的序号.
    * keyP_2D 是关键点xy坐标
    * MinL 是离散长度
@@ -1273,7 +1225,8 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
     QVector<int>newCurve_int;
     QVector<int>Toreturn;
     if(keyP_int.length()>0){
-        newCurve_int.push_back(0);//放入曲线起始点
+        qDebug()<<"keypoints length is long enough";
+        newCurve_int.push_back(CurP_int[0]);//放入曲线起始点
         foreach (int kk, keyP_int)
         {
             newCurve_int.push_back(kk);//把关键点放入newCurve
@@ -1284,15 +1237,17 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
     else
     {
         //没有中间的关键点
+        qDebug()<<"no mid key points";
         newCurve_int.push_back(CurP_int[0]);//直接放入曲线首尾点
         newCurve_int.push_back(CurP_int[CurP_int.length()-1]);
     }
-    QVector<QVector2D>new2D=TransSequenceTo2D(CurP_2D,newCurve_int);//带曲线起止点和关键点的曲线xy得出
+    QVector<QVector2D>new2D=TransSequenceTo2D(All,newCurve_int);//带曲线起止点和关键点的曲线xy得出
     QVector<int>new_int=TransSequence2D_ToInt(CurP_2D,new2D);//以原来曲线为模板重新编号
     Output2File(new2D,"F:/output/new2D"+QString::number(qrand())+".txt");
-
-    qDebug()<<new_int;
-    qDebug()<<newCurve_int;
+    qDebug()<<CurP_int;
+qDebug()<<"Curvelength"<<CurP_2D.length();
+    qDebug()<<"new   int"<<new_int;
+    qDebug()<<"new curve int"<<newCurve_int;
     // exit(0);
     //here need corrected
     //开始考察曲线间隔点
@@ -1318,6 +1273,7 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
         }
         else//曲线很短，只有首尾端点
         {
+            qDebug()<<"curve is short!";
             QVector<int> sine;
 
             sine.push_back(new_int[i]);
@@ -1328,12 +1284,15 @@ QVector<int> CurveCheck(QVector<QVector2D>CurP_2D, QVector<int>CurP_int,
 
         }
     }
-    qDebug()<<"Returned from the function Curvecheck;       **********[CurveCheck]*************";
-    qDebug()<<"Curvecheck time used:    "<<QString::number(testtimer.elapsed());
+
     QVector<QVector2D>tt=TransSequenceTo2D(CurP_2D,Toreturn);
-    Unique_2D(tt);
+    if(tt.length()>=2){
+        Unique_2D(tt);
+    }
     Output2File(tt,"F:/output/dis"+QString::number(qrand())+".txt");
     Toreturn=TransSequence2D_ToInt(All,tt);
+    qDebug()<<"Returned from the function Curvecheck;       **********[CurveCheck]*************";
+    qDebug()<<"Curvecheck time used:    "<<QString::number(testtimer.elapsed());
     return Toreturn;
 }
 
@@ -1482,7 +1441,7 @@ QVector<QVector2D>TransSequenceTo2D(QVector<QVector2D>Alloutline,QVector<int>inp
 
         if(k<0||k>Alloutline.length())
         {
-            qDebug()<<" OUT OF THE RANGE! please check the points!!";
+            qDebug()<<" OUT OF THE RANGE! please check the points!!int to 2D";
             qDebug()<<k;
             qDebug()<<Alloutline.length();
 
@@ -2485,7 +2444,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             qDebug()<<"case 2 send to checkpoint in line";
             if(Gap_Point.length()>1){
                 fortemp=FindKeypoints(Gap_Point,allp,MinL);
-                //fortemp= CheckPointInline(Gap_Point,allp,BreakP,MinL);
+
 
                 foreach (int k, fortemp) {
                     CharacterPoints_int.push_back(k);
@@ -2524,7 +2483,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             TwoSlope.push_back(lineslope[lineslope.length()-2]);
             qDebug()<<"case 3 send to checkpoint in line";
             fortemp=FindKeypoints(Gap_Point,allp,MinL);
-            //fortemp=CheckPointInline(Gap_Point,allp,BreakP,MinL);
+
 
             foreach (int k, fortemp) {
                 CharacterPoints_int.push_back(k);
@@ -2692,7 +2651,7 @@ int AngelCompare(double slope1,double slope2,double tolerance)
     //              1 方向同向，在公差内
     //              2 方向同向，超过公差
     //             -2 反向相差180°，如果正向则在公差内
-    qDebug()<<"===================================>Enter the Campare";
+    //qDebug()<<"===================================>Enter the Campare";
     //qDebug()<<"slope1 is  "<<slope1<<"slope2 is  "<<slope2;
     if(slope1>1.5*CV_PI&&slope2<0.5*CV_PI)
     {
@@ -2701,13 +2660,13 @@ int AngelCompare(double slope1,double slope2,double tolerance)
         double dvalue=slope2+(2*CV_PI-slope1);
         //qDebug()<<dvalue<<"  dvalue ";
         if(dvalue<tolerance){
-            qDebug()<<"out the Campare";
-            qDebug()<<"return is "<<1;
+           // qDebug()<<"out the Campare";
+          //  qDebug()<<"return is "<<1;
             return 1;
         }else{
-            qDebug()<<"out the Campare";
+         //   qDebug()<<"out the Campare";
             return 2;
-            qDebug()<<"return is "<<2;
+          //  qDebug()<<"return is "<<2;
         }
     }
     else if(slope2>1.5*CV_PI&&slope1<0.5*CV_PI)
@@ -2718,11 +2677,11 @@ int AngelCompare(double slope1,double slope2,double tolerance)
         //qDebug()<<dvalue<<"  dvalue ";
         if(dvalue<tolerance){
             //qDebug()<<"out the Campare(Two para)";
-            qDebug()<<"return is "<<1;
+         //   qDebug()<<"return is "<<1;
             return 1;
         }else{
             //qDebug()<<"out the Campare(Two para)";
-            qDebug()<<"return is "<<2;
+           // qDebug()<<"return is "<<2;
             return 2;
         }
     }
@@ -2730,15 +2689,15 @@ int AngelCompare(double slope1,double slope2,double tolerance)
     {
         qDebug()<<"case three";
         double dvalue=abs(slope1-slope2);
-        qDebug()<<dvalue<<"  dvalue ";
+       // qDebug()<<dvalue<<"  dvalue ";
         if(dvalue<tolerance){
 
             //qDebug()<<"out the Campare(Two para)";
-            qDebug()<<"return is "<<1;
+        //    qDebug()<<"return is "<<1;
             return 1;
         }else{
             //qDebug()<<"out the Campare(Two para)";
-            qDebug()<<"return is "<<2;
+          //  qDebug()<<"return is "<<2;
             return 2;
         }
     }

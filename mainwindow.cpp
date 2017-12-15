@@ -10,6 +10,9 @@
 #include<iostream>
 #include <fstream>
 #include "capturethread.h"
+extern int samplingcount=0;
+extern  int samplingGap=0;
+extern  int LineCount=0;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -36,6 +39,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Amini_Button->setEnabled(false);
     ui->Bmini_Button->setEnabled(false);
     ui->Cmini_Button->setEnabled(false);
+
+
+
     cam     = NULL;
     timer   = new QTimer(this);
     imag    = new QImage();
@@ -1447,8 +1453,6 @@ void MainWindow::SmoothOutline()
     Unique_2D(OnlyOutLine);
     ReOrderOutline(OnlyOutLine);//重新排序边界
 
-    //OrderdOutLine= ReOrderOutline_8Neighboor(OnlyOutLine,OulineImage);
-
     //  CurveFit(OrderdOutLine);//进行B样条的曲线拟合，这个数据暂时没用
 
 
@@ -1639,32 +1643,34 @@ void MainWindow::ReadPngButton()
         {
             OrderedSline=HoughPoints;
         }
+
+        LineCount=OrderedSline.length();
+
         Output2File(OrderedSline,"F:/output/OrderedSline.txt");
         Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
         qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
         int All_Points_cout=OrderdOutLine.length();//获取总点数
-        QMessageBox::information(NULL,"sss",QString::number(OrderedSline.length()));
+
 
         if( OrderedSline.length()>=4){
 
             qDebug()<<"+++***   There are more than 2 strait line   ***+++";
-
+            HoughPoints=OrderedSline;
+            HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
 
             QVector<int>m_Int_Line;
 
             m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minmumDcres);
 
             CharacteristicPoint.clear();
-
             CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
-
-
-
         }
         else if( OrderedSline.length()==2)
 
         { //一条直线的情况
             //直线数量不足，说明全部是曲线，直接进行曲线检测
+            HoughPoints=OrderedSline;
+            HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
             qDebug()<<"+++***   Only one strait line is here    ***+++";
             int Checkflag=abs(HoughPoints_int[0]-HoughPoints_int[1]);//可能是直线点数
             //如果直线包含原点，这个值就会大于全部点数的一半
@@ -1705,13 +1711,13 @@ void MainWindow::ReadPngButton()
                     //QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
                     QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
                     CharacteristicPoint.clear();
-                    qDebug()<<"chchchchchchchchch";
+
                     CharacteristicPoint.push_back(OrderedSline[0]);
                     CharacteristicPoint= TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
-                    CharacteristicPoint.push_back(HoughPoints[1]);
-                    CharacteristicPoint.push_back(OrderedSline[0]);
 
-                    qDebug()<<"chchchchchchchchch";
+                    CharacteristicPoint.push_back(OrderedSline[1]);
+
+
                 }
                 else
                 {
@@ -1736,13 +1742,13 @@ void MainWindow::ReadPngButton()
                     // QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
                     QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
                     CharacteristicPoint.clear();
-                    qDebug()<<"chchchchchchchchch";
+
                     CharacteristicPoint.push_back(OrderedSline[0]);
                     CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
                     CharacteristicPoint.push_back(OrderedSline[1]);
-                    CharacteristicPoint.push_back(CharacteristicPoint[0]);
 
-                    qDebug()<<"chchchchchchchchch";
+
+
                 }
             }
             else
@@ -1763,14 +1769,9 @@ T:
                 CurvePoints_int.push_back(n);
             }
             QVector<int > DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
-            //QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
+
             CharacteristicPoint.clear();
-
-
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
-
-            CharacteristicPoint.push_back(CharacteristicPoint[0]);
-
         }
 
         Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
@@ -2275,6 +2276,9 @@ void MainWindow::ClearVector()
     Outline_template.clear();
     Orioutline.clear();
     OrderedSline.clear();
+    samplingcount=0;
+    samplingGap=0;
+    LineCount=0;
     CoorCount=0;
 }
 void MainWindow::CameraPreView()
@@ -4273,7 +4277,7 @@ void MainWindow::CreatReport(QString add)
 
    if(add.isEmpty()){
        //   QMessageBox::information(NULL,"warning","no out put file address!");
-       add="F:/output/ReportFile_RCS/Report"+QString::number(qrand())+".txt";
+       add="F:/output/ReportFile_RCS/Report.txt";
    }
 
 
@@ -4305,9 +4309,13 @@ void MainWindow::CreatReport(QString add)
          out<<"\n";
         out<<"外轮廓总点数   "+QString::number(OrderdOutLine.length());
         out<<"\n";
-        out<<"直线数量   "+QString::number(OrderedSline.length()/2);
+        out<<"直线数量   "+QString::number(LineCount);
         out<<"\n";
-        out<<"特征点数量   "+QString::number(CharacteristicPoint.length()/2);
+        out<<"特征点数量   "+QString::number(CharacteristicPoint.length());
+        out<<"\n";
+        out<<"采样点数   "+QString::number(samplingcount);
+        out<<"\n";
+        out<<"采样间距   "+QString::number(samplingGap);
         QImage tosaveimage=ImageDrawer(origin_image,CharacteristicPoint,QColor(255,0,0),6);
         QimageSave(OulineImage_b,"ReportFile_RCS/outlineb");
         QimageSave(origin_image,"ReportFile_RCS/Originimage");

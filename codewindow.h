@@ -18,6 +18,7 @@ public:
     QString code;
     void ShowCode();
 
+
 private:
     Ui::CodeWindow *ui;
 };

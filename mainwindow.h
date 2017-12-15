@@ -141,7 +141,7 @@ private:
 
     QString FullOrder;
 
-    const int minmumDcres=20;//曲线离散后最短直线
+    const int minmumDcres=30;//曲线离散后最短直线
 
     const int minmumLine=15;//霍夫变换最后参数
     int rows;

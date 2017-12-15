@@ -5,5 +5,7 @@
 
 
 
-
+extern int samplingcount;
+extern int samplingGap;
+extern int LineCount;
 #endif // WORLDVALUES_H
