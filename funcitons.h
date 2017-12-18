@@ -36,7 +36,7 @@ QVector<int> SimplifySlope(QVector<double> S_Slope, QVector<int> BP);//斜率精
 QVector<QVector2D> SimplifySlope(QVector<double> S_Slope, QVector<QVector2D> inputP);//斜率精简2
 QVector<int> SimplifySlope(QVector<double>S_Slope, QVector<int> BP);
 QVector<double> Distance(QVector<QVector2D> Into, int mode);//计算全部距离
-QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL, int MinL);
+QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL, int MinL, QVector<int> &ReturnKey);
 QVector<int> CheckPointInline(QVector<int>BP,
                               QVector<QVector2D> OOL, QVector<int> BreakP, int MinL);
 QVector<int>GetBreakPoints(QVector<QVector2D>Dec,QVector<QVector2D>Outline);
@@ -77,9 +77,10 @@ void Output2File(QVector<QPointF> InputArray,QString Outputadd="");
 QVector<QVector2D> PointReorder(QVector<QVector2D>input, QVector<QVector2D>templateArray, int MinL);
 QVector<int> PointReorder_Rint(QVector<QVector2D>input, QVector<QVector2D>templateArray, int MinL);
 QVector<int> LineMerge(QVector<int> input_int, QVector<QVector2D>input_Point,
-                       QVector<QVector2D> allp, QVector<int> BreakP, bool bisect, int MinL=15);
+                       QVector<QVector2D> allp, QVector<int> BreakP, bool bisect,
+                       QVector<int> & KeyP, int MinL);
 
-void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
+QVector2D Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss=0);
 
 QVector<QVector2D> CircularStitching(QVector<QVector2D>Line1,QVector<QVector2D>Line2);
 QVector<double> PointToLineDis(QVector<QVector2D> LinePoint, QVector<QVector2D>Points);

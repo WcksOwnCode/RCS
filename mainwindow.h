@@ -110,7 +110,7 @@ public:
 
     QImage ImageDrawer(QImage Img, QVector<QVector2D> Array, QColor col, int Broad=1);
 
-    QVector<QVector2D>CurveOffset(QVector<QVector2D>input,QVector<QPointF> fitcurve,int Offset);
+    QVector<QVector2D>CurveOffset(QVector<QVector2D>input, QVector<int> KeyP, QVector<QPointF> fitcurve, int Offset);
 
     QImage GaussianBlur(QImage GB);
 
@@ -212,8 +212,6 @@ private:
 
     int all;
 
-
-
     const int m_iTotwoValue=120;//转二值图的时候的阈值
 
     const int width=800;//设定图片长宽
@@ -283,6 +281,8 @@ private:
     QVector <QVector2D> StraitLine;
 
     QVector <int> StraitLineCount;
+
+     QVector <int> ImportantKey;
 
     QVector<int> BreakPointDistance;
 
@@ -365,6 +365,10 @@ private:
     Mat distortion_coeffs = Mat(1,5, CV_32FC1, Scalar::all(0));            /* 摄像机的5个畸变系数：k1,k2,p1,p2,k3 */
 
     Mat xmat,ymat;
+
+    Mat BackMat;//用于定位末端的矩阵的背景图储存在这里
+
+    Mat TosetcoorMat;//用于定位末端第二次对比图放在这里
 
     QString CurrentReturn;
 
@@ -451,6 +455,8 @@ private slots:
     void on_Bmini_Button_clicked();
 
     void on_Cmini_Button_clicked();
+
+    void on_Sample_Pic_clicked();
 
 signals:
     void Receveid();

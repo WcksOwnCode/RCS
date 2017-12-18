@@ -3,7 +3,6 @@
 /*此处存放的函数主要是用来计算曲线特征点的函数，为了在mainwindow里看起来简单一些
  * 主要是距离计算  斜率计算  斜率简化 等函数组成，目的在于找到曲线行走必须的点
  *
- *
 /**************************************************************************************************/
 #include "funcitons.h"
 #include <cmath>
@@ -752,7 +751,7 @@ double FindMidValue(QVector<double>Array,int sort,int Ratio)
     }
 }
 
-QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL)
+QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL,QVector<int>&ReturnKey)
 {
     QVector<QVector2D>Curve_2D=TransSequenceTo2D(OOL,BP);
     Output2File(Curve_2D,"F:/output/CurveP"+QString::number(qrand())+".txt");
@@ -2229,9 +2228,10 @@ QVector<int> PointReorder_Rint(QVector<QVector2D>input,QVector<QVector2D>templat
 
 }
 
-void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
+QVector2D Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
 {
     //to find all the points center
+    QVector2D centerp;
     int length=Circle.length();
 
     for(int i=0;i<length;i++)
@@ -2245,7 +2245,7 @@ void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
 
 
 
-
+return centerp;
 
 
 
@@ -2253,7 +2253,8 @@ void Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radiuss)
 
 }
 QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
-                       QVector<QVector2D>allp,QVector<int>BreakP,bool bisect=false,int MinL)
+                       QVector<QVector2D>allp,QVector<int>BreakP,bool bisect,
+                       QVector<int>&KeyP,int MinL)
 {
     /*after houghlinesP function ,we will get some strait line which is represeted by two points(start
     * and end points)
@@ -2396,7 +2397,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
             else{
                 qDebug()<<"case one send to check point inline:";
-                fortemp=FindKeypoints(Gap_Point,allp,MinL);
+                fortemp=FindKeypoints(Gap_Point,allp,MinL,KeyP);
                 //fortemp= CheckPointInline(Gap_Point,allp,BreakP,MinL);
                 qDebug()<<"out from large gap!";
             }
@@ -2443,7 +2444,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             }
             qDebug()<<"case 2 send to checkpoint in line";
             if(Gap_Point.length()>1){
-                fortemp=FindKeypoints(Gap_Point,allp,MinL);
+                fortemp=FindKeypoints(Gap_Point,allp,MinL,KeyP);
 
 
                 foreach (int k, fortemp) {
@@ -2482,7 +2483,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             TwoSlope.push_back(lineslope[0]);//脚标需要对应查询
             TwoSlope.push_back(lineslope[lineslope.length()-2]);
             qDebug()<<"case 3 send to checkpoint in line";
-            fortemp=FindKeypoints(Gap_Point,allp,MinL);
+            fortemp=FindKeypoints(Gap_Point,allp,MinL,KeyP);
 
 
             foreach (int k, fortemp) {
@@ -2528,8 +2529,6 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
     //qDebug()<<"original to return is "<<Toreturn;
     Toreturn=ReorderArray(Toreturn,1);
     //qDebug()<<"Orderedtoreturn is "<<Toreturn;
-
-
     Toreturn=Unique_Int(Toreturn);
 
     //  qDebug()<<"uniqued return is "<<Toreturn;

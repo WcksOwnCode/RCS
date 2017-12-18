@@ -1608,38 +1608,42 @@ void MainWindow::ReadPngButton()
         QVector<QVector2D>insideroutline= OutlineErosion(maxDomain,OnlyOutLine,V4Domain_max,offsetValue);
         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
     }
+
     SmoothOutline();
     SmoothOulineImage=spaceImage;
+
     int offsetValue=ui->OffsetValueInput->text().toInt();
+
     if(!ui->Erosion_checkBox->isChecked()&&ui->isOutlineoffset->isChecked()){
-        QVector<QVector2D>insideroutline=CurveOffset(OrderdOutLine,curvePoints,offsetValue);
+        QVector<QVector2D>insideroutline=CurveOffset(OrderdOutLine,ImportantKey,curvePoints,offsetValue);
         OulineImage=GetOutLine(ErosionImage);//get the outline of the max domain
     }
+
     for(int i=0;i<OrderdOutLine.length();i++){
         SmoothOulineImage.setPixel(OrderdOutLine[i].x(),OrderdOutLine[i].y(),qRgb(255,0,0));
     }
+
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
     ui->CameraView_Button->setEnabled(true);
     ui->openCamera->setEnabled(true);
     if(!ui->disperse_checkBox->isChecked())
     {
-
         QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
         HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
         Output2File(HoughPoints,"F:/output/HoughPoints.txt");
         QVector<int>HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
-
         QVector<QVector2D>OrderedSline;
-
         QVector<int>testorder;
-        if(HoughPoints.length()!=0){
+
+        if(HoughPoints.length()!=0){//如果有直线
             testorder=PointReorder_Rint(HoughPoints,OrderdOutLine,minmumDcres);
 
             OrderedSline=PointReorder(HoughPoints,OrderdOutLine,minmumDcres);
 
             HoughPoints=OrderedSline;
             HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
-        }else
+        }
+        else
         {
             OrderedSline=HoughPoints;
         }
@@ -1660,7 +1664,8 @@ void MainWindow::ReadPngButton()
 
             QVector<int>m_Int_Line;
 
-            m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minmumDcres);
+            m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,
+                                 BreakPoints,ui->CurvedBisector_checkBox->isChecked(),ImportantKey,minmumDcres);
 
             CharacteristicPoint.clear();
             CharacteristicPoint   =TransSequenceTo2D(OrderdOutLine,m_Int_Line);
@@ -1708,8 +1713,9 @@ void MainWindow::ReadPngButton()
                             CurvePoints_int.push_back(n);
                         }
                     }
+
                     //QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
-                    QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
+                    QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres,ImportantKey);
                     CharacteristicPoint.clear();
 
                     CharacteristicPoint.push_back(OrderedSline[0]);
@@ -1740,7 +1746,7 @@ void MainWindow::ReadPngButton()
                     }
 
                     // QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
-                    QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
+                    QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres,ImportantKey);
                     CharacteristicPoint.clear();
 
                     CharacteristicPoint.push_back(OrderedSline[0]);
@@ -1768,7 +1774,7 @@ T:
             {
                 CurvePoints_int.push_back(n);
             }
-            QVector<int > DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres);
+            QVector<int > DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres,ImportantKey);
 
             CharacteristicPoint.clear();
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
@@ -2117,7 +2123,8 @@ void MainWindow::AutoRun()
 
 
 
-        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,BreakPoints,ui->CurvedBisector_checkBox->isChecked(),minmumDcres);
+        m_Int_Line=LineMerge(testorder,OrderedSline,OrderdOutLine,
+                             BreakPoints,ui->CurvedBisector_checkBox->isChecked(),ImportantKey,minmumDcres);
 
 
 
@@ -2876,7 +2883,7 @@ QVector<QVector2D> MainWindow ::OutlineErosion(QImage inputImg,QVector<QVector2D
             OutlinePoints.clear();
              OutlinePoints=MidData;
              MidData.clear();
-*/               
+*/
             }
 
         }
@@ -3517,10 +3524,23 @@ void MainWindow::ImageDisplayFunciton(QLabel *outputlabel, QImage inputImg, int 
     outputlabel->setPixmap(TP);
 
 }
-QVector<QVector2D>MainWindow::CurveOffset(QVector<QVector2D>input, QVector<QPointF>curvefit,int Offset=0)
+QVector<QVector2D>MainWindow::CurveOffset(QVector<QVector2D>input,QVector<int>KeyP, QVector<QPointF>curvefit,int Offset=0)
 {
     //input 是输入的排序好的外轮廓，xy形势
     //Offset是偏移距离，负数表示向内偏移，正数表示向外偏移
+    QVector<QVector2D>KeyP_2D=TransSequenceTo2D(input,KeyP);
+    QVector2D StartP;
+    QVector2D EndP;
+    for(int i=0;i<KeyP_2D.length()-1;i++)
+    {
+        StartP=KeyP_2D[i];
+        EndP=KeyP_2D[i+1];
+        double slope=SingelSlopeCalculate(EndP,StartP);
+
+
+
+
+    }
 
     int In_Length=input.length();
 
@@ -4274,21 +4294,18 @@ void MainWindow::on_Cmini_Button_clicked()
 }
 void MainWindow::CreatReport(QString add)
 {
-
-   if(add.isEmpty()){
-       //   QMessageBox::information(NULL,"warning","no out put file address!");
-       add="F:/output/ReportFile_RCS/Report.txt";
-   }
-
-
-
-   QFile *outflie=new QFile;
-   outflie->setFileName(add);
-   bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
-   if(ok)
-   {
-       int count=0;
-       QTextStream out(outflie);
+    if(add.isEmpty())
+    {
+        //   QMessageBox::information(NULL,"warning","no out put file address!");
+        add="F:/output/ReportFile_RCS/Report.txt";
+    }
+    QFile *outflie=new QFile;
+    outflie->setFileName(add);
+    bool ok=outflie->open(QIODevice::Text|QIODevice::WriteOnly);//加入QIODevice：：Text可以换行
+    if(ok)
+    {
+        int count=0;
+        QTextStream out(outflie);
 
         out<<"Robot Control System Report File";
         out<<"\n";
@@ -4305,8 +4322,8 @@ void MainWindow::CreatReport(QString add)
         out<<outstr;
         out<<"\n";
         outstr.clear();
-         out<<"离散距离    "+QString::number(minmumDcres);
-         out<<"\n";
+        out<<"离散距离    "+QString::number(minmumDcres);
+        out<<"\n";
         out<<"外轮廓总点数   "+QString::number(OrderdOutLine.length());
         out<<"\n";
         out<<"直线数量   "+QString::number(LineCount);
@@ -4320,8 +4337,67 @@ void MainWindow::CreatReport(QString add)
         QimageSave(OulineImage_b,"ReportFile_RCS/outlineb");
         QimageSave(origin_image,"ReportFile_RCS/Originimage");
         QimageSave(origin_image,"ReportFile_RCS/Originimage_withC");
-       outflie->close();
-       delete outflie;
-   }
+        outflie->close();
+        delete outflie;
+    }
 
+}
+
+void MainWindow::on_Sample_Pic_clicked()
+{
+    int tolerance=20;//色度变化公差
+    if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机"&&BackMat.cols<50)
+    {
+
+        cv:: Mat cvframe;
+
+        VCcam>>cvframe;
+
+        Mat mid=CenterClipping(cvframe);
+
+        BackMat=mid.clone();
+        qDebug()<<"done";
+        VCcam.release();
+        CameraPreView();
+    }
+    else if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机"
+            &&BackMat.cols>50&&TosetcoorMat.cols<50)
+    {
+        cv:: Mat cvframe;
+
+        VCcam>>cvframe;
+
+        Mat mid=CenterClipping(cvframe);
+
+        TosetcoorMat=mid.clone();
+        qDebug()<<"done";
+        VCcam.release();
+        Mat temp;
+        cvtColor(BackMat,temp,CV_RGB2GRAY);
+        BackMat.release();
+        BackMat=temp.clone();
+        temp.release();
+
+        cvtColor(TosetcoorMat,temp,CV_RGB2GRAY);
+        TosetcoorMat.release();
+        TosetcoorMat=temp.clone();
+        temp.release();
+        QVector<QVector2D>blackPoint;
+        for(int i=0;i<BackMat.cols;i++)
+        {
+            for(int j=0;j<BackMat.cols;j++)
+            {
+                if(abs(BackMat.at<Vec3b>(i, j)[0]-TosetcoorMat.at<Vec3b>(i, j)[0])>tolerance)
+                {
+                    blackPoint.push_back(QVector2D(i,j));
+                }
+            }
+
+        }
+        //分析blackpoint数据
+
+
+
+        CameraPreView();
+    }
 }
