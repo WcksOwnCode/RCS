@@ -376,6 +376,10 @@ private:
 
     float PixeltoMeter;
 
+    double OriX=0;
+
+    double OriY=0;
+
 private slots:
 
     void readmycom();

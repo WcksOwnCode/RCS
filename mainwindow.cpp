@@ -475,21 +475,21 @@ void MainWindow::SetCoordinate(double x, double y, double z)
     }
     if(ui->BoltSpeed_checkBox->isChecked())
     {
-        Coordinate[0][CoorCount]=x+m_dXspeed+m_dXbase;
-        Coordinate[1][CoorCount]=y+m_dYspeed+m_dYbase;
+        Coordinate[0][CoorCount]=x+m_dXspeed+m_dXbase+OriX;
+        Coordinate[1][CoorCount]=y+m_dYspeed+m_dYbase+OriY;
         Coordinate[2][CoorCount]=z+m_dZspeed+m_dZbase;
-        Discoor[3*CoorCount]=x+m_dXspeed+m_dXbase;
-        Discoor[3*CoorCount+1]=y+m_dYspeed+m_dYbase;
+        Discoor[3*CoorCount]=x+m_dXspeed+m_dXbase+OriX;
+        Discoor[3*CoorCount+1]=y+m_dYspeed+m_dYbase+OriY;
         Discoor[3*CoorCount+2]=z+m_dZspeed+m_dZbase;
 
     }
     else
     {
-        Coordinate[0][CoorCount]=x+m_dXbase;
-        Coordinate[1][CoorCount]=y+m_dYbase;
+        Coordinate[0][CoorCount]=x+m_dXbase+OriX;
+        Coordinate[1][CoorCount]=y+m_dYbase+OriY;
         Coordinate[2][CoorCount]=z+m_dZbase;
-        Discoor[3*CoorCount]=x+m_dXbase;
-        Discoor[3*CoorCount+1]=y+m_dYbase;
+        Discoor[3*CoorCount]=x+m_dXbase+OriX;
+        Discoor[3*CoorCount+1]=y+m_dYbase+OriY;
         Discoor[3*CoorCount+2]=z+m_dZbase;
     }
     CoorCount++;
@@ -4345,7 +4345,186 @@ void MainWindow::CreatReport(QString add)
 
 void MainWindow::on_Sample_Pic_clicked()
 {
-    int tolerance=20;//色度变化公差
+    int tolerance=100;//色度变化公差
+    bool GetImage=false;
+/*
+ * 这段是测试代码
+
+    Mat testmat1=imread("C:\\Users\\duke\\Desktop\\visiontest\\space.png",1);//0单通道
+    Mat testmat2=imread("C:\\Users\\duke\\Desktop\\visiontest\\spot2.png",1);
+
+    QImage tesimg1=cvMat2QImage(testmat1);
+    QImage tesimg2=cvMat2QImage(testmat2);
+    QImage sos(800,600,QImage::Format_ARGB32);
+    QVector<QVector2D>BPoin;
+    for(int i=0;i<sos.width();i++)
+    {
+        for (int j=0;j<sos.height();j++)
+        {
+            sos.setPixelColor(i,j,qRgb(255,255,255));
+        }
+    }
+    for(int i=0;i<tesimg1.width();i++)
+    {
+        for(int j=0;j<tesimg1.height();j++)
+        {
+            QColor xxx=tesimg1.pixel(i,j);
+            QColor yyy=tesimg2.pixel(i,j);
+            if(abs((xxx.red()+xxx.green()+xxx.blue())/3-(yyy.red()+yyy.green()+yyy.blue())/3)>tolerance)
+            {
+                sos.setPixelColor(i,j,qRgb(255,0,0));
+                BPoin.push_back(QVector2D(i,j));
+            }
+        }
+    }
+    int sumx=0,sumy=0;
+    foreach (QVector2D xy, BPoin) {
+        sumx+=xy.x();
+        sumy+=xy.y();
+    }
+    double avex=sumx/BPoin.length();
+    double avey=sumy/BPoin.length();
+
+
+    QImage centralp=spaceImage;
+    centralp.scaled(800,600);
+
+    centralp.setPixel(avex,avey,qRgb(0,0,0));
+
+
+    qDebug()<<"BPoin.length()"<<BPoin.length();
+
+    QVector<QVector<QVector2D>>ClusterP;//放置各个团簇的点，对应中心点数量
+    QVector<QVector2D>tempPoints;
+    QVector<QVector2D>CheckBP;
+    int whilecount=1;
+
+    tempPoints.push_back(BPoin[BPoin.length()-1]);
+    BPoin.removeLast();
+    int Distorlerance=4;
+    while(1){
+        qDebug()<<"while count    "<<whilecount;
+        whilecount++;
+        for(int j=0;j<tempPoints.length();j++)
+        {
+            for(int i=0;i<BPoin.length();i++)
+            {
+                double diss=
+                        DisCalFuc(tempPoints[j].x(),tempPoints[j].y(),BPoin[i].x(),BPoin[i].y());
+                if(diss<=Distorlerance)
+                {
+                    tempPoints.push_back(BPoin[i]);
+                    BPoin[i].setX(-1000);
+                    BPoin[i].setY(-1000);
+                }
+            }
+        }
+        ClusterP.push_back(tempPoints);
+        tempPoints.clear();
+        for(int i=0;i<BPoin.length();i++)
+        {
+            if(BPoin[i].x()!=-1000)
+            {
+                CheckBP.push_back(BPoin[i]);
+            }
+        }
+        if(CheckBP.length()==0)
+        {
+            break;
+        }
+        else if(CheckBP.length()==1)
+        {
+            ClusterP.push_back(CheckBP);
+            break;
+        }
+        else
+        {
+            tempPoints.push_back(CheckBP[CheckBP.length()-1]);
+            CheckBP.removeLast();
+            BPoin=CheckBP;
+            CheckBP.clear();
+        }
+    }
+  qDebug()<<ClusterP.length();
+
+  if(ClusterP.length()==1)
+  {
+     int sumx=0,sumy=0;
+     QVector<QVector2D>Cal=ClusterP[0];
+     foreach (QVector2D vv, Cal)
+     {
+         sumx+=vv.x();
+         sumy+=vv.y();
+     }
+      OriX=sumx/Cal.length();
+      OriY=sumy/Cal.length();
+  }
+  else if(ClusterP.length()>1)
+  {
+      bool FindOK=false;
+      for(int i=0;i<ClusterP.length();i++)
+      {
+
+          if(ClusterP[i].length()>20)
+          {//二十个像素点以上才可以是
+              QVector<QVector2D>Cal=ClusterP[i];
+              int sumx=0,sumy=0;
+
+              foreach (QVector2D vv, Cal)
+              {
+                  sumx+=vv.x();
+                  sumy+=vv.y();
+              }
+              double centerX=sumx/Cal.length();
+              double centerY=sumy/Cal.length();
+              double maxdis=0;
+              foreach (QVector2D vv, Cal)
+              {
+                double tempdis=  DisCalFuc(vv.x(),vv.y(),centerX,centerY);
+                  if(tempdis>maxdis){
+                  maxdis=tempdis;
+                  }
+
+              }
+              double S=3.14*maxdis*maxdis;
+              if(Cal.length()/S>0.55&&Cal.length()/S<1.5)//Cal的长度可以看做其面积
+              {
+                  //如果很接近圆，应该是面积相近
+                  //认为此点合格
+                  OriX=centerX;
+                  OriY=centerY;
+                  FindOK=true;
+              }
+          }
+      }
+  }
+    QImage testss=spaceImage;
+    testss.scaled(800,600);
+    for(int i=0;i<testss.width();i++)
+    {
+        for(int j=0;j<testss.height();j++)
+        {
+            if(abs(i-OriX)<1||abs(j-OriY)<1)
+            {
+                testss.setPixel(i,j,qRgb(200,132,21));
+                sos.setPixel(i,j,qRgb(200,132,21));
+            }
+        }
+    }
+
+
+
+
+        sos.save("C:/Users/duke/Desktop/save.png","PNG",100);
+    centralp.save("C:/Users/duke/Desktop/centralp.png","PNG",100);
+     testss.save("C:/Users/duke/Desktop/testss.png","PNG",100);
+
+    exit(0);
+
+*/
+
+
+
     if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机"&&BackMat.cols<50)
     {
 
@@ -4372,32 +4551,170 @@ void MainWindow::on_Sample_Pic_clicked()
         TosetcoorMat=mid.clone();
         qDebug()<<"done";
         VCcam.release();
-        Mat temp;
-        cvtColor(BackMat,temp,CV_RGB2GRAY);
-        BackMat.release();
-        BackMat=temp.clone();
-        temp.release();
-
-        cvtColor(TosetcoorMat,temp,CV_RGB2GRAY);
-        TosetcoorMat.release();
-        TosetcoorMat=temp.clone();
-        temp.release();
-        QVector<QVector2D>blackPoint;
-        for(int i=0;i<BackMat.cols;i++)
-        {
-            for(int j=0;j<BackMat.cols;j++)
-            {
-                if(abs(BackMat.at<Vec3b>(i, j)[0]-TosetcoorMat.at<Vec3b>(i, j)[0])>tolerance)
-                {
-                    blackPoint.push_back(QVector2D(i,j));
-                }
-            }
-
-        }
-        //分析blackpoint数据
-
-
 
         CameraPreView();
+        GetImage=true;
     }
+
+    if(GetImage)
+    {
+        QImage tesimg1=cvMat2QImage(BackMat);
+        QImage tesimg2=cvMat2QImage(TosetcoorMat);
+        QImage sos(800,600,QImage::Format_ARGB32);
+        QVector<QVector2D>BPoin;
+        for(int i=0;i<sos.width();i++)
+        {
+            for (int j=0;j<sos.height();j++)
+            {
+                sos.setPixelColor(i,j,qRgb(255,255,255));
+            }
+        }
+        for(int i=0;i<tesimg1.width();i++)
+        {
+            for(int j=0;j<tesimg1.height();j++)
+            {
+                QColor xxx=tesimg1.pixel(i,j);
+                QColor yyy=tesimg2.pixel(i,j);
+                if(abs((xxx.red()+xxx.green()+xxx.blue())/3-(yyy.red()+yyy.green()+yyy.blue())/3)>tolerance)
+                {
+                    sos.setPixelColor(i,j,qRgb(255,0,0));
+                    BPoin.push_back(QVector2D(i,j));
+                }
+            }
+        }
+        int sumx=0,sumy=0;
+        foreach (QVector2D xy, BPoin) {
+            sumx+=xy.x();
+            sumy+=xy.y();
+        }
+        double avex=sumx/BPoin.length();
+        double avey=sumy/BPoin.length();
+        QImage centralp=spaceImage;
+        centralp.scaled(800,600);
+        centralp.setPixel(avex,avey,qRgb(0,0,0));
+        qDebug()<<"BPoin.length()"<<BPoin.length();
+        QVector<QVector<QVector2D>>ClusterP;//放置各个团簇的点，对应中心点数量
+        QVector<QVector2D>tempPoints;
+        QVector<QVector2D>CheckBP;
+        int whilecount=1;
+        tempPoints.push_back(BPoin[BPoin.length()-1]);
+        BPoin.removeLast();
+        int Distorlerance=4;
+        while(1){
+            qDebug()<<"while count    "<<whilecount;
+            whilecount++;
+            for(int j=0;j<tempPoints.length();j++)
+            {
+                for(int i=0;i<BPoin.length();i++)
+                {
+                    double diss=
+                            DisCalFuc(tempPoints[j].x(),tempPoints[j].y(),BPoin[i].x(),BPoin[i].y());
+                    if(diss<=Distorlerance)
+                    {
+                        tempPoints.push_back(BPoin[i]);
+                        BPoin[i].setX(-1000);
+                        BPoin[i].setY(-1000);
+                    }
+                }
+            }
+            ClusterP.push_back(tempPoints);
+            tempPoints.clear();
+            for(int i=0;i<BPoin.length();i++)
+            {
+                if(BPoin[i].x()!=-1000)
+                {
+                    CheckBP.push_back(BPoin[i]);
+                }
+            }
+            if(CheckBP.length()==0)
+            {
+                break;
+            }
+            else if(CheckBP.length()==1)
+            {
+                ClusterP.push_back(CheckBP);
+                break;
+            }
+            else
+            {
+                tempPoints.push_back(CheckBP[CheckBP.length()-1]);
+                CheckBP.removeLast();
+                BPoin=CheckBP;
+                CheckBP.clear();
+            }
+        }
+      qDebug()<<ClusterP.length();
+
+      if(ClusterP.length()==1)
+      {
+         int sumx=0,sumy=0;
+         QVector<QVector2D>Cal=ClusterP[0];
+         foreach (QVector2D vv, Cal)
+         {
+             sumx+=vv.x();
+             sumy+=vv.y();
+         }
+          OriX=sumx/Cal.length();
+          OriY=sumy/Cal.length();
+      }
+      else if(ClusterP.length()>1)
+      {
+          bool FindOK=false;
+          for(int i=0;i<ClusterP.length();i++)
+          {
+
+              if(ClusterP[i].length()>20)
+              {//二十个像素点以上才可以是
+                  QVector<QVector2D>Cal=ClusterP[i];
+                  int sumx=0,sumy=0;
+
+                  foreach (QVector2D vv, Cal)
+                  {
+                      sumx+=vv.x();
+                      sumy+=vv.y();
+                  }
+                  double centerX=sumx/Cal.length();
+                  double centerY=sumy/Cal.length();
+                  double maxdis=0;
+                  foreach (QVector2D vv, Cal)
+                  {
+                    double tempdis=  DisCalFuc(vv.x(),vv.y(),centerX,centerY);
+                      if(tempdis>maxdis){
+                      maxdis=tempdis;
+                      }
+
+                  }
+                  double S=3.14*maxdis*maxdis;
+                  if(Cal.length()/S>0.55&&Cal.length()/S<1.5)//Cal的长度可以看做其面积
+                  {
+                      //如果很接近圆，应该是面积相近
+                      //认为此点合格
+                      OriX=centerX;
+                      OriY=centerY;
+                      FindOK=true;
+                  }
+              }
+          }
+      }
+        QImage testss=spaceImage;
+        testss.scaled(800,600);
+        for(int i=0;i<testss.width();i++)
+        {
+            for(int j=0;j<testss.height();j++)
+            {
+                if(abs(i-OriX)<1||abs(j-OriY)<1)
+                {
+                    testss.setPixel(i,j,qRgb(200,132,21));
+
+                }
+                if(abs(i-OriX)<5||abs(j-OriY)<5)
+                {
+                    sos.setPixel(i,j,qRgb(200,132,21));
+                }
+            }
+        }
+        ImageDisplayFunciton(ui->Origin_Label,sos,400,300);
+
+    }
+
 }

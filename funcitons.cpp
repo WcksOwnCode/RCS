@@ -728,6 +728,10 @@ QVector<double> Distance(QVector<QVector2D> Into,int mode=0)
 }
 double FindMidValue(QVector<double>Array,int sort,int Ratio)
 {
+    /*
+     * sort 1从大到小排列
+     * sort 其他，从小到大
+*/
 
     if(Ratio>100)
     {
