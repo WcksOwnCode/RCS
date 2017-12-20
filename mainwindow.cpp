@@ -208,15 +208,15 @@ void MainWindow::readmycom() //读串口函数
                 }
 
                 toFindXYZABC=CurrentReturn.mid(sx+2,sy-sx-3) ;
-                m_dXbase=toFindXYZABC.toDouble();
+              //  m_dXbase=toFindXYZABC.toDouble();
 
 
                 toFindXYZABC=CurrentReturn.mid(sy+2,sz-sy-3) ;
-                m_dYbase=toFindXYZABC.toDouble();
+               // m_dYbase=toFindXYZABC.toDouble();
 
 
                 toFindXYZABC=CurrentReturn.mid(sz+2,sa-sz-3) ;
-                m_dZbase=toFindXYZABC.toDouble();
+               // m_dZbase=toFindXYZABC.toDouble();
 
 
                 CurrentAngel.clear();
@@ -230,13 +230,21 @@ void MainWindow::readmycom() //读串口函数
                 toFindXYZABC=CurrentReturn.mid(sc+2,sss.length()-sc-2) ;
                 CurrentAngel.push_back(toFindXYZABC.toFloat());
 
-                ui->Xbase_spin->setValue(m_dXbase);
-                ui->Ybase_spin->setValue(m_dYbase);
-                ui->Zbase_spin->setValue(m_dZbase);
+              //  ui->Xbase_spin->setValue(m_dXbase);
+                //ui->Ybase_spin->setValue(m_dYbase);
+                //ui->Zbase_spin->setValue(m_dZbase);
+
 
                 CurrentSpot.setX(m_dXbase);
                 CurrentSpot.setY(m_dYbase);
                 CurrentSpot.setZ(m_dZbase);
+                QString toshow;
+                toshow="当前位置:\n";
+                toshow=toshow+"X="+ QString::number(CurrentSpot.x())
+                        + " Y= "+QString::number(CurrentSpot.y())+" Z= "+QString::number(CurrentSpot.z())+
+                        "\nA= "+QString::number(CurrentAngel[0])+" B="+
+     QString::number(CurrentAngel[1])+" C= "+QString::number(CurrentAngel[2]);
+                ui->Message_Label->setText(toshow);
 
                 qDebug()<<"Current angel: "<<CurrentAngel;
                 qDebug()<<"Current spot: "<<CurrentSpot;
@@ -406,8 +414,8 @@ void MainWindow::ReadtxtButton()
             std::cout<<std::endl;
         }
     }*/
-
-    CreadOrders();
+    CharacteristicPoint.clear();
+    CreadOrders(CharacteristicPoint);
 
     QString repor="All total of ";
     repor.append(QString::number(row_count-1));
@@ -475,21 +483,21 @@ void MainWindow::SetCoordinate(double x, double y, double z)
     }
     if(ui->BoltSpeed_checkBox->isChecked())
     {
-        Coordinate[0][CoorCount]=x+m_dXspeed+m_dXbase+OriX;
-        Coordinate[1][CoorCount]=y+m_dYspeed+m_dYbase+OriY;
+        Coordinate[0][CoorCount]=(x+m_dXspeed+m_dXbase+OriX)*PixeltoMeter;
+        Coordinate[1][CoorCount]=(y+m_dYspeed+m_dYbase+OriY)*PixeltoMeter;
         Coordinate[2][CoorCount]=z+m_dZspeed+m_dZbase;
-        Discoor[3*CoorCount]=x+m_dXspeed+m_dXbase+OriX;
-        Discoor[3*CoorCount+1]=y+m_dYspeed+m_dYbase+OriY;
+        Discoor[3*CoorCount]=(x+m_dXspeed+m_dXbase+OriX)*PixeltoMeter;
+        Discoor[3*CoorCount+1]=(y+m_dYspeed+m_dYbase+OriY)*PixeltoMeter;
         Discoor[3*CoorCount+2]=z+m_dZspeed+m_dZbase;
 
     }
     else
     {
-        Coordinate[0][CoorCount]=x+m_dXbase+OriX;
-        Coordinate[1][CoorCount]=y+m_dYbase+OriY;
+        Coordinate[0][CoorCount]=(x+m_dXbase+OriX)*PixeltoMeter;
+        Coordinate[1][CoorCount]=(y+m_dYbase+OriY)*PixeltoMeter;
         Coordinate[2][CoorCount]=z+m_dZbase;
-        Discoor[3*CoorCount]=x+m_dXbase+OriX;
-        Discoor[3*CoorCount+1]=y+m_dYbase+OriY;
+        Discoor[3*CoorCount]=(x+m_dXbase+OriX)*PixeltoMeter;
+        Discoor[3*CoorCount+1]=(y+m_dYbase+OriY)*PixeltoMeter;
         Discoor[3*CoorCount+2]=z+m_dZbase;
     }
     CoorCount++;
@@ -509,8 +517,11 @@ void MainWindow::SetCoordinate(double x, double y, double z)
     // qDebug()<<Todisplay;
 
 }
-void MainWindow::CreadOrders()
+void MainWindow::CreadOrders(QVector<QVector2D>inputarray)
 {
+    foreach (QVector2D tt, inputarray) {
+        SetCoordinate(tt.x(),tt.y(),0);
+    }
 
     int SpeedValue=ui->Speed_Percentage->text().toInt();
     FullOrder.append("G94 F=");
@@ -1810,7 +1821,7 @@ T:
     }
 
     CreatReport("");
-    CreadOrders();
+    CreadOrders(CharacteristicPoint);
 
     QimageSave(OulineImage_b,"outlineb");
     QimageSave(origin_image,"Originimage");
@@ -2226,14 +2237,10 @@ void MainWindow::AutoRun()
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
     //创建关键点坐标代码
-
-    for(int i=0;i<CharacteristicPoint.length();i++)
-    {
-        SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
-    }
+    CreadOrders(CharacteristicPoint);
 
     ui->progressBar->setValue(900);
-    CreadOrders();
+
     if(m_bSerialIsOpen)
     {//如果串口是打开的，即表示机器人是连接的
 
@@ -2366,7 +2373,7 @@ void MainWindow::DynamicEncoding(QVector <QVector2D> DE)
 
         SetCoordinate(tempx,tempy,tempz);
     }
-    CreadOrders();
+    CreadOrders(CharacteristicPoint);
 }
 
 void MainWindow::on_Canny_button_clicked()
@@ -3797,7 +3804,6 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         destroyWindow("Calibration");
         cap.release();
 
-
         /*******************************************/
         Mat newimage;
 
@@ -3896,9 +3902,8 @@ void MainWindow::on_GoToOriginSpot_button_clicked()
 {
     if(m_bSerialIsOpen)
     {
-
-
         serial->write(orispot.toLatin1());
+
         ui->AutoSend_Button->setEnabled(false);
         ui->GetTheWorldCoordinate_button->setEnabled(false);
         ui->SendMesg_Button->setEnabled(false);
@@ -4347,7 +4352,7 @@ void MainWindow::on_Sample_Pic_clicked()
 {
     int tolerance=100;//色度变化公差
     bool GetImage=false;
-/*
+    /*
  * 这段是测试代码
 
     Mat testmat1=imread("C:\\Users\\duke\\Desktop\\visiontest\\space.png",1);//0单通道
@@ -4528,6 +4533,7 @@ void MainWindow::on_Sample_Pic_clicked()
     if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机"&&BackMat.cols<50)
     {
 
+        qDebug()<<"First time sample";
         cv:: Mat cvframe;
 
         VCcam>>cvframe;
@@ -4536,12 +4542,12 @@ void MainWindow::on_Sample_Pic_clicked()
 
         BackMat=mid.clone();
         qDebug()<<"done";
-        VCcam.release();
-        CameraPreView();
+
     }
     else if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机"
             &&BackMat.cols>50&&TosetcoorMat.cols<50)
     {
+        qDebug()<<"second sample";
         cv:: Mat cvframe;
 
         VCcam>>cvframe;
@@ -4550,18 +4556,20 @@ void MainWindow::on_Sample_Pic_clicked()
 
         TosetcoorMat=mid.clone();
         qDebug()<<"done";
-        VCcam.release();
 
-        CameraPreView();
         GetImage=true;
+        VCcam.release();
+        CameraPreView();
     }
 
     if(GetImage)
     {
+        qDebug()<<"calculate!";
         QImage tesimg1=cvMat2QImage(BackMat);
         QImage tesimg2=cvMat2QImage(TosetcoorMat);
         QImage sos(800,600,QImage::Format_ARGB32);
         QVector<QVector2D>BPoin;
+        qDebug()<<"dododo";
         for(int i=0;i<sos.width();i++)
         {
             for (int j=0;j<sos.height();j++)
@@ -4582,139 +4590,164 @@ void MainWindow::on_Sample_Pic_clicked()
                 }
             }
         }
-        int sumx=0,sumy=0;
-        foreach (QVector2D xy, BPoin) {
-            sumx+=xy.x();
-            sumy+=xy.y();
-        }
-        double avex=sumx/BPoin.length();
-        double avey=sumy/BPoin.length();
-        QImage centralp=spaceImage;
-        centralp.scaled(800,600);
-        centralp.setPixel(avex,avey,qRgb(0,0,0));
-        qDebug()<<"BPoin.length()"<<BPoin.length();
-        QVector<QVector<QVector2D>>ClusterP;//放置各个团簇的点，对应中心点数量
-        QVector<QVector2D>tempPoints;
-        QVector<QVector2D>CheckBP;
-        int whilecount=1;
-        tempPoints.push_back(BPoin[BPoin.length()-1]);
-        BPoin.removeLast();
-        int Distorlerance=4;
-        while(1){
-            qDebug()<<"while count    "<<whilecount;
-            whilecount++;
-            for(int j=0;j<tempPoints.length();j++)
-            {
+        if(BPoin.length()>0){
+            int sumx=0,sumy=0;
+            foreach (QVector2D xy, BPoin) {
+                sumx+=xy.x();
+                sumy+=xy.y();
+            }
+            qDebug()<<"dododo";
+            double avex=sumx/BPoin.length();
+            double avey=sumy/BPoin.length();
+            QImage centralp=spaceImage;
+            centralp.scaled(800,600);
+            centralp.setPixel(avex,avey,qRgb(0,0,0));
+            qDebug()<<"BPoin.length()"<<BPoin.length();
+            QVector<QVector<QVector2D>>ClusterP;//放置各个团簇的点，对应中心点数量
+            QVector<QVector2D>tempPoints;
+            QVector<QVector2D>CheckBP;
+            int whilecount=1;
+            tempPoints.push_back(BPoin[BPoin.length()-1]);
+            BPoin.removeLast();
+            int Distorlerance=4;
+            while(1){
+                qDebug()<<"while count    "<<whilecount;
+                whilecount++;
+                for(int j=0;j<tempPoints.length();j++)
+                {
+                    for(int i=0;i<BPoin.length();i++)
+                    {
+                        double diss=
+                                DisCalFuc(tempPoints[j].x(),tempPoints[j].y(),BPoin[i].x(),BPoin[i].y());
+                        if(diss<=Distorlerance)
+                        {
+                            tempPoints.push_back(BPoin[i]);
+                            BPoin[i].setX(-1000);
+                            BPoin[i].setY(-1000);
+                        }
+                    }
+                }
+                ClusterP.push_back(tempPoints);
+                tempPoints.clear();
                 for(int i=0;i<BPoin.length();i++)
                 {
-                    double diss=
-                            DisCalFuc(tempPoints[j].x(),tempPoints[j].y(),BPoin[i].x(),BPoin[i].y());
-                    if(diss<=Distorlerance)
+                    if(BPoin[i].x()!=-1000)
                     {
-                        tempPoints.push_back(BPoin[i]);
-                        BPoin[i].setX(-1000);
-                        BPoin[i].setY(-1000);
+                        CheckBP.push_back(BPoin[i]);
+                    }
+                }
+                if(CheckBP.length()==0)
+                {
+                    break;
+                }
+                else if(CheckBP.length()==1)
+                {
+                    ClusterP.push_back(CheckBP);
+                    break;
+                }
+                else
+                {
+                    tempPoints.push_back(CheckBP[CheckBP.length()-1]);
+                    CheckBP.removeLast();
+                    BPoin=CheckBP;
+                    CheckBP.clear();
+                }
+            }
+            qDebug()<<ClusterP.length();
+
+            if(ClusterP.length()==1)
+            {
+                int sumx=0,sumy=0;
+                QVector<QVector2D>Cal=ClusterP[0];
+                foreach (QVector2D vv, Cal)
+                {
+                    sumx+=vv.x();
+                    sumy+=vv.y();
+                }
+                OriX=sumx/Cal.length();
+                OriY=sumy/Cal.length();
+            }
+            else if(ClusterP.length()>1)
+            {
+                bool FindOK=false;
+                for(int i=0;i<ClusterP.length();i++)
+                {
+
+                    if(ClusterP[i].length()>20)
+                    {//二十个像素点以上才可以是
+                        QVector<QVector2D>Cal=ClusterP[i];
+                        int sumx=0,sumy=0;
+
+                        foreach (QVector2D vv, Cal)
+                        {
+                            sumx+=vv.x();
+                            sumy+=vv.y();
+                        }
+                        double centerX=sumx/Cal.length();
+                        double centerY=sumy/Cal.length();
+                        double maxdis=0;
+                        foreach (QVector2D vv, Cal)
+                        {
+                            double tempdis=  DisCalFuc(vv.x(),vv.y(),centerX,centerY);
+                            if(tempdis>maxdis){
+                                maxdis=tempdis;
+                            }
+
+                        }
+                        double S=3.14*maxdis*maxdis;
+                        if(Cal.length()/S>0.55&&Cal.length()/S<1.5)//Cal的长度可以看做其面积
+                        {
+                            //如果很接近圆，应该是面积相近
+                            //认为此点合格
+                            OriX=centerX;
+                            OriY=centerY;
+                            FindOK=true;
+                        }
                     }
                 }
             }
-            ClusterP.push_back(tempPoints);
-            tempPoints.clear();
-            for(int i=0;i<BPoin.length();i++)
+            QImage testss=spaceImage;
+            testss.scaled(800,600);
+            for(int i=0;i<testss.width();i++)
             {
-                if(BPoin[i].x()!=-1000)
+                for(int j=0;j<testss.height();j++)
                 {
-                    CheckBP.push_back(BPoin[i]);
+                    if(abs(i-OriX)<1||abs(j-OriY)<1)
+                    {
+                        testss.setPixel(i,j,qRgb(200,132,21));
+
+                    }
+                    if(abs(i-OriX)<5||abs(j-OriY)<5)
+                    {
+                        sos.setPixel(i,j,qRgb(200,132,21));
+                    }
                 }
             }
-            if(CheckBP.length()==0)
-            {
-                break;
-            }
-            else if(CheckBP.length()==1)
-            {
-                ClusterP.push_back(CheckBP);
-                break;
-            }
-            else
-            {
-                tempPoints.push_back(CheckBP[CheckBP.length()-1]);
-                CheckBP.removeLast();
-                BPoin=CheckBP;
-                CheckBP.clear();
-            }
+            ImageDisplayFunciton(ui->Origin_Label,sos,400,300);
+
         }
-      qDebug()<<ClusterP.length();
-
-      if(ClusterP.length()==1)
-      {
-         int sumx=0,sumy=0;
-         QVector<QVector2D>Cal=ClusterP[0];
-         foreach (QVector2D vv, Cal)
-         {
-             sumx+=vv.x();
-             sumy+=vv.y();
-         }
-          OriX=sumx/Cal.length();
-          OriY=sumy/Cal.length();
-      }
-      else if(ClusterP.length()>1)
-      {
-          bool FindOK=false;
-          for(int i=0;i<ClusterP.length();i++)
-          {
-
-              if(ClusterP[i].length()>20)
-              {//二十个像素点以上才可以是
-                  QVector<QVector2D>Cal=ClusterP[i];
-                  int sumx=0,sumy=0;
-
-                  foreach (QVector2D vv, Cal)
-                  {
-                      sumx+=vv.x();
-                      sumy+=vv.y();
-                  }
-                  double centerX=sumx/Cal.length();
-                  double centerY=sumy/Cal.length();
-                  double maxdis=0;
-                  foreach (QVector2D vv, Cal)
-                  {
-                    double tempdis=  DisCalFuc(vv.x(),vv.y(),centerX,centerY);
-                      if(tempdis>maxdis){
-                      maxdis=tempdis;
-                      }
-
-                  }
-                  double S=3.14*maxdis*maxdis;
-                  if(Cal.length()/S>0.55&&Cal.length()/S<1.5)//Cal的长度可以看做其面积
-                  {
-                      //如果很接近圆，应该是面积相近
-                      //认为此点合格
-                      OriX=centerX;
-                      OriY=centerY;
-                      FindOK=true;
-                  }
-              }
-          }
-      }
-        QImage testss=spaceImage;
-        testss.scaled(800,600);
-        for(int i=0;i<testss.width();i++)
-        {
-            for(int j=0;j<testss.height();j++)
-            {
-                if(abs(i-OriX)<1||abs(j-OriY)<1)
-                {
-                    testss.setPixel(i,j,qRgb(200,132,21));
-
-                }
-                if(abs(i-OriX)<5||abs(j-OriY)<5)
-                {
-                    sos.setPixel(i,j,qRgb(200,132,21));
-                }
-            }
-        }
-        ImageDisplayFunciton(ui->Origin_Label,sos,400,300);
+    }
+    else
+    {
+        QMessageBox::information(this,"notice","No point is got!please check!");
+        TosetcoorMat.release();
+        BackMat.release();
+        OriX=0;
+        OriY=0;
 
     }
+}
 
+void MainWindow::on_SetWorkSpaceZ_clicked()
+{
+    on_GetTheWorldCoordinate_button_clicked();
+    waitKey(1000);
+   if( m_bCurrentGoted){
+       WorkSpaceHeight=CurrentSpot.z();
+       m_dZbase=CurrentSpot.z();
+   }
+   else
+   {
+       QMessageBox::information(this,"notice","No reply of the world coordinate!");
+   }
 }

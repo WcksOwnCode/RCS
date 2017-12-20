@@ -127,6 +127,7 @@ public:
     void CreatReport(QString add);
 
 private:
+
     Ui::MainWindow *ui;
 
     QSerialPort *serial;//串口
@@ -144,6 +145,7 @@ private:
     const int minmumDcres=30;//曲线离散后最短直线
 
     const int minmumLine=15;//霍夫变换最后参数
+
     int rows;
 
     int columns;
@@ -193,6 +195,8 @@ private:
     double Discoor[15000];//展示坐标用
 
     double m_dXbase,m_dYbase,m_dZbase;
+
+    int WorkSpaceHeight=0;
 
     double m_dCurrentX,m_dCurrentY,m_dCurrentZ;
 
@@ -374,7 +378,7 @@ private:
 
     int Currentcont=0;
 
-    float PixeltoMeter;
+    float PixeltoMeter=1.0;
 
     double OriX=0;
 
@@ -388,7 +392,7 @@ private slots:
 
     void ReadtxtButton();
 
-    void CreadOrders();
+    void CreadOrders(QVector<QVector2D> inputarray);
 
     void CreatGcodefile();
 
@@ -461,6 +465,8 @@ private slots:
     void on_Cmini_Button_clicked();
 
     void on_Sample_Pic_clicked();
+
+    void on_SetWorkSpaceZ_clicked();
 
 signals:
     void Receveid();

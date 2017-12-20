@@ -577,19 +577,6 @@
     <property name="title">
      <string>参数</string>
     </property>
-    <widget class="QPushButton" name="GetTheWorldCoordinate_button">
-     <property name="geometry">
-      <rect>
-       <x>530</x>
-       <y>30</y>
-       <width>111</width>
-       <height>28</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>获取当前坐标</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="Canny_button">
      <property name="geometry">
       <rect>
@@ -633,19 +620,6 @@
       </property>
      </item>
     </widget>
-    <widget class="QPushButton" name="replace_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>650</x>
-       <y>30</y>
-       <width>93</width>
-       <height>28</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>恢复原位</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="ImageWatch_pushButton">
      <property name="geometry">
       <rect>
@@ -657,19 +631,6 @@
      </property>
      <property name="text">
       <string>图像查看</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="GoToOriginSpot_button">
-     <property name="geometry">
-      <rect>
-       <x>530</x>
-       <y>70</y>
-       <width>93</width>
-       <height>28</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>到基础位置</string>
      </property>
     </widget>
     <widget class="QWidget" name="layoutWidget">
@@ -1187,19 +1148,6 @@
       </item>
      </layout>
     </widget>
-    <widget class="QCheckBox" name="CurvedBisector_checkBox">
-     <property name="geometry">
-      <rect>
-       <x>650</x>
-       <y>80</y>
-       <width>91</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>曲线等间距取点</string>
-     </property>
-    </widget>
     <widget class="QGroupBox" name="groupBox_6">
      <property name="geometry">
       <rect>
@@ -1597,6 +1545,101 @@
       </item>
      </layout>
     </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>10</y>
+       <width>102</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QPushButton" name="GetTheWorldCoordinate_button">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>获取当前坐标</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="GoToOriginSpot_button">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>到基础位置</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="SetWorkSpaceZ">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>设定工作高度</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>640</x>
+       <y>30</y>
+       <width>134</width>
+       <height>56</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QPushButton" name="replace_pushButton">
+        <property name="text">
+         <string>恢复原位</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="CurvedBisector_checkBox">
+        <property name="text">
+         <string>曲线等距取点</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
     <zorder>layoutWidget</zorder>
     <zorder>ExitButton</zorder>
     <zorder>layoutWidget</zorder>
@@ -1615,6 +1658,7 @@
     <zorder>GoToOriginSpot_button</zorder>
     <zorder>CurvedBisector_checkBox</zorder>
     <zorder>groupBox_6</zorder>
+    <zorder>SetWorkSpaceZ</zorder>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

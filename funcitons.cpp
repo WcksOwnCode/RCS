@@ -755,7 +755,8 @@ double FindMidValue(QVector<double>Array,int sort,int Ratio)
     }
 }
 
-QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL,QVector<int>&ReturnKey)
+QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,
+                            int MinL,QVector<int>&ReturnKey)
 {
     QVector<QVector2D>Curve_2D=TransSequenceTo2D(OOL,BP);
     Output2File(Curve_2D,"F:/output/CurveP"+QString::number(qrand())+".txt");
@@ -850,7 +851,8 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,int MinL,QVe
 
 
 
-QVector<int>  CheckPointInline(QVector<int>BP,  QVector<QVector2D> OOL, QVector<int>BreakP,int MinL)
+QVector<int>  CheckPointInline(QVector<int>BP,
+                               QVector<QVector2D> OOL, QVector<int>BreakP,int MinL)
 {
     //此函数用在进行了斜率简化后的对长线段之间的点进行筛查用的
     //主要检测两个长线段之间的点是否有必要保留
