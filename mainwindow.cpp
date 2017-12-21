@@ -9,6 +9,7 @@
 #include<windows.h>
 #include<iostream>
 #include <fstream>
+#include<QPainter>
 #include "capturethread.h"
 extern int samplingcount=0;
 extern  int samplingGap=0;
@@ -96,6 +97,8 @@ MainWindow::MainWindow(QWidget *parent) :
     int initial=WhoseTime.elapsed();
 
     qDebug()<<"program initialize time used: "<<initial;
+
+
 }
 MainWindow::~MainWindow()
 {
@@ -208,15 +211,15 @@ void MainWindow::readmycom() //读串口函数
                 }
 
                 toFindXYZABC=CurrentReturn.mid(sx+2,sy-sx-3) ;
-              //  m_dXbase=toFindXYZABC.toDouble();
+                //  m_dXbase=toFindXYZABC.toDouble();
 
 
                 toFindXYZABC=CurrentReturn.mid(sy+2,sz-sy-3) ;
-               // m_dYbase=toFindXYZABC.toDouble();
+                // m_dYbase=toFindXYZABC.toDouble();
 
 
                 toFindXYZABC=CurrentReturn.mid(sz+2,sa-sz-3) ;
-               // m_dZbase=toFindXYZABC.toDouble();
+                // m_dZbase=toFindXYZABC.toDouble();
 
 
                 CurrentAngel.clear();
@@ -230,7 +233,7 @@ void MainWindow::readmycom() //读串口函数
                 toFindXYZABC=CurrentReturn.mid(sc+2,sss.length()-sc-2) ;
                 CurrentAngel.push_back(toFindXYZABC.toFloat());
 
-              //  ui->Xbase_spin->setValue(m_dXbase);
+                //  ui->Xbase_spin->setValue(m_dXbase);
                 //ui->Ybase_spin->setValue(m_dYbase);
                 //ui->Zbase_spin->setValue(m_dZbase);
 
@@ -243,7 +246,7 @@ void MainWindow::readmycom() //读串口函数
                 toshow=toshow+"X="+ QString::number(CurrentSpot.x())
                         + " Y= "+QString::number(CurrentSpot.y())+" Z= "+QString::number(CurrentSpot.z())+
                         "\nA= "+QString::number(CurrentAngel[0])+" B="+
-     QString::number(CurrentAngel[1])+" C= "+QString::number(CurrentAngel[2]);
+                        QString::number(CurrentAngel[1])+" C= "+QString::number(CurrentAngel[2]);
                 ui->Message_Label->setText(toshow);
 
                 qDebug()<<"Current angel: "<<CurrentAngel;
@@ -592,9 +595,7 @@ void MainWindow::on_ExitButton_clicked()
     if(VCcam.isOpened())
     {
         connect(timer, SIGNAL(timeout()), this, SLOT(EmptyFunction()));
-        timer->stop();
 
-        GetpicTimer->stop();
         VCcam.release();
     }
     ClearVector();
@@ -603,9 +604,9 @@ void MainWindow::on_ExitButton_clicked()
         serial->clear();
         serial->close();
         serial->deleteLater();
+
     }
-    timer->stop();
-    GetpicTimer->stop();
+
     exit(0);
 }
 void MainWindow::OpenSerialClicked()
@@ -744,21 +745,13 @@ void MainWindow::ImageInitialize()
 {
     qDebug()<<"Image Initializing...";
     spaceImage=QImage(width,height,QImage::Format_ARGB32);
-    for(int x=0;x<width;x++)
-    {
-        for(int y=0;y<height;y++)
-        {
-            spaceImage.setPixel(x,y,qRgb(255,255,255));
-        }
-    }
+    spaceImage.fill(qRgb(255,255,255));
 
     origin_image=spaceImage;//原图
 
     Timage=spaceImage;//二色图
 
     grayImage=spaceImage;//灰度图
-
-
 
     OulineImage=spaceImage;
 
@@ -767,8 +760,6 @@ void MainWindow::ImageInitialize()
     GridImage=spaceImage;
 
     xx=spaceImage;
-
-
 
     qDebug()<<"Image Initialize done!";
 
@@ -985,15 +976,22 @@ void MainWindow::ToGray()
     /*************************************************************/
     /****************** to gray **********************************/
 
-    for(int y = 0; y<height; y++){
-        QRgb * line = (QRgb *)grayImage.scanLine(y);
-        for(int x = 0; x<width; x++){
-            int average = 0.299*qRed(line[x]) +0.587* qGreen(line[x]) + 0.114*qRed(line[x]);
-            grayImage.setPixel(x,y, qRgb(average, average, average));
+    for(int i=0;i<width;i++)
+    {
+        for(int j=0;j<height;j++)
+        {
+            QColor cc=grayImage.pixelColor(i,j);
+            int average = 0.299*cc.blue() +0.587* cc.green() + 0.114*cc.red();
+            grayImage.setPixel(i,j, qRgb(average, average, average));
         }
     }
 
     grayImage=GaussianBlur(grayImage);
+
+    Mat gar=QImage2cvMat(grayImage);
+    imshow("22",gar);
+    waitKey(0);
+
 
 }
 
@@ -1553,25 +1551,46 @@ QImage MainWindow::DeleteOutRectangel(QImage input)
 
 void MainWindow::ReadPngButton()
 {
+
     ui->CameraView_Button->setEnabled(false);
     ui->openCamera->setEnabled(false);
     ClearVector();
     ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
     ImageDisplayFunciton(ui->final_label,spaceImage,400,300);
-    readfileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.png");
-    if(readfileadd.isEmpty())
-    {
-        QMessageBox::information(this,"notice","not opened");
-        ui->CameraView_Button->setEnabled(true);
-        ui->openCamera->setEnabled(true);
-        return;
-    }
     int readstart=WhoseTime.elapsed();
-    origin_image.load(readfileadd);
-    origin_image = origin_image.scaled(width, height);
-    origin_image=DeleteOutRectangel(origin_image);
+    if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机")
+    {
+        Mat vcmat;
+        VCcam>>vcmat;
+         Mat newframe=CenterClipping(vcmat);
+         CameraPreView();
+         QImage image2 =cvMat2QImage(newframe);
+
+         origin_image=image2;
+         origin_image = origin_image.scaled(width, height);
+         origin_image=DeleteOutRectangel(origin_image);
+
+    }
+    else
+    {
+        readfileadd=QFileDialog::getOpenFileName(this,"openfile",QDir::currentPath(),"*.png");
+        if(readfileadd.isEmpty())
+        {
+            QMessageBox::information(this,"notice","not opened");
+            ui->CameraView_Button->setEnabled(true);
+            ui->openCamera->setEnabled(true);
+            return;
+        }
+
+        origin_image.load(readfileadd);
+        origin_image = origin_image.scaled(width, height);
+        origin_image=DeleteOutRectangel(origin_image);
+
+    }
+
     Timage=origin_image;//二色图
     grayImage=origin_image;//灰度图
+
     ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
     ToGray();
     ToTwoColor();
@@ -1621,6 +1640,7 @@ void MainWindow::ReadPngButton()
     }
 
     SmoothOutline();
+
     SmoothOulineImage=spaceImage;
 
     int offsetValue=ui->OffsetValueInput->text().toInt();
@@ -1873,13 +1893,28 @@ void MainWindow::on_openCamera_clicked()
 }
 Mat MainWindow::CenterClipping(Mat inputarray)
 {
-    int rows=inputarray.rows/2;
-    int cols=inputarray.cols/2;
-    qDebug()<<"to clip the mat to size of  "<<rows<<"   "<<cols;
+
+    if(ui->CameraView_Button->text()=="关闭相机"&&m_bCalibration){
+
+    Mat newimage;
+
+    Mat R = Mat::eye(3,3,CV_32F);
+    initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,
+                            intrinsic_matrix ,R,inputarray.size(),CV_32FC1,xmat,ymat);
+    remap(inputarray,newimage,xmat, ymat, INTER_LINEAR);
+    inputarray.release();
+    inputarray=newimage.clone();
+    }
+
+    int rowss=inputarray.rows/2;
+    int colss=inputarray.cols/2;
+
     Mat Toreturn,midarray;
     midarray=inputarray.clone();
-    Toreturn=midarray.rowRange(rows-height/2,rows+height/2);
-    Toreturn=Toreturn.colRange(cols-width/2,cols+width/2);
+    Toreturn=midarray.rowRange(rowss-height/2,rowss+height/2);
+    Toreturn=Toreturn.colRange(colss-width/2,colss+width/2);
+    qDebug()<<"to clip the mat to size of  "<<Toreturn.rows<<"   "<<Toreturn.cols;
+    imwrite("F:/output/writetest.png",Toreturn);
     return Toreturn;
 }
 
@@ -3808,7 +3843,8 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         Mat newimage;
 
         Mat R = Mat::eye(3,3,CV_32F);
-        initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,intrinsic_matrix ,R,image_size,CV_32FC1,xmat,ymat);
+        initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,
+                                intrinsic_matrix ,R,image_size,CV_32FC1,xmat,ymat);
         remap(Tocheck,newimage,xmat, ymat, INTER_LINEAR);
 
         Mat clipcheck=CenterClipping(Tocheck);
@@ -4742,12 +4778,12 @@ void MainWindow::on_SetWorkSpaceZ_clicked()
 {
     on_GetTheWorldCoordinate_button_clicked();
     waitKey(1000);
-   if( m_bCurrentGoted){
-       WorkSpaceHeight=CurrentSpot.z();
-       m_dZbase=CurrentSpot.z();
-   }
-   else
-   {
-       QMessageBox::information(this,"notice","No reply of the world coordinate!");
-   }
+    if( m_bCurrentGoted){
+        WorkSpaceHeight=CurrentSpot.z();
+        m_dZbase=CurrentSpot.z();
+    }
+    else
+    {
+        QMessageBox::information(this,"notice","No reply of the world coordinate!");
+    }
 }
