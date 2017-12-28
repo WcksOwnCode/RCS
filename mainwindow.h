@@ -126,6 +126,10 @@ public:
 
     void CreatReport(QString add);
 
+   QImage LaplacFilter(QImage inputImg);
+
+   QImage IncreaseContrast(QImage inputImg);
+
 private:
 
     Ui::MainWindow *ui;
@@ -344,7 +348,7 @@ private:
 
     QString SpaceimageADD="E:/softwaresFiles/QT/RobotCotrolSystem/SpaceImage.png";
 
-   QString orispot="G00 X=800 Y=0 Z=400 A=3.14 B=0 C=0";
+   QString orispot="G00 X=800 Y=0 Z=500 A=3.14 B=0 C=0";
 
     QString readfileadd;
 
@@ -353,6 +357,8 @@ private:
     const int currentK=3;
 
     int currentNode;
+
+    int zz=237;
 
     const double FitStep=0.1;
 

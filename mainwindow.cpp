@@ -11,6 +11,7 @@
 #include <fstream>
 #include<QPainter>
 #include "capturethread.h"
+#include<iomanip>
 extern int samplingcount=0;
 extern  int samplingGap=0;
 extern  int LineCount=0;
@@ -41,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Bmini_Button->setEnabled(false);
     ui->Cmini_Button->setEnabled(false);
 
+  // // Mat sss=imread("C:/Users/duke/Desktop/TI2",0);
+   // imshow("ori",sss);
 
 
     cam     = NULL;
@@ -151,11 +154,11 @@ void MainWindow::readmycom() //读串口函数
             QString StrC;
             StrC.append("G97");
             CurrentReturn+=buf;
-            qDebug()<<"case currentcont=1 and currentreturn is "<<CurrentReturn;
+           // qDebug()<<"case currentcont=1 and currentreturn is "<<CurrentReturn;
             QString toFindXYZABC;
             int sx,sy,sz,sa,sb,sc;
             int tempcount=-1;
-            qDebug()<<CurrentReturn.length()<<"CurrentReturn length";
+            //qDebug()<<CurrentReturn.length()<<"CurrentReturn length";
             if(m_bWorldCheck&&Currentcont==1)
             {
                 QString Xc="X";
@@ -167,7 +170,7 @@ void MainWindow::readmycom() //读串口函数
                 for(int i=0;i<CurrentReturn.length();i++)
                 {
                     QString K=CurrentReturn.mid(i,1);
-                    qDebug()<<K;
+                   // qDebug()<<K;
                     if(K==Xc){
                         //qDebug()<<"enter x";
                         tempcount++;
@@ -249,8 +252,8 @@ void MainWindow::readmycom() //读串口函数
                         QString::number(CurrentAngel[1])+" C= "+QString::number(CurrentAngel[2]);
                 ui->Message_Label->setText(toshow);
 
-                qDebug()<<"Current angel: "<<CurrentAngel;
-                qDebug()<<"Current spot: "<<CurrentSpot;
+                //qDebug()<<"Current angel: "<<CurrentAngel;
+                //qDebug()<<"Current spot: "<<CurrentSpot;
 
                 m_bWorldCheck=false;
                 m_bCurrentGoted=true;
@@ -273,7 +276,7 @@ void MainWindow::readmycom() //读串口函数
             }
         }
         Currentcont++;
-        qDebug()<<"currentcont:  "<<Currentcont;
+       // qDebug()<<"currentcont:  "<<Currentcont;
     }
 
 
@@ -336,12 +339,12 @@ void MainWindow::readmycom() //读串口函数
 void MainWindow::SendMessgOut(){
     qDebug()<<"send button clicked";
     QString senders=ui->textEdit->toPlainText();
-    qDebug()<<senders;
+    //qDebug()<<senders;
     senders.append("\n");
-    qDebug()<<senders;
+    qDebug()<<"Orders is "<<senders;
     // serial->write(ui->SendEditor->toPlainText().toLatin1());
     serial->write(senders.toLatin1());
-    qDebug()<<"over";
+    qDebug()<<"send over";
 
 }
 void MainWindow::ReadtxtButton()
@@ -398,7 +401,7 @@ void MainWindow::ReadtxtButton()
     {
         QAxObject *where = work_sheet->querySubObject("Cells(int,int)", 2, i);
         QVariant where_value = where->property("Value");  //获取单元格内容
-        qDebug()<<where_value;
+       // qDebug()<<where_value;
     }
     /*************************/
     work_book->dynamicCall("Close(Boolean)", false);  //关闭文件
@@ -697,7 +700,7 @@ void MainWindow::AutoSendClicked()
         sendstr.append(Array[i]);
         //sendstr.append("\n");
         serial->write(sendstr.toLatin1());
-        qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
+       // qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
 
         while(!m_bStrCompare&&m_iSendRepeatedlyCount<10){
             QEventLoop eventloop;
@@ -705,7 +708,7 @@ void MainWindow::AutoSendClicked()
             eventloop.exec();
             m_iSendRepeatedlyCount++;
             serial->write(sendstr.toLatin1());
-            qDebug()<<m_iSendRepeatedlyCount<<"   "<<sendstr<<"repeat send";
+           // qDebug()<<m_iSendRepeatedlyCount<<"   "<<sendstr<<"repeat send";
         }
         if(!m_bStrCompare){
             QMessageBox::warning(this,"warning","no reply!");
@@ -837,9 +840,50 @@ QImage MainWindow::GaussianBlur(QImage GB)
     QTime GBtimer;
     GBtimer.start();
     // QImage newGB=spaceImage;
+    //test for creat a gaussian matrix in any size
+    const int GaussSizes=5;
+    int radius=(GaussSizes-1)/2;
+    //double sigma=0.84089642;
+    double sigma=((GaussSizes*GaussSizes-1)*0.5 - 1)*0.3 + 0.8;
+    double deno=1.0/(sigma*sigma*2.0*CV_PI);
+    double nume=-1.0/(2.0*sigma*sigma);
+    double GaussSum=0.0;
+    double **GaussMat;
+    GaussMat=new double*[GaussSizes];
+    for(int i=0;i<GaussSizes;i++)
+    {
+        GaussMat[i]=new double[GaussSizes];
+    }
+    // Give GaussMat values
+    for(int i=0;i<GaussSizes*GaussSizes;i++)
+    {
+            int spoty=i%GaussSizes;
+            int spotx=floor(i/GaussSizes);
+            double g=deno*exp(nume*((radius-spotx)*(radius-spotx)+(radius-spoty)*(radius-spoty)));
+
+            GaussMat[spotx][spoty]=g;
+            GaussSum+=g;
+    }
+    // 归一
+    for(int i=0;i<GaussSizes;i++)
+    {
+        for(int j=0;j<GaussSizes;j++)
+        {
+            GaussMat[i][j]=GaussMat[i][j]/GaussSum;
+        }
+    }
+   /* cout<<endl;
+    for(int i=0;i<GaussSizes;i++)
+    {
+        for(int j=0;j<GaussSizes;j++)
+        {
+            cout<<setw(12)<< GaussMat[i][j]<<" ";
+        }
+        cout<<endl;
+    }*/
     QColor GBc;
     int Crgb=0;
-    static const double gaussianTemplate[7][7] =
+    const double gaussianTemplate[7][7] =//unused
     {
         {0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067},
         {0.00002292, 0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633, 0.00002292},
@@ -849,19 +893,26 @@ QImage MainWindow::GaussianBlur(QImage GB)
         {0.00002292, 0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633, 0.00002292},
         {0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067}
     };
-    int GaussianRadio=3;//  (7-1)/2
+    int GaussianRadio=radius;//  (7-1)/2
     double GrySum=0;
     for(int i=GaussianRadio;i<width-GaussianRadio;i++)
     {
         for(int j=GaussianRadio;j<height-GaussianRadio;j++)
         {
             GrySum=0;
+            int count=0;
+           // qDebug()<<"central pixel xy: "<<i<<"|"<<j;
             for(int x=i-GaussianRadio;x<i+GaussianRadio;x++)
             {
                 for(int y=j-GaussianRadio;y<j+GaussianRadio;y++)
                 {
+                    int MatX=count/GaussSizes;
+                    int MatY=count%GaussSizes;
+                  //  qDebug()<<"counting pixel xy: "<<x<<"|"<<y;
+//                    qDebug()<<"Gauss xy:"<<MatX<<"|"<<MatY;
                     GBc=GB.pixel(x,y);
-                    GrySum=GBc.red()*gaussianTemplate[x-i+3][y-j+3]+GrySum;
+                    GrySum=GBc.red()*GaussMat[MatX][MatY]+GrySum;
+                    count++;
                 }
             }
             Crgb=GrySum;
@@ -882,7 +933,11 @@ QImage MainWindow::GaussianBlur(QImage GB)
 
         }
     }
-
+    for(int i=0;i<GaussSizes;i++)
+    {
+        delete[]GaussMat[i];
+    }
+    delete[]GaussMat;
     int GBela=GBtimer.elapsed();
     qDebug()<<"GaussianBlur Function time using: "<<GBela;
     return GB;
@@ -975,7 +1030,6 @@ void MainWindow::ToGray()
 {
     /*************************************************************/
     /****************** to gray **********************************/
-
     for(int i=0;i<width;i++)
     {
         for(int j=0;j<height;j++)
@@ -987,21 +1041,22 @@ void MainWindow::ToGray()
     }
 
     grayImage=GaussianBlur(grayImage);
-
-    Mat gar=QImage2cvMat(grayImage);
-    imshow("22",gar);
-    waitKey(0);
-
+    grayImage= IncreaseContrast(grayImage);
 
 }
 
 void MainWindow::ToTwoColor()
 {
     QColor oldColor2;
+    /*Mat ssq=QImage2cvMat(grayImage);
+    imshow("  ",ssq);
+    waitKey(0);*/
+
     for(int x = 0; x<width; x++){
         for(int y = 0; y<height; y++){
             oldColor2 = QColor(grayImage.pixel(x,y));
             int average = (oldColor2.red()+oldColor2.green()+oldColor2.blue())/3;
+
             if(average>m_iTotwoValue){
                 Timage.setPixel(x,y,qRgb(255,255,255));
             }
@@ -1010,6 +1065,9 @@ void MainWindow::ToTwoColor()
             }
         }
     }
+   /* Mat ss=QImage2cvMat(Timage);
+    imshow("  ",ss);
+    waitKey(0);*/
 }
 
 QImage MainWindow::NoiseFilter(QImage x)//过滤单一元素的噪点
@@ -1197,7 +1255,7 @@ void MainWindow::ConnectDomains()
     }
     double SumArea=0.2;
     int spotpoint=AllDomainArea*SumArea;//面积排查阈值，大于该值才会被认为是有效连通域
-    qDebug()<<"spotpoint: "<<spotpoint;
+    //qDebug()<<"spotpoint: "<<spotpoint;
     QVector<int>Dflag;
     for(int i=0;i<OrderStatistic.length();i++)
     {
@@ -1206,7 +1264,7 @@ void MainWindow::ConnectDomains()
         }
 
     }
-    qDebug()<<"DFlag: "<<Dflag;
+    //qDebug()<<"DFlag: "<<Dflag;
 
     // QVector<QVector>OrderStore;
     for(int xx=0;xx<V4Domain.length();xx++){
@@ -1227,7 +1285,7 @@ void MainWindow::ConnectDomains()
     }
     delete [] temp;
     temp=NULL;
-    qDebug()<<"the number of Domains: "<<order.length();
+    //qDebug()<<"the number of Domains: "<<order.length();
     /*for(int mm=0;mm<V4Domain.length();mm++)
     {
        qDebug()<<"V4Domain:  "<<V4Domain[mm];
@@ -1244,7 +1302,7 @@ void MainWindow::ConnectDomains()
             maxflag=qq;
         }
     }
-    qDebug()<<"maxflag: "<<maxflag;
+   // qDebug()<<"maxflag: "<<maxflag;
     for(int qq=0;qq<V4Domain.length();qq++)
     {
         if(V4Domain[qq].y()==maxflag)
@@ -1333,7 +1391,7 @@ QImage MainWindow::GetOutLine(QImage II)
 
     //qDebug()<<"outline_copy lenth: "<<OutLine_copy.length();
     if(m_bOnlyOutline){
-        qDebug()<<"Entered it!";
+      //  qDebug()<<"Entered it!";
         int stx=-5;
         int sty=-5;
         for(int x = 1; x<width3-1; x++)
@@ -1426,7 +1484,7 @@ QImage MainWindow::GetOutLine(QImage II)
 
         if(m_bOnlyOutline)
         {
-            qDebug()<<"draw new color!";
+           // qDebug()<<"draw new color!";
             if(OnlyOutLine.length()!=0){
                 for(int i=0;i<OnlyOutLine.length();i++)
                 {
@@ -1434,7 +1492,7 @@ QImage MainWindow::GetOutLine(QImage II)
                 }
             }
         }
-        qDebug()<<"go to here";
+
 
         //  Ix.setPixel(SumX/pixcount,SumY/pixcount,qRgb(255,0,0));
 
@@ -1484,7 +1542,7 @@ void MainWindow::SmoothOutline()
 
     /*************************************************************/
     int SOalltime=SOtimer.elapsed();
-    qDebug()<<"smooth outline time used:"<<SOalltime;
+    //qDebug()<<"smooth outline time used:"<<SOalltime;
 
 }
 /*void MainWindow::DisplayButton()
@@ -1557,18 +1615,18 @@ void MainWindow::ReadPngButton()
     ClearVector();
     ImageDisplayFunciton(ui->Origin_Label,spaceImage,400,300);
     ImageDisplayFunciton(ui->final_label,spaceImage,400,300);
-    int readstart=WhoseTime.elapsed();
+
     if(VCcam.isOpened()&&ui->CameraView_Button->text()=="关闭相机")
     {
         Mat vcmat;
         VCcam>>vcmat;
-         Mat newframe=CenterClipping(vcmat);
-         CameraPreView();
-         QImage image2 =cvMat2QImage(newframe);
+        Mat newframe=CenterClipping(vcmat);
+        CameraPreView();
+        QImage image2 =cvMat2QImage(newframe);
 
-         origin_image=image2;
-         origin_image = origin_image.scaled(width, height);
-         origin_image=DeleteOutRectangel(origin_image);
+        origin_image=image2;
+        origin_image = origin_image.scaled(width, height);
+        origin_image=DeleteOutRectangel(origin_image);
 
     }
     else
@@ -1588,11 +1646,14 @@ void MainWindow::ReadPngButton()
 
     }
 
+    QTime readpngtimer;
+    readpngtimer.start();
     Timage=origin_image;//二色图
     grayImage=origin_image;//灰度图
 
     ImageDisplayFunciton(ui->Origin_Label,origin_image,400,300);
     ToGray();
+
     ToTwoColor();
     //jisuan liantongyu
     DomainCalcu(Timage);//then we get V4Domain
@@ -1660,13 +1721,17 @@ void MainWindow::ReadPngButton()
     if(!ui->disperse_checkBox->isChecked())
     {
         QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
-        HoughPoints=HoughTransform(OulineImage,OrderdOutLine.length()/30,minmumLine);
+        HoughPoints=HoughTransform(OulineImage,80,minmumLine);
+
         Output2File(HoughPoints,"F:/output/HoughPoints.txt");
         QVector<int>HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
+         Output2File(HoughPoints_int,"F:/output/HoughPoints_int.txt");
         QVector<QVector2D>OrderedSline;
         QVector<int>testorder;
 
+
         if(HoughPoints.length()!=0){//如果有直线
+
             testorder=PointReorder_Rint(HoughPoints,OrderdOutLine,minmumDcres);
 
             OrderedSline=PointReorder(HoughPoints,OrderdOutLine,minmumDcres);
@@ -1683,15 +1748,17 @@ void MainWindow::ReadPngButton()
 
         Output2File(OrderedSline,"F:/output/OrderedSline.txt");
         Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
-        qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
+       // qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
         int All_Points_cout=OrderdOutLine.length();//获取总点数
 
 
-        if( OrderedSline.length()>=4){
+        if( OrderedSline.length()>=4)
+        {
 
-            qDebug()<<"+++***   There are more than 2 strait line   ***+++";
-            HoughPoints=OrderedSline;
-            HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
+           // qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+
+          //  HoughPoints=OrderedSline;
+           // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
 
             QVector<int>m_Int_Line;
 
@@ -1705,9 +1772,9 @@ void MainWindow::ReadPngButton()
 
         { //一条直线的情况
             //直线数量不足，说明全部是曲线，直接进行曲线检测
-            HoughPoints=OrderedSline;
-            HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
-            qDebug()<<"+++***   Only one strait line is here    ***+++";
+         //   HoughPoints=OrderedSline;
+           // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
+            //qDebug()<<"+++***   Only one strait line is here    ***+++";
             int Checkflag=abs(HoughPoints_int[0]-HoughPoints_int[1]);//可能是直线点数
             //如果直线包含原点，这个值就会大于全部点数的一半
             int Checklength=All_Points_cout*0.35;
@@ -1718,7 +1785,7 @@ void MainWindow::ReadPngButton()
                 {
                     //this situation is that  origin point is not in this line；
                     // so curve contain origin points
-                    qDebug()<<"Only one line and *******curve****** contain the origin point";
+                   // qDebug()<<"Only one line and *******curve****** contain the origin point";
                     QVector<int> CurvePoints_int;
                     if(HoughPoints_int[0]-HoughPoints_int[1]>0)
                     {
@@ -1759,7 +1826,7 @@ void MainWindow::ReadPngButton()
                 else
                 {
                     //直线包含原点
-                    qDebug()<<"Only one line and **********Line******* contain the origin point";
+                   // qDebug()<<"Only one line and **********Line******* contain the origin point";
                     QVector<int> CurvePoints_int;
 
                     if(HoughPoints_int[0]>HoughPoints_int[1])
@@ -1849,7 +1916,7 @@ T:
 
 
     //CreadOrders();
-    int elapsed=WhoseTime.elapsed()-readstart;
+    int elapsed=readpngtimer.elapsed();
     ui->time_label->setText(QString::number(elapsed)+" ms");
 
 }
@@ -1874,7 +1941,7 @@ void MainWindow::on_openCamera_clicked()
         GetpicTimer->start(4000);
         QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(TakingPhoto()));
         QObject::connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
-        qDebug()<<"opened";
+        //qDebug()<<"opened";
 
     }
     else
@@ -1896,14 +1963,14 @@ Mat MainWindow::CenterClipping(Mat inputarray)
 
     if(ui->CameraView_Button->text()=="关闭相机"&&m_bCalibration){
 
-    Mat newimage;
+        Mat newimage;
 
-    Mat R = Mat::eye(3,3,CV_32F);
-    initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,
-                            intrinsic_matrix ,R,inputarray.size(),CV_32FC1,xmat,ymat);
-    remap(inputarray,newimage,xmat, ymat, INTER_LINEAR);
-    inputarray.release();
-    inputarray=newimage.clone();
+        Mat R = Mat::eye(3,3,CV_32F);
+        initUndistortRectifyMap(intrinsic_matrix,distortion_coeffs,
+                                intrinsic_matrix ,R,inputarray.size(),CV_32FC1,xmat,ymat);
+        remap(inputarray,newimage,xmat, ymat, INTER_LINEAR);
+        inputarray.release();
+        inputarray=newimage.clone();
     }
 
     int rowss=inputarray.rows/2;
@@ -1913,7 +1980,7 @@ Mat MainWindow::CenterClipping(Mat inputarray)
     midarray=inputarray.clone();
     Toreturn=midarray.rowRange(rowss-height/2,rowss+height/2);
     Toreturn=Toreturn.colRange(colss-width/2,colss+width/2);
-    qDebug()<<"to clip the mat to size of  "<<Toreturn.rows<<"   "<<Toreturn.cols;
+    //qDebug()<<"to clip the mat to size of  "<<Toreturn.rows<<"   "<<Toreturn.cols;
     imwrite("F:/output/writetest.png",Toreturn);
     return Toreturn;
 }
@@ -1933,8 +2000,6 @@ void MainWindow::readFarme()
             vcframe.release();
             vcframe=newframe.clone();
             newframe.release();
-
-
             QImage image=cvMat2QImage(vcframe);
 
             image=image.scaled(width,height);
@@ -1959,22 +2024,27 @@ void MainWindow::readFarme()
         else{
 
             QImage image=cvMat2QImage(vcframe);
+            if(image.width()!=0)
+            {
+                image=image.scaled(width,height);
+                /*  if(m_bFrompreView){
+                      for(int i=0;i<width;i++)
+                      {
+                          for(int j=0;j<height;j++)
+                          {
+                              if(i<5||i>width-5||(i<width/2+3)&&(i>width/2-3)||j<5||j>height-5||(j<height/2+3)&&(j>height/2-3))
+                                  image.setPixel(i,j,qRgb(255,255,0));
+                          }
 
-            image=image.scaled(width,height);
-
-            if(m_bFrompreView){
-                for(int i=0;i<width;i++)
-                {
-                    for(int j=0;j<height;j++)
-                    {
-                        if(i<5||i>width-5||(i<width/2+3)&&(i>width/2-3)||j<5||j>height-5||(j<height/2+3)&&(j>height/2-3))
-                            image.setPixel(i,j,qRgb(255,255,0));
-                    }
-
-                }
+                      }
+                  }*/
+                  //ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
+                  ImageDisplayFunciton(ui->Origin_Label,image,400,300);
             }
-            //ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
-            ImageDisplayFunciton(ui->Origin_Label,image,400,300);
+
+
+
+
         }
 
     }
@@ -1993,10 +2063,7 @@ void MainWindow::TakingPhoto()
         {
             cv:: Mat vcframe;
             VCcam>>vcframe;
-
             Mat mid=CenterClipping(vcframe);
-
-
             QImage image2 =cvMat2QImage(mid);
             origin_image=image2.scaled(width,height);
             AutoRun();
@@ -2013,7 +2080,7 @@ void MainWindow::TakingPhoto()
 }
 void MainWindow::AutoRun()
 {
-    qDebug()<<"Auto run ";
+    //qDebug()<<"Auto run ";
 
     AutoRunTimer.restart();
     ui->progressBar->setRange(0,1000);
@@ -2143,7 +2210,7 @@ void MainWindow::AutoRun()
     ui->progressBar->setValue(300);
     if(HoughPoints.length()>=2){
 
-        qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+       // qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
 
 
@@ -2187,7 +2254,7 @@ void MainWindow::AutoRun()
 
     {//一条直线的情况
         //直线数量不足，说明全部是曲线，直接进行曲线检测
-        qDebug()<<"+++***   Only one strait line is here    ***+++";
+       // qDebug()<<"+++***   Only one strait line is here    ***+++";
 
 
         int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
@@ -2197,7 +2264,7 @@ void MainWindow::AutoRun()
         if(Checkflag<Checklength)
         {//this situation is that  origin point is not in this line；
             // so curve contain origin points
-            qDebug()<<"Only one line and *******curve****** contain the origin point";
+            //qDebug()<<"Only one line and *******curve****** contain the origin point";
             QVector<int> CurvePoints_int;
 
             for(int n=HoughPoints[0].y();n<All_Points_cout;n++)
@@ -2221,7 +2288,7 @@ void MainWindow::AutoRun()
         }
         else
         {//直线包含原点
-            qDebug()<<"Only one line and **********Line******* contain the origin point";
+            //qDebug()<<"Only one line and **********Line******* contain the origin point";
             QVector<int> CurvePoints_int;
 
             for(int n=HoughPoints[0].x();n<=HoughPoints[0].y();n++)
@@ -2244,7 +2311,7 @@ void MainWindow::AutoRun()
 
     else
     {
-        qDebug()<<"+++***               there is no strait line                    ***+++";
+        //qDebug()<<"+++***               there is no strait line                    ***+++";
 
 
         QVector<int> CurvePoints_int;
@@ -2346,6 +2413,7 @@ void MainWindow::CameraPreView()
         VCcam.set(CV_CAP_PROP_FRAME_WIDTH,camerawidth);
         VCcam.set(CV_CAP_PROP_FRAME_HEIGHT,cameraheight);
 
+qDebug()<<"grgrg";
         timer->start(100);
 
         ui->CameraView_Button->setText("关闭相机");
@@ -2485,7 +2553,7 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(int index)
 }
 void MainWindow::DeleteOutlineNoise()
 {
-    qDebug()<<"this is delete funciton!";
+  //  qDebug()<<"this is delete funciton!";
     //delete the derection vector's noise
     QTime DOtime;
     DOtime.start();
@@ -2505,7 +2573,7 @@ void MainWindow::DeleteOutlineNoise()
     {
         if(length-i<Sample)
         {
-            qDebug()<<"out";
+            //qDebug()<<"out";
             break;
         }
         for(int j=0;j<8;j++)
@@ -2547,7 +2615,7 @@ void MainWindow::DeleteOutlineNoise()
     Dr=NULL;
     delete []ss;
     ss=NULL;
-    qDebug()<<"delete outline noise time "<<QString::number(DOtime.elapsed());
+    //qDebug()<<"delete outline noise time "<<QString::number(DOtime.elapsed());
 
 }
 QVector<QVector2D>MainWindow:: ReOrderOutline_8Neighboor(QVector <QVector2D> inputarray,QImage inputIMG)
@@ -2660,8 +2728,8 @@ QVector<QVector2D>MainWindow:: ReOrderOutline_8Neighboor(QVector <QVector2D> inp
         }
     }
 
-    qDebug()<<"length of the input:"<<inputarray.length();
-    qDebug()<<"length of the output:"<<Toreturn.length();
+    //qDebug()<<"length of the input:"<<inputarray.length();
+    //qDebug()<<"length of the output:"<<Toreturn.length();
     return Toreturn;
 
 }
@@ -2690,7 +2758,7 @@ void MainWindow::ReOrderOutline(QVector <QVector2D> RO)
     tempx[0]=-10;
     tempy[0]=-10;
     outbot.push_back(0);
-    qDebug()<<"to get new order!";
+    //qDebug()<<"to get new order!";
 
     for(int i=1;i<length;i++)
     {
@@ -3302,7 +3370,7 @@ void MainWindow::CharacteristicCalculate(QVector<int> CC)
 
 void MainWindow::on_DisperseSlider_valueChanged(int value)
 {
-    disperse=2+value/4;
+    disperse=8+value/2;
     ui->Shownumber_for_disperse->setText(QString::number(disperse));
 }
 
@@ -3389,14 +3457,14 @@ void MainWindow::on_Hough_Button_clicked()
 
     Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
-    for(size_t i=0;i<SLines.size();i++)
+  /*  for(size_t i=0;i<SLines.size();i++)
     {
         qDebug()<<SLines[i]<<"SLines is this";
-    }
+    }*/
 
     size_t sizei=Pcvlines.size();
 
-    qDebug()<<sizei<<"length  of Pcvlines";
+  //  qDebug()<<sizei<<"length  of Pcvlines";
 
 
 
@@ -3445,10 +3513,10 @@ void MainWindow::on_Hough_Button_clicked()
     HoughLines(graymat, lines, 1, CV_PI/180, 50, 0, 0 );
 
 
-    for(size_t i=0;i<lines.size();i++)
+   /* for(size_t i=0;i<lines.size();i++)
     {
         qDebug()<<lines[i][0]<<"   "<<lines[i][1];
-    }
+    }*/
     //依次在图中绘制出每条线段
     for( size_t i = 0; i < lines.size(); i++ )
     {
@@ -3461,8 +3529,8 @@ void MainWindow::on_Hough_Button_clicked()
         pt1.y = cvRound(y0 + 335*(a));
         pt2.x = cvRound(x0 - 335*(-b));
         pt2.y = cvRound(y0 - 335*(a));
-        qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
-        qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
+      //  qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
+       // qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
         line( drawmat, pt1, pt2, Scalar(0,255,0),1,CV_AA);//(image,startpoint,endpoint,color,board,linetype,decemal)
     }
 
@@ -3737,7 +3805,10 @@ void MainWindow::on_DistortionCalibration_button_clicked()
     if(!b_Interrupt){
         std::cout<<"Start to calibration"<<endl;
 
-        Size square_size = Size(19,19);                                      /**** 实际测量得到的定标板上每个棋盘格的大小   ****/
+        Size square_size = Size(19,19);
+        double squareWidth=19.5;
+
+        /**** 实际测量得到的定标板上每个棋盘格的大小   ****/
 
         vector<vector<Point3f>>  object_Points;                                      /****  保存定标板上角点的三维坐标   ****/
 
@@ -3757,8 +3828,8 @@ void MainWindow::on_DistortionCalibration_button_clicked()
                 {
                     /* 假设定标板放在世界坐标系中z=0的平面上 */
                     Point3f tempPoint;
-                    tempPoint.x = i*square_size.width;
-                    tempPoint.y = j*square_size.height;
+                    tempPoint.x = i*squareWidth;
+                    tempPoint.y = j*squareWidth;
                     tempPoint.z = 0;
                     tempPointSet.push_back(tempPoint);
                 }
@@ -3774,10 +3845,8 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         }
 
         /* 开始定标 */
-
         calibrateCamera(object_Points, corners_Seq, image_size,  intrinsic_matrix  ,distortion_coeffs, rotation_vectors, translation_vectors);
         std::cout<<"标定完成！\n";
-
         /************************************************************************
                    对定标结果进行评价
             *************************************************************************/
@@ -3838,7 +3907,6 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         fout<<endl;
         destroyWindow("Calibration");
         cap.release();
-
         /*******************************************/
         Mat newimage;
 
@@ -3891,9 +3959,9 @@ void MainWindow::on_DistortionCalibration_button_clicked()
             sumf+=aver;
         }
         sumf=sumf/corners_Seq.size();
-        qDebug()<<"sumf   "<<sumf;
-        PixeltoMeter=19/sumf;
-        qDebug()<<"pixel size is"<<PixeltoMeter;
+      //  qDebug()<<"sumf   "<<sumf;
+        PixeltoMeter=squareWidth/sumf;
+       // qDebug()<<"pixel size is"<<PixeltoMeter;
         ui->Pixeltomm_Label->setText(QString::number(PixeltoMeter));
 
         imshow("origin image",Tocheck);
@@ -3974,7 +4042,7 @@ void MainWindow::on_Xplus_Button_clicked()
 
 
         CurrentSpot.setX(NextValue);
-        qDebug()<<sendCode;
+      //  qDebug()<<sendCode;
         // serial->write(ui->SendEditor->toPlainText().toLatin1());
         serial->write(sendCode.toLatin1());
         m_bFromMinitrim=true;
@@ -4605,7 +4673,7 @@ void MainWindow::on_Sample_Pic_clicked()
         QImage tesimg2=cvMat2QImage(TosetcoorMat);
         QImage sos(800,600,QImage::Format_ARGB32);
         QVector<QVector2D>BPoin;
-        qDebug()<<"dododo";
+       /// qDebug()<<"dododo";
         for(int i=0;i<sos.width();i++)
         {
             for (int j=0;j<sos.height();j++)
@@ -4632,13 +4700,13 @@ void MainWindow::on_Sample_Pic_clicked()
                 sumx+=xy.x();
                 sumy+=xy.y();
             }
-            qDebug()<<"dododo";
+            //qDebug()<<"dododo";
             double avex=sumx/BPoin.length();
             double avey=sumy/BPoin.length();
             QImage centralp=spaceImage;
             centralp.scaled(800,600);
             centralp.setPixel(avex,avey,qRgb(0,0,0));
-            qDebug()<<"BPoin.length()"<<BPoin.length();
+            //qDebug()<<"BPoin.length()"<<BPoin.length();
             QVector<QVector<QVector2D>>ClusterP;//放置各个团簇的点，对应中心点数量
             QVector<QVector2D>tempPoints;
             QVector<QVector2D>CheckBP;
@@ -4647,7 +4715,7 @@ void MainWindow::on_Sample_Pic_clicked()
             BPoin.removeLast();
             int Distorlerance=4;
             while(1){
-                qDebug()<<"while count    "<<whilecount;
+                //qDebug()<<"while count    "<<whilecount;
                 whilecount++;
                 for(int j=0;j<tempPoints.length();j++)
                 {
@@ -4689,7 +4757,7 @@ void MainWindow::on_Sample_Pic_clicked()
                     CheckBP.clear();
                 }
             }
-            qDebug()<<ClusterP.length();
+            //qDebug()<<ClusterP.length();
 
             if(ClusterP.length()==1)
             {
@@ -4787,3 +4855,62 @@ void MainWindow::on_SetWorkSpaceZ_clicked()
         QMessageBox::information(this,"notice","No reply of the world coordinate!");
     }
 }
+QImage  MainWindow::LaplacFilter(QImage inputImg)
+ {
+   // Mat setss=QImage2cvMat(inputImg);
+    QImage toreturn=inputImg;
+ //   imshow("bef",setss);
+     const int LapMat[3][3]
+                  =
+                      {
+                          {0,-1,0},
+                          {-1,5,-1},
+                          {0,-1,0},
+                      };
+     int radius=1;
+     int LapSize=3;
+     QColor GBc;
+     for(int i=radius;i<width-radius;i++)
+     {
+         for(int j=radius;j<height-radius;j++)
+         {
+             int  GrySum=0;
+             int count=0;
+
+             for(int x=i-radius;x<i+radius;x++)
+             {
+                 for(int y=j-radius;y<j+radius;y++)
+                 {
+                     int MatX=count/LapSize;
+                     int MatY=count%LapSize;
+
+                     GBc=inputImg.pixel(x,y);
+                     GrySum=GBc.red()* LapMat[MatX][MatY]+GrySum;
+                     count++;
+                 }
+             }
+             toreturn.setPixel(i,j,qRgb(GrySum,GrySum,GrySum));
+         }
+     }
+    /* Mat sets=QImage2cvMat(toreturn);
+     imshow("aft",sets);
+     waitKey();*/
+
+     return toreturn;
+
+ }
+QImage MainWindow::IncreaseContrast(QImage inputImg){
+     Mat inputM=QImage2cvMat(inputImg);
+  //   imshow("be",inputM);
+     Mat get;
+     inputM.convertTo(get, -1,3.0, 1 );
+
+     //imshow("aft",get);
+   //  waitKey(0);
+    // exit(0);
+
+     QImage toreturn=cvMat2QImage(get);
+
+
+      return toreturn;
+ }
