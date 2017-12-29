@@ -42,8 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Bmini_Button->setEnabled(false);
     ui->Cmini_Button->setEnabled(false);
 
-  // // Mat sss=imread("C:/Users/duke/Desktop/TI2",0);
-   // imshow("ori",sss);
+    // // Mat sss=imread("C:/Users/duke/Desktop/TI2",0);
+    // imshow("ori",sss);
 
 
     cam     = NULL;
@@ -154,7 +154,7 @@ void MainWindow::readmycom() //读串口函数
             QString StrC;
             StrC.append("G97");
             CurrentReturn+=buf;
-           // qDebug()<<"case currentcont=1 and currentreturn is "<<CurrentReturn;
+            // qDebug()<<"case currentcont=1 and currentreturn is "<<CurrentReturn;
             QString toFindXYZABC;
             int sx,sy,sz,sa,sb,sc;
             int tempcount=-1;
@@ -170,7 +170,7 @@ void MainWindow::readmycom() //读串口函数
                 for(int i=0;i<CurrentReturn.length();i++)
                 {
                     QString K=CurrentReturn.mid(i,1);
-                   // qDebug()<<K;
+                    // qDebug()<<K;
                     if(K==Xc){
                         //qDebug()<<"enter x";
                         tempcount++;
@@ -276,7 +276,7 @@ void MainWindow::readmycom() //读串口函数
             }
         }
         Currentcont++;
-       // qDebug()<<"currentcont:  "<<Currentcont;
+        // qDebug()<<"currentcont:  "<<Currentcont;
     }
 
 
@@ -366,19 +366,28 @@ void MainWindow::ReadtxtButton()
         return;
     }
     QAxObject excel("Excel.Application");
-    excel.setProperty("Visible", false);
+    excel.setProperty("Visible", true);
     QAxObject *work_books = excel.querySubObject("WorkBooks");
+
     work_books->dynamicCall("Open (const QString&)", QString(fileadd));
+   // work_books->dynamicCall("Open (const QString&)", QString("./code.xlsx"));
+    qDebug()<<fileadd;
+    qDebug()<<"1";
     QAxObject *work_book = excel.querySubObject("ActiveWorkBook");
+    qDebug()<<"1";
     QAxObject *work_sheet = work_book->querySubObject("Sheets(int)", 1);
+    qDebug()<<"1";
     QAxObject *used_range = work_sheet->querySubObject("UsedRange");
+    qDebug()<<"1";
     QAxObject *rows = used_range->querySubObject("Rows");
+    qDebug()<<"1";
     QAxObject *columns = used_range->querySubObject("Columns");
+    qDebug()<<"get start";
     row_start = used_range->property("Row").toInt();  //获取起始行
     column_start = used_range->property("Column").toInt();  //获取起始列
     row_count = rows->property("Count").toInt();  //获取行数
     column_count = columns->property("Count").toInt();  //获取列数
-
+    qDebug()<<"start to get x y z";
 
     for(int i=2;i<row_count+1;i++)
     {
@@ -401,7 +410,7 @@ void MainWindow::ReadtxtButton()
     {
         QAxObject *where = work_sheet->querySubObject("Cells(int,int)", 2, i);
         QVariant where_value = where->property("Value");  //获取单元格内容
-       // qDebug()<<where_value;
+        // qDebug()<<where_value;
     }
     /*************************/
     work_book->dynamicCall("Close(Boolean)", false);  //关闭文件
@@ -700,7 +709,7 @@ void MainWindow::AutoSendClicked()
         sendstr.append(Array[i]);
         //sendstr.append("\n");
         serial->write(sendstr.toLatin1());
-       // qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
+        // qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
 
         while(!m_bStrCompare&&m_iSendRepeatedlyCount<10){
             QEventLoop eventloop;
@@ -708,7 +717,7 @@ void MainWindow::AutoSendClicked()
             eventloop.exec();
             m_iSendRepeatedlyCount++;
             serial->write(sendstr.toLatin1());
-           // qDebug()<<m_iSendRepeatedlyCount<<"   "<<sendstr<<"repeat send";
+            // qDebug()<<m_iSendRepeatedlyCount<<"   "<<sendstr<<"repeat send";
         }
         if(!m_bStrCompare){
             QMessageBox::warning(this,"warning","no reply!");
@@ -857,12 +866,12 @@ QImage MainWindow::GaussianBlur(QImage GB)
     // Give GaussMat values
     for(int i=0;i<GaussSizes*GaussSizes;i++)
     {
-            int spoty=i%GaussSizes;
-            int spotx=floor(i/GaussSizes);
-            double g=deno*exp(nume*((radius-spotx)*(radius-spotx)+(radius-spoty)*(radius-spoty)));
+        int spoty=i%GaussSizes;
+        int spotx=floor(i/GaussSizes);
+        double g=deno*exp(nume*((radius-spotx)*(radius-spotx)+(radius-spoty)*(radius-spoty)));
 
-            GaussMat[spotx][spoty]=g;
-            GaussSum+=g;
+        GaussMat[spotx][spoty]=g;
+        GaussSum+=g;
     }
     // 归一
     for(int i=0;i<GaussSizes;i++)
@@ -872,7 +881,7 @@ QImage MainWindow::GaussianBlur(QImage GB)
             GaussMat[i][j]=GaussMat[i][j]/GaussSum;
         }
     }
-   /* cout<<endl;
+    /* cout<<endl;
     for(int i=0;i<GaussSizes;i++)
     {
         for(int j=0;j<GaussSizes;j++)
@@ -885,14 +894,14 @@ QImage MainWindow::GaussianBlur(QImage GB)
     int Crgb=0;
     const double gaussianTemplate[7][7] =//unused
     {
-        {0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067},
-        {0.00002292, 0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633, 0.00002292},
-        {0.00019117, 0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965, 0.00019117},
-        {0.00038771, 0.01330373, 0.11098164, 0.22508352, 0.11098164, 0.01330373, 0.00038771},
-        {0.00019117, 0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965, 0.00019117},
-        {0.00002292, 0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633, 0.00002292},
-        {0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067}
-    };
+    {0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067},
+    {0.00002292, 0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633, 0.00002292},
+    {0.00019117, 0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965, 0.00019117},
+    {0.00038771, 0.01330373, 0.11098164, 0.22508352, 0.11098164, 0.01330373, 0.00038771},
+    {0.00019117, 0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965, 0.00019117},
+    {0.00002292, 0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633, 0.00002292},
+    {0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067}
+};
     int GaussianRadio=radius;//  (7-1)/2
     double GrySum=0;
     for(int i=GaussianRadio;i<width-GaussianRadio;i++)
@@ -901,15 +910,15 @@ QImage MainWindow::GaussianBlur(QImage GB)
         {
             GrySum=0;
             int count=0;
-           // qDebug()<<"central pixel xy: "<<i<<"|"<<j;
+            // qDebug()<<"central pixel xy: "<<i<<"|"<<j;
             for(int x=i-GaussianRadio;x<i+GaussianRadio;x++)
             {
                 for(int y=j-GaussianRadio;y<j+GaussianRadio;y++)
                 {
                     int MatX=count/GaussSizes;
                     int MatY=count%GaussSizes;
-                  //  qDebug()<<"counting pixel xy: "<<x<<"|"<<y;
-//                    qDebug()<<"Gauss xy:"<<MatX<<"|"<<MatY;
+                    //  qDebug()<<"counting pixel xy: "<<x<<"|"<<y;
+                    //                    qDebug()<<"Gauss xy:"<<MatX<<"|"<<MatY;
                     GBc=GB.pixel(x,y);
                     GrySum=GBc.red()*GaussMat[MatX][MatY]+GrySum;
                     count++;
@@ -1065,7 +1074,7 @@ void MainWindow::ToTwoColor()
             }
         }
     }
-   /* Mat ss=QImage2cvMat(Timage);
+    /* Mat ss=QImage2cvMat(Timage);
     imshow("  ",ss);
     waitKey(0);*/
 }
@@ -1302,7 +1311,7 @@ void MainWindow::ConnectDomains()
             maxflag=qq;
         }
     }
-   // qDebug()<<"maxflag: "<<maxflag;
+    // qDebug()<<"maxflag: "<<maxflag;
     for(int qq=0;qq<V4Domain.length();qq++)
     {
         if(V4Domain[qq].y()==maxflag)
@@ -1391,7 +1400,7 @@ QImage MainWindow::GetOutLine(QImage II)
 
     //qDebug()<<"outline_copy lenth: "<<OutLine_copy.length();
     if(m_bOnlyOutline){
-      //  qDebug()<<"Entered it!";
+        //  qDebug()<<"Entered it!";
         int stx=-5;
         int sty=-5;
         for(int x = 1; x<width3-1; x++)
@@ -1484,7 +1493,7 @@ QImage MainWindow::GetOutLine(QImage II)
 
         if(m_bOnlyOutline)
         {
-           // qDebug()<<"draw new color!";
+            // qDebug()<<"draw new color!";
             if(OnlyOutLine.length()!=0){
                 for(int i=0;i<OnlyOutLine.length();i++)
                 {
@@ -1725,7 +1734,7 @@ void MainWindow::ReadPngButton()
 
         Output2File(HoughPoints,"F:/output/HoughPoints.txt");
         QVector<int>HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
-         Output2File(HoughPoints_int,"F:/output/HoughPoints_int.txt");
+        Output2File(HoughPoints_int,"F:/output/HoughPoints_int.txt");
         QVector<QVector2D>OrderedSline;
         QVector<int>testorder;
 
@@ -1748,17 +1757,17 @@ void MainWindow::ReadPngButton()
 
         Output2File(OrderedSline,"F:/output/OrderedSline.txt");
         Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
-       // qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
+        // qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
         int All_Points_cout=OrderdOutLine.length();//获取总点数
 
 
         if( OrderedSline.length()>=4)
         {
 
-           // qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+            // qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
-          //  HoughPoints=OrderedSline;
-           // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
+            //  HoughPoints=OrderedSline;
+            // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
 
             QVector<int>m_Int_Line;
 
@@ -1772,12 +1781,14 @@ void MainWindow::ReadPngButton()
 
         { //一条直线的情况
             //直线数量不足，说明全部是曲线，直接进行曲线检测
-         //   HoughPoints=OrderedSline;
-           // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
+            //   HoughPoints=OrderedSline;
+            // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
             //qDebug()<<"+++***   Only one strait line is here    ***+++";
+
+            QMessageBox::information(NULL,"one","one");
             int Checkflag=abs(HoughPoints_int[0]-HoughPoints_int[1]);//可能是直线点数
             //如果直线包含原点，这个值就会大于全部点数的一半
-            int Checklength=All_Points_cout*0.35;
+            int Checklength=All_Points_cout*0.45;
             if(Checkflag>=minmumDcres*2)
             {//直线太短就不要了
 
@@ -1785,34 +1796,18 @@ void MainWindow::ReadPngButton()
                 {
                     //this situation is that  origin point is not in this line；
                     // so curve contain origin points
-                   // qDebug()<<"Only one line and *******curve****** contain the origin point";
+                    // qDebug()<<"Only one line and *******curve****** contain the origin point";
+                    QMessageBox::information(NULL,"one","two");
                     QVector<int> CurvePoints_int;
-                    if(HoughPoints_int[0]-HoughPoints_int[1]>0)
+                    for(int n=HoughPoints_int[1];n<All_Points_cout;n++)
                     {
-                        //在0的点数据大，说明是在原点前面
-                        for(int n=HoughPoints_int[0];n<All_Points_cout;n++)
-                        {
-                            CurvePoints_int.push_back(n);
-                        }
-                        for(int n=0;n<=HoughPoints_int[1];n++)
-                        {
-                            CurvePoints_int.push_back(n);
-                        }
+                        CurvePoints_int.push_back(n);
+                    }
+                    for(int n=0;n<=HoughPoints_int[0];n++)
+                    {
+                        CurvePoints_int.push_back(n);
                     }
 
-                    else
-                    {
-                        for(int n=HoughPoints_int[1];n<All_Points_cout;n++)
-                        {
-                            CurvePoints_int.push_back(n);
-                        }
-                        for(int n=0;n<=HoughPoints_int[0];n++)
-                        {
-                            CurvePoints_int.push_back(n);
-                        }
-                    }
-
-                    //QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
                     QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres,ImportantKey);
                     CharacteristicPoint.clear();
 
@@ -1820,30 +1815,19 @@ void MainWindow::ReadPngButton()
                     CharacteristicPoint= TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
 
                     CharacteristicPoint.push_back(OrderedSline[1]);
-
-
                 }
                 else
                 {
                     //直线包含原点
-                   // qDebug()<<"Only one line and **********Line******* contain the origin point";
+                    // qDebug()<<"Only one line and **********Line******* contain the origin point";
+                    QMessageBox::information(NULL,"one","origin");
                     QVector<int> CurvePoints_int;
 
-                    if(HoughPoints_int[0]>HoughPoints_int[1])
+                    for(int n=HoughPoints_int[0];n<=HoughPoints_int[1];n++)
                     {
-                        for(int n=HoughPoints_int[1];n<=HoughPoints_int[0];n++)
-                        {
-                            CurvePoints_int.push_back(n);
-                        }
-                    }
-                    else{
-                        for(int n=HoughPoints_int[0];n<=HoughPoints_int[1];n++)
-                        {
-                            CurvePoints_int.push_back(n);
-                        }
+                        CurvePoints_int.push_back(n);
                     }
 
-                    // QVector<int > DispersedP=CheckPointInline(CurvePoints_int,OrderdOutLine,BreakPoints,minmumDcres);
                     QVector<int >DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres,ImportantKey);
                     CharacteristicPoint.clear();
 
@@ -1851,13 +1835,13 @@ void MainWindow::ReadPngButton()
                     CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
                     CharacteristicPoint.push_back(OrderedSline[1]);
 
-
-
                 }
+
+
             }
             else
             {
-
+                QMessageBox::information(NULL,"one","no");
                 HoughPoints.clear();
                 HoughPoints_int.clear();
                 goto T;
@@ -1874,11 +1858,20 @@ T:
             }
             QVector<int > DispersedP=FindKeypoints(CurvePoints_int,OrderdOutLine,minmumDcres,ImportantKey);
 
+
+
+            for (int k=0;k< ImportantKey.length();k++) {
+               if(ImportantKey[k]<10||abs(ImportantKey[k]-OrderdOutLine.length())<10)
+               {
+                   ImportantKey.removeAt(k);
+               }
+            }
+
             CharacteristicPoint.clear();
             CharacteristicPoint=  TransSequenceTo2D(OrderdOutLine,DispersedP);//生成关键点坐标
         }
 
-        Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
+
 
     }
     else
@@ -1893,10 +1886,16 @@ T:
 
     OulineImage_b=ImageDrawer( OulineImage_b,Orioutline,QColor(185,120,125),2);
 
+
+
     // Mat toshow =QImage2cvMat(OulineImage_b);
     //  imshow("boundary",toshow);
+    QVector<QVector2D>turp=TransSequenceTo2D(OrderdOutLine,ImportantKey);
+    CharacteristicPoint=Unique_2D(CharacteristicPoint);
+    Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
+    OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,0,255),7);
 
-    OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,255,0),7);
+    OulineImage_b=ImageDrawer( OulineImage_b,turp,QColor(0,255,0),11);
 
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
@@ -1929,7 +1928,7 @@ void MainWindow::on_openCamera_clicked()
         ui->openCamera->setText("关闭相机");
 
 
-        VCcam=cv::VideoCapture(0);
+        VCcam=cv::VideoCapture(1);
 
         VCcam.set(CV_CAP_PROP_FRAME_WIDTH,camerawidth);
         VCcam.set(CV_CAP_PROP_FRAME_HEIGHT,cameraheight);
@@ -2038,8 +2037,8 @@ void MainWindow::readFarme()
 
                       }
                   }*/
-                  //ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
-                  ImageDisplayFunciton(ui->Origin_Label,image,400,300);
+                //ui->Origin_Label->setPixmap(QPixmap::fromImage(image));
+                ImageDisplayFunciton(ui->Origin_Label,image,400,300);
             }
 
 
@@ -2210,7 +2209,7 @@ void MainWindow::AutoRun()
     ui->progressBar->setValue(300);
     if(HoughPoints.length()>=2){
 
-       // qDebug()<<"+++***   There are more than 2 strait line   ***+++";
+        // qDebug()<<"+++***   There are more than 2 strait line   ***+++";
 
 
 
@@ -2254,7 +2253,7 @@ void MainWindow::AutoRun()
 
     {//一条直线的情况
         //直线数量不足，说明全部是曲线，直接进行曲线检测
-       // qDebug()<<"+++***   Only one strait line is here    ***+++";
+        // qDebug()<<"+++***   Only one strait line is here    ***+++";
 
 
         int Checkflag=abs(HoughPoints[0].x()-HoughPoints[0].y());
@@ -2396,6 +2395,8 @@ void MainWindow::ClearVector()
     samplingGap=0;
     LineCount=0;
     CoorCount=0;
+    ImportantKey.clear();
+
 }
 void MainWindow::CameraPreView()
 {
@@ -2409,11 +2410,12 @@ void MainWindow::CameraPreView()
 
         connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
         //  cam = cvCreateCameraCapture(0);
-        VCcam=cv::VideoCapture(0);
+
+        VCcam=cv::VideoCapture(1);
         VCcam.set(CV_CAP_PROP_FRAME_WIDTH,camerawidth);
         VCcam.set(CV_CAP_PROP_FRAME_HEIGHT,cameraheight);
 
-qDebug()<<"grgrg";
+        qDebug()<<"grgrg";
         timer->start(100);
 
         ui->CameraView_Button->setText("关闭相机");
@@ -2553,7 +2555,7 @@ void MainWindow::on_ChangeTheimage__currentIndexChanged(int index)
 }
 void MainWindow::DeleteOutlineNoise()
 {
-  //  qDebug()<<"this is delete funciton!";
+    //  qDebug()<<"this is delete funciton!";
     //delete the derection vector's noise
     QTime DOtime;
     DOtime.start();
@@ -3457,14 +3459,14 @@ void MainWindow::on_Hough_Button_clicked()
 
     Output2File(OrderdOutLine,"F:/output/Orderdoutline.txt");
 
-  /*  for(size_t i=0;i<SLines.size();i++)
+    /*  for(size_t i=0;i<SLines.size();i++)
     {
         qDebug()<<SLines[i]<<"SLines is this";
     }*/
 
     size_t sizei=Pcvlines.size();
 
-  //  qDebug()<<sizei<<"length  of Pcvlines";
+    //  qDebug()<<sizei<<"length  of Pcvlines";
 
 
 
@@ -3513,7 +3515,7 @@ void MainWindow::on_Hough_Button_clicked()
     HoughLines(graymat, lines, 1, CV_PI/180, 50, 0, 0 );
 
 
-   /* for(size_t i=0;i<lines.size();i++)
+    /* for(size_t i=0;i<lines.size();i++)
     {
         qDebug()<<lines[i][0]<<"   "<<lines[i][1];
     }*/
@@ -3529,8 +3531,8 @@ void MainWindow::on_Hough_Button_clicked()
         pt1.y = cvRound(y0 + 335*(a));
         pt2.x = cvRound(x0 - 335*(-b));
         pt2.y = cvRound(y0 - 335*(a));
-      //  qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
-       // qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
+        //  qDebug()<<"Pt1.x "<<pt1.x<<" pt1.y "<<pt1.y;
+        // qDebug()<<"Pt2.x "<<pt2.x<<" pt2.y "<<pt2.y;
         line( drawmat, pt1, pt2, Scalar(0,255,0),1,CV_AA);//(image,startpoint,endpoint,color,board,linetype,decemal)
     }
 
@@ -3694,7 +3696,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
     vector<vector<Point2f>>  corners_Seq;    /****  保存检测到的所有角点       ****/
     ofstream fout("F:/output/calibration_result.txt");  /**    保存定标结果的文件     **/
     int mode = DETECTION;
-    VideoCapture cap(0);
+    VideoCapture cap(1);
 
     cap.set(CV_CAP_PROP_FRAME_WIDTH,camerawidth);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,cameraheight);
@@ -3959,9 +3961,9 @@ void MainWindow::on_DistortionCalibration_button_clicked()
             sumf+=aver;
         }
         sumf=sumf/corners_Seq.size();
-      //  qDebug()<<"sumf   "<<sumf;
+        //  qDebug()<<"sumf   "<<sumf;
         PixeltoMeter=squareWidth/sumf;
-       // qDebug()<<"pixel size is"<<PixeltoMeter;
+        // qDebug()<<"pixel size is"<<PixeltoMeter;
         ui->Pixeltomm_Label->setText(QString::number(PixeltoMeter));
 
         imshow("origin image",Tocheck);
@@ -4042,7 +4044,7 @@ void MainWindow::on_Xplus_Button_clicked()
 
 
         CurrentSpot.setX(NextValue);
-      //  qDebug()<<sendCode;
+        //  qDebug()<<sendCode;
         // serial->write(ui->SendEditor->toPlainText().toLatin1());
         serial->write(sendCode.toLatin1());
         m_bFromMinitrim=true;
@@ -4673,7 +4675,7 @@ void MainWindow::on_Sample_Pic_clicked()
         QImage tesimg2=cvMat2QImage(TosetcoorMat);
         QImage sos(800,600,QImage::Format_ARGB32);
         QVector<QVector2D>BPoin;
-       /// qDebug()<<"dododo";
+        /// qDebug()<<"dododo";
         for(int i=0;i<sos.width();i++)
         {
             for (int j=0;j<sos.height();j++)
@@ -4856,61 +4858,61 @@ void MainWindow::on_SetWorkSpaceZ_clicked()
     }
 }
 QImage  MainWindow::LaplacFilter(QImage inputImg)
- {
-   // Mat setss=QImage2cvMat(inputImg);
+{
+    // Mat setss=QImage2cvMat(inputImg);
     QImage toreturn=inputImg;
- //   imshow("bef",setss);
-     const int LapMat[3][3]
-                  =
-                      {
-                          {0,-1,0},
-                          {-1,5,-1},
-                          {0,-1,0},
-                      };
-     int radius=1;
-     int LapSize=3;
-     QColor GBc;
-     for(int i=radius;i<width-radius;i++)
-     {
-         for(int j=radius;j<height-radius;j++)
-         {
-             int  GrySum=0;
-             int count=0;
+    //   imshow("bef",setss);
+    const int LapMat[3][3]
+            =
+    {
+        {0,-1,0},
+        {-1,5,-1},
+        {0,-1,0},
+    };
+    int radius=1;
+    int LapSize=3;
+    QColor GBc;
+    for(int i=radius;i<width-radius;i++)
+    {
+        for(int j=radius;j<height-radius;j++)
+        {
+            int  GrySum=0;
+            int count=0;
 
-             for(int x=i-radius;x<i+radius;x++)
-             {
-                 for(int y=j-radius;y<j+radius;y++)
-                 {
-                     int MatX=count/LapSize;
-                     int MatY=count%LapSize;
+            for(int x=i-radius;x<i+radius;x++)
+            {
+                for(int y=j-radius;y<j+radius;y++)
+                {
+                    int MatX=count/LapSize;
+                    int MatY=count%LapSize;
 
-                     GBc=inputImg.pixel(x,y);
-                     GrySum=GBc.red()* LapMat[MatX][MatY]+GrySum;
-                     count++;
-                 }
-             }
-             toreturn.setPixel(i,j,qRgb(GrySum,GrySum,GrySum));
-         }
-     }
+                    GBc=inputImg.pixel(x,y);
+                    GrySum=GBc.red()* LapMat[MatX][MatY]+GrySum;
+                    count++;
+                }
+            }
+            toreturn.setPixel(i,j,qRgb(GrySum,GrySum,GrySum));
+        }
+    }
     /* Mat sets=QImage2cvMat(toreturn);
      imshow("aft",sets);
      waitKey();*/
 
-     return toreturn;
+    return toreturn;
 
- }
+}
 QImage MainWindow::IncreaseContrast(QImage inputImg){
-     Mat inputM=QImage2cvMat(inputImg);
-  //   imshow("be",inputM);
-     Mat get;
-     inputM.convertTo(get, -1,3.0, 1 );
+    Mat inputM=QImage2cvMat(inputImg);
+    //   imshow("be",inputM);
+    Mat get;
+    inputM.convertTo(get, -1,3.0, 1 );
 
-     //imshow("aft",get);
-   //  waitKey(0);
+    //imshow("aft",get);
+    //  waitKey(0);
     // exit(0);
 
-     QImage toreturn=cvMat2QImage(get);
+    QImage toreturn=cvMat2QImage(get);
 
 
-      return toreturn;
- }
+    return toreturn;
+}

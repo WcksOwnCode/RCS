@@ -25,6 +25,7 @@
 #include <string.h>
 #include <QString>
 #include <QAxObject>
+#include<QAxBase>
 #include <vector>
 #include <QDateTime>
 /*************************************/
@@ -222,13 +223,13 @@ private:
 
     const int m_iTotwoValue=120;//转二值图的时候的阈值
 
-    const int width=800;//设定图片长宽
+    const int width=1024;//设定图片长宽
 
-    const int height=600;
+    const int height=768;
 
-    const int cameraheight=768;
+    const int cameraheight=960;
 
-    const int camerawidth=1024;
+    const int camerawidth=1280;
 
     int tempus=-1;
 

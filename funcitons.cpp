@@ -778,7 +778,7 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,
         }
     }
     //Output2File(Curve_2D,"F:/output/testcurvepoints.txt");
-    int Gap=12;
+    int Gap=10;
     samplingGap=Gap;
     for(int k=0;k<Curve_2D.length();k+=Gap)
     {
@@ -811,10 +811,11 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,
         }
 
         double Change_MidValue=FindMidValue(SampleContainer,1,50);//找出斜率速的中位数
-
+        KeyPoints.push_back(Curve_2D[0]);
         for(int j=0;j<count;j++)
         {
-            if(SampleContainer[j]>=Change_MidValue&&AngelCompare(Gap_slope[i+j],Gap_slope[i+j+1],0.5)==2)
+            qDebug()<<"spot is"<<i;
+            if(SampleContainer[j]>=Change_MidValue&&AngelCompare(Gap_slope[i+j],Gap_slope[i+j+1],0.7)==2)
             {
                 NeedFielter.push_back(gap_point[i+j]);
                 NeedFielter.push_back(gap_point[i+j+1]);
@@ -827,10 +828,15 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,
         }
         SampleContainer.clear();
     }
+    KeyPoints=Unique_2D(KeyPoints);
+    KeyPoints.push_back(Curve_2D[Curve_2D.length()-1]);
     KeyPoints_int=TransSequence2D_ToInt(OOL,KeyPoints);
     //qDebug()<<"Keypoints count :"<<KeyPoints.length();
     Output2File(KeyPoints,"F:/output/keypoints"+QString::number(QTime::currentTime().msec())+".txt");
 
+    //将关键点返回（作图）
+
+ReturnKey=VecAddVec(ReturnKey, KeyPoints_int);
     //找到关键点后对关键点之间的点进行等距离散
     //should add some method here to correct the arlgorim
 
@@ -848,6 +854,9 @@ QVector<int>  FindKeypoints(QVector<int>BP,  QVector<QVector2D> OOL,
     qDebug()<<"OUT the function check point in line!";
     return Toreturn;//temp return
 }
+
+
+
 
 
 
@@ -2321,8 +2330,6 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
             qDebug()<<"the gap is very small and merge!";
             //qDebug()<<"length is"<<length;
             // qDebug()<<"and now ths i is "<<i;
-
-
             if(i+1<=slopelength)
             {//to check will here index out of range
                 if(abs(lineslope[i-1]-lineslope[i+1])<degreeT)
@@ -2339,6 +2346,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
                     //判定领域方式再融合
                     CharacterPoints_int[i]=input_int[i+1];
                     CharacterPoints_2D[i]=input_Point[i+1];
+                    KeyP.push_back(CharacterPoints_int[i]);
                 }
             }
 
@@ -2366,6 +2374,7 @@ QVector<int> LineMerge(QVector<int>input_int,QVector<QVector2D>input_Point,
                     //直线做直接拼接
                     CharacterPoints_int[i]=(input_int[i+1]+input_int[i])/2;
                     CharacterPoints_int[i+1]=(input_int[i+1]+input_int[i])/2;
+                     KeyP.push_back(CharacterPoints_int[i]);
                 }
             }
             else
@@ -2700,6 +2709,7 @@ int AngelCompare(double slope1,double slope2,double tolerance)
         }else{
             //qDebug()<<"out the Campare(Two para)";
           //  qDebug()<<"return is "<<2;
+            QMessageBox::information(NULL,"a",QString::number(slope1)+QString::number(slope2));
             return 2;
         }
     }

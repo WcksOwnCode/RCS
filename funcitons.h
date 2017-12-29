@@ -108,4 +108,6 @@ QVector<int>VecAddVec(QVector<int>MainV,QVector<int>lowV,int n=1);
 
 double FindMidValue(QVector<double>Array, int sort, int Ratio);
 
+
+
 #endif // FUNCITONS_H
