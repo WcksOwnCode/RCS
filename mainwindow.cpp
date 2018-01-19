@@ -23,6 +23,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->BaudRate->setCurrentIndex(0);
     //关闭发送按钮的使能
+
+    QVector<QVector2D>tstline;
+
+    tstline.push_back(QVector2D (924,613));
+    tstline.push_back(QVector2D (880,111));
+
+
+    QVector2D ppq(91,335);
+    double disss=PointToLineDis( tstline,ppq);
+    qDebug()<<disss;
+    QVector2D ppr(118,564);
+
+    disss=PointToLineDis( tstline,ppr);
+     qDebug()<<disss;
+
+
+
     ui->SendMesg_Button->setEnabled(false);
     ui->AutoSend_Button->setEnabled(false);
     ui->Creat_code->setEnabled(false);
@@ -45,7 +62,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // // Mat sss=imread("C:/Users/duke/Desktop/TI2",0);
     // imshow("ori",sss);
 
-
+  //  PixeltoMeter=temppix;
+  //  m_bCalibration=true;
     cam     = NULL;
     timer   = new QTimer(this);
     imag    = new QImage();
@@ -77,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(readFarme()));
     QObject::connect(GetpicTimer, SIGNAL(timeout()), this, SLOT(TakingPhoto()));
     QObject::connect(ui->CameraView_Button, SIGNAL(clicked()), this, SLOT(CameraPreView()));
+
 
     rows=0;
     columns=1;
@@ -120,19 +139,24 @@ void MainWindow::readmycom() //读串口函数
     buf = serial->readAll();
     qDebug()<<"buff         "<<buf;
 
-    if(m_bReadState){
+    if(m_bReadState&&AutoSend){//串口打开并且来自自动发送
 
         QString StrC;
-        StrC.append(Array[m_iSendCount]);
+        StrC.append(Array[m_iSendCount-1]);
         QString StrCheck=StrC.left(2);
 
         QString tocheck;
         tocheck.prepend(buf.left(2));
+        qDebug()<<tocheck<<"  "<<StrCheck;
 
         if(tocheck==StrCheck)
         {
-            emit Receveid();
             m_bStrCompare=true;
+            //   Recivetimer->setSingleShot(10000);
+            MessageSender();
+        }
+        else{
+            qDebug()<<"mismatching";
         }
     }
     if(m_bWorldCheck){
@@ -370,7 +394,7 @@ void MainWindow::ReadtxtButton()
     QAxObject *work_books = excel.querySubObject("WorkBooks");
 
     work_books->dynamicCall("Open (const QString&)", QString(fileadd));
-   // work_books->dynamicCall("Open (const QString&)", QString("./code.xlsx"));
+    // work_books->dynamicCall("Open (const QString&)", QString("./code.xlsx"));
     qDebug()<<fileadd;
     qDebug()<<"1";
     QAxObject *work_book = excel.querySubObject("ActiveWorkBook");
@@ -461,6 +485,7 @@ void MainWindow::ReadtxtButton()
 }
 void MainWindow::SetCoordinate(double x, double y, double z)
 {
+
     m_dBoltSpeed=ui->BoltSpeed_spinBox->text().toDouble();
     int dir=ui->SpeedDirection_comboBox->currentIndex();
 
@@ -504,7 +529,6 @@ void MainWindow::SetCoordinate(double x, double y, double z)
         Discoor[3*CoorCount]=(x+m_dXspeed+m_dXbase+OriX)*PixeltoMeter;
         Discoor[3*CoorCount+1]=(y+m_dYspeed+m_dYbase+OriY)*PixeltoMeter;
         Discoor[3*CoorCount+2]=z+m_dZspeed+m_dZbase;
-
     }
     else
     {
@@ -515,6 +539,7 @@ void MainWindow::SetCoordinate(double x, double y, double z)
         Discoor[3*CoorCount+1]=(y+m_dYbase+OriY)*PixeltoMeter;
         Discoor[3*CoorCount+2]=z+m_dZbase;
     }
+
     CoorCount++;
 
     Todisplay.append(QString::number(x,'g',4).toUpper());//double转化为qstring
@@ -534,6 +559,7 @@ void MainWindow::SetCoordinate(double x, double y, double z)
 }
 void MainWindow::CreadOrders(QVector<QVector2D>inputarray)
 {
+
     foreach (QVector2D tt, inputarray) {
         SetCoordinate(tt.x(),tt.y(),0);
     }
@@ -544,6 +570,7 @@ void MainWindow::CreadOrders(QVector<QVector2D>inputarray)
     FullOrder.append("\n");
 
     Array.push_back(FullOrder);
+    qDebug()<<"coorcount:  "<<CoorCount;
 
     QString DD;
 
@@ -691,9 +718,47 @@ void MainWindow::OpenSerialClicked()
         ui->AutoSend_Button->setEnabled(true);
     }
 }
+void MainWindow::MessageSender(){
+    if(m_iSendCount<Array.length()){
+        QString sendstr;
+        sendstr.append(Array[m_iSendCount]);
+        sendstr.append("\n");
+        serial->write(sendstr.toLatin1());
+        qDebug()<<"No."<<m_iSendCount+1<<" Message: "<<sendstr<<endl<<"Total: "
+               <<Array.length()<<endl<<"By Auto Send [Message Sender]";
+        m_iSendCount++;
+        m_bStrCompare=false;
+        ui->progressBar->setValue(m_iSendCount);
+        Recivetimer=new QTimer(this);
+        //  Recivetimer->setSingleShot(100000);
+        //  Recivetimer->start();
+        //  connect(Recivetimer,SIGNAL(timeout()),this,SLOT(NOrep()));
+    }
+    if(m_iSendCount>Array.length())
+    {
+        AutoSend=false;
+        ui->SendMesg_Button->setEnabled(true);
+        ui->Openserial_Button->setEnabled(true);
+        ui->Creat_code->setEnabled(true);
+        ui->Read_txt_Button->setEnabled(true);
+    }
+}
+void MainWindow::NOrep(){
+    QMessageBox::information(this,"warning ","no rep");
+    AutoSend=false;
+    ui->SendMesg_Button->setEnabled(true);
+    ui->Openserial_Button->setEnabled(true);
+    ui->Creat_code->setEnabled(true);
+    ui->Read_txt_Button->setEnabled(true);
+    m_iSendRepeatedlyCount=0;
+    m_iSendCount=0;
+}
+
+
 void MainWindow::AutoSendClicked()
 {
     //close all other buttons and initialize
+    AutoSend=true;
     ui->SendMesg_Button->setEnabled(false);
     ui->Openserial_Button->setEnabled(false);
     ui->Creat_code->setEnabled(false);
@@ -702,14 +767,16 @@ void MainWindow::AutoSendClicked()
     ui->progressBar->setRange(0,Array.length());
     ui->progressBar->setValue(0);
     m_iSendRepeatedlyCount=0;
+    m_iSendCount=0;
+    MessageSender();
 
-    for(int i=0;i<CoorCount+1;i++)
+    /*   for(int i=0;i<CoorCount+1;i++)
     {
         QString sendstr;
         sendstr.append(Array[i]);
-        //sendstr.append("\n");
+        sendstr.append("\n");
         serial->write(sendstr.toLatin1());
-        // qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
+         qDebug()<<i<<"   "<<sendstr<<"By Auto Send";
 
         while(!m_bStrCompare&&m_iSendRepeatedlyCount<10){
             QEventLoop eventloop;
@@ -736,7 +803,7 @@ void MainWindow::AutoSendClicked()
         }
         m_iSendRepeatedlyCount=0;
         m_iSendCount=0;
-    }
+    }*/
 }
 void MainWindow::BoltSpeedCheckBox_checked()
 {
@@ -1064,7 +1131,7 @@ void MainWindow::ToTwoColor()
     for(int x = 0; x<width; x++){
         for(int y = 0; y<height; y++){
             oldColor2 = QColor(grayImage.pixel(x,y));
-            int average = (oldColor2.red()+oldColor2.green()+oldColor2.blue())/3;
+            int average = oldColor2.red();
 
             if(average>m_iTotwoValue){
                 Timage.setPixel(x,y,qRgb(255,255,255));
@@ -1725,12 +1792,13 @@ void MainWindow::ReadPngButton()
     }
 
     OulineImage_b=ImageDrawer( SmoothOulineImage,3);//边界加粗
+    QImage tosavepic=OulineImage_b;
     ui->CameraView_Button->setEnabled(true);
     ui->openCamera->setEnabled(true);
     if(!ui->disperse_checkBox->isChecked())
     {
         QVector<QVector2D>HoughPoints;//每一条直线组成各一个2D向量
-        HoughPoints=HoughTransform(OulineImage,80,minmumLine);
+        HoughPoints=HoughTransform(OulineImage,60,minmumLine);
 
         Output2File(HoughPoints,"F:/output/HoughPoints.txt");
         QVector<int>HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
@@ -1760,7 +1828,11 @@ void MainWindow::ReadPngButton()
         // qDebug()<<" Hough points "<<HoughPoints_int<<"  "<<HoughPoints;;
         int All_Points_cout=OrderdOutLine.length();//获取总点数
 
-
+        /*****************************/
+      QVector<int>tetetet=LineMake(HoughPoints_int,HoughPoints,OrderdOutLine,ImportantKey,minmumDcres);
+    OrderedSline=TransSequenceTo2D(OrderdOutLine,tetetet);
+    testorder=tetetet;
+      /******************************/
         if( OrderedSline.length()>=4)
         {
 
@@ -1785,7 +1857,7 @@ void MainWindow::ReadPngButton()
             // HoughPoints_int=TransSequence2D_ToInt(OrderdOutLine,HoughPoints);
             //qDebug()<<"+++***   Only one strait line is here    ***+++";
 
-            QMessageBox::information(NULL,"one","one");
+
             int Checkflag=abs(HoughPoints_int[0]-HoughPoints_int[1]);//可能是直线点数
             //如果直线包含原点，这个值就会大于全部点数的一半
             int Checklength=All_Points_cout*0.45;
@@ -1797,7 +1869,7 @@ void MainWindow::ReadPngButton()
                     //this situation is that  origin point is not in this line；
                     // so curve contain origin points
                     // qDebug()<<"Only one line and *******curve****** contain the origin point";
-                    QMessageBox::information(NULL,"one","two");
+
                     QVector<int> CurvePoints_int;
                     for(int n=HoughPoints_int[1];n<All_Points_cout;n++)
                     {
@@ -1820,7 +1892,7 @@ void MainWindow::ReadPngButton()
                 {
                     //直线包含原点
                     // qDebug()<<"Only one line and **********Line******* contain the origin point";
-                    QMessageBox::information(NULL,"one","origin");
+
                     QVector<int> CurvePoints_int;
 
                     for(int n=HoughPoints_int[0];n<=HoughPoints_int[1];n++)
@@ -1841,7 +1913,7 @@ void MainWindow::ReadPngButton()
             }
             else
             {
-                QMessageBox::information(NULL,"one","no");
+
                 HoughPoints.clear();
                 HoughPoints_int.clear();
                 goto T;
@@ -1861,10 +1933,10 @@ T:
 
 
             for (int k=0;k< ImportantKey.length();k++) {
-               if(ImportantKey[k]<10||abs(ImportantKey[k]-OrderdOutLine.length())<10)
-               {
-                   ImportantKey.removeAt(k);
-               }
+                if(ImportantKey[k]<10||abs(ImportantKey[k]-OrderdOutLine.length())<10)
+                {
+                    ImportantKey.removeAt(k);
+                }
             }
 
             CharacteristicPoint.clear();
@@ -1893,18 +1965,21 @@ T:
     QVector<QVector2D>turp=TransSequenceTo2D(OrderdOutLine,ImportantKey);
     CharacteristicPoint=Unique_2D(CharacteristicPoint);
     Output2File(CharacteristicPoint,"F:/output/CharacteristicPoint.txt");
-    OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,0,255),7);
 
+    Output2File(turp,"F:/output/ImportantKey.txt");
+    OulineImage_b=ImageDrawer( OulineImage_b,CharacteristicPoint,QColor(0,0,255),7);
+    tosavepic=ImageDrawer(tosavepic,turp,QColor(0,255,0),7);
+     QimageSave(tosavepic,"keypoints");
     OulineImage_b=ImageDrawer( OulineImage_b,turp,QColor(0,255,0),11);
 
     ImageDisplayFunciton(ui->final_label,OulineImage_b,400,300);
 
     //创建关键点坐标代码
 
-    for(int i=0;i<CharacteristicPoint.length();i++)
+    /*for(int i=0;i<CharacteristicPoint.length();i++)
     {
         SetCoordinate(CharacteristicPoint[i].x(),CharacteristicPoint[i].y(),0);
-    }
+    }*/
 
     CreatReport("");
     CreadOrders(CharacteristicPoint);
@@ -2360,6 +2435,7 @@ void MainWindow::AutoRun()
 }
 void MainWindow::ClearVector()
 {
+    m_iSendCount=0;
     V4Domain.clear();
     V4Domain_new.clear();
     V4Domain_max.clear();//keep the max area domain
@@ -3687,7 +3763,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
     /************************************************************************
                从摄像机中读取多幅图像,从中提取出角点，然后对角点进行亚像素精确化
         *************************************************************************/
-    int image_count=  10;                    /****    图像数量     ****/
+    int image_count=  3;                    /****    图像数量     ****/
     Mat frame;
     Mat Tocheck;
     Size image_size;                         /****     图像的尺寸      ****/
@@ -3748,6 +3824,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
                 bool patternfound = findChessboardCorners(frame, board_size, corners,CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK );
                 if (patternfound)
                 {
+                    qDebug()<<"patternfound is true!";
                     n++;
                     tempname<<"F:/output/";
                     tempname<<n;
@@ -3923,7 +4000,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         //计算像素和实际尺寸的关系
         float corMinX,corMinY;
         float corMindis=11120.11;
-        float PixtoM[10];
+        float *PixtoM=new float[image_count];
         int tempcont=0;
         int pictucont=0;
 
@@ -3955,7 +4032,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         }
         float sumf;
         std::cout<<"pixto m"<<PixtoM;
-        for(int kkk=0;kkk<10;kkk++)
+        for(int kkk=0;kkk<image_count;kkk++)
         {
             float aver=PixtoM[kkk];
             sumf+=aver;
@@ -3965,7 +4042,7 @@ void MainWindow::on_DistortionCalibration_button_clicked()
         PixeltoMeter=squareWidth/sumf;
         // qDebug()<<"pixel size is"<<PixeltoMeter;
         ui->Pixeltomm_Label->setText(QString::number(PixeltoMeter));
-
+        delete [] PixtoM;
         imshow("origin image",Tocheck);
         imshow("correctec image",newimage);
         imshow("cliped",clipcheck);

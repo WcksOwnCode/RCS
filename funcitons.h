@@ -15,7 +15,7 @@ QVector<int> ReorderArray(QVector<int> Array, int n);
 QVector<double> ReorderArray(QVector<double> Array, int n);
 
 int FindMinorMax(QVector<int>input,int M=0);
-
+int FindMinorMax(QVector<double>input,int M=0);
 void ReorderArray(double *p,int n);
 
 void SwapT(double &a,double &b);
@@ -24,7 +24,8 @@ bool comparison(double x,double y);
 
 void SmoothFunctions(QVector<QVector2D> SF);
 
-
+QVector<int> LineMake(QVector<int>input_int,QVector<QVector2D>input_Point,
+                       QVector<QVector2D>allp,QVector<int>&KeyP,int MinL);
 
 QVector<QVector2D> DerectionCalFunc(QVector<QVector2D> DCF);//计算传入的矩阵的两点间方向
 
@@ -84,6 +85,9 @@ QVector2D Find_Center(QVector<QVector2D>Circle, QVector<double>cent, double radi
 
 QVector<QVector2D> CircularStitching(QVector<QVector2D>Line1,QVector<QVector2D>Line2);
 QVector<double> PointToLineDis(QVector<QVector2D> LinePoint, QVector<QVector2D>Points);
+
+double PointToLineDis(QVector<QVector2D> LinePoint, QVector2D Points);
+
 int AngelCompare(double slope1,double slope2,double tolerance);
 
 bool AngelCompare(QVector<double>Asl, int spot, QVector<double> BSlope, double tolerance);
@@ -96,7 +100,7 @@ QVector<int>Unique_Int(QVector<int>Input);
 QVector<QVector2D>Unique_2D(QVector<QVector2D>Input);
 QVector<QVector2D>VectorTransposition(QVector<QVector2D>point_2D,int Transpos);
 
-void QimageSave(QImage Tosave,QString add,int width=800,int height=600);
+void QimageSave(QImage Tosave, QString Name, int width=800, int height=600);
 
 QVector<QVector2D>KeyPointFilter_RCS(QVector<QVector2D>KP, QVector<QVector2D> ALL, int Gap);
 
@@ -109,5 +113,5 @@ QVector<int>VecAddVec(QVector<int>MainV,QVector<int>lowV,int n=1);
 double FindMidValue(QVector<double>Array, int sort, int Ratio);
 
 
-
+int FindMidValue(QVector<int>Array, int sort, int Ratio);
 #endif // FUNCITONS_H

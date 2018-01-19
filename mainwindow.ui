@@ -737,7 +737,7 @@
          <double>0.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>1000.000000000000000</double>
+         <double>5000.000000000000000</double>
         </property>
         <property name="value">
          <double>0.000000000000000</double>
@@ -1545,7 +1545,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>530</x>
@@ -1614,7 +1614,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>640</x>
@@ -1641,6 +1641,8 @@
      </layout>
     </widget>
     <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget</zorder>
     <zorder>ExitButton</zorder>
     <zorder>layoutWidget</zorder>
     <zorder>layoutWidget</zorder>
@@ -1650,15 +1652,10 @@
     <zorder>layoutWidget</zorder>
     <zorder>layoutWidget</zorder>
     <zorder>layoutWidget</zorder>
-    <zorder>GetTheWorldCoordinate_button</zorder>
     <zorder>Canny_button</zorder>
     <zorder>ChangeTheimage_</zorder>
-    <zorder>replace_pushButton</zorder>
     <zorder>ImageWatch_pushButton</zorder>
-    <zorder>GoToOriginSpot_button</zorder>
-    <zorder>CurvedBisector_checkBox</zorder>
     <zorder>groupBox_6</zorder>
-    <zorder>SetWorkSpaceZ</zorder>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
